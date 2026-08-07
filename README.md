@@ -23,18 +23,32 @@ pnpm dev               # api on :4000, gateway on :4001
 Verify the whole thing works:
 
 ```bash
-node services/gateway/scripts/e2e-smoke.mjs
+node services/gateway/scripts/e2e-smoke.mjs   # messaging: 24 checks
+node services/api/scripts/auth-smoke.mjs      # sign-in and duplicate accounts: 15 checks
 ```
 
-That registers two users, opens a chat, exchanges a Tajik-language message, and
-then checks the cases that actually matter on Tajik mobile data: a retried send
-whose ack was lost, and a client coming back after being offline.
+The first registers two users, opens a chat, exchanges a Tajik-language message,
+and then checks the cases that actually matter on Tajik mobile data: a retried
+send whose ack was lost, and a client coming back after being offline. The second
+checks that the ways around SMS did not become ways around having an account.
+
+## Signing in without a Tajik SIM
+
+Sign-in is by **email** for now — +992 SMS cannot be received from outside the
+country. Phone is still in the model and comes back at launch.
+
+Locally, `OTP_DEV_MODE=true` returns the verification code in the response, so
+nothing needs configuring. For anything shared, set `TEST_IDENTITIES` — fixed
+identity/code pairs that skip delivery in every environment. Those are also what
+App Store and Play reviewers use, since they cannot receive a Tajik SMS either.
+
+Email being a weak identity is a real problem, not a footnote: one Gmail mailbox
+can be written a dozen ways and each one would otherwise be a free extra account.
+Addresses are canonicalised per provider, disposable domains are refused, signups
+are capped per device and per network, and the beta can run invite-only.
+See [`docs/ANTI-ABUSE.md`](docs/ANTI-ABUSE.md).
 
 The mobile app needs a one-time setup — see [`apps/mobile/README.md`](apps/mobile/README.md).
-
-While `OTP_DEV_MODE=true`, the API returns the verification code in the response
-instead of sending an SMS, so you can sign in without an SMS provider. The API
-refuses to start with it enabled when `NODE_ENV=production`.
 
 ## Layout
 
@@ -51,7 +65,7 @@ infra            Postgres, Redis, MinIO, coturn
 
 ## Design
 
-Three documents, in the order worth reading them:
+Read them in this order:
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the decisions that are
   expensive to reverse, and why
@@ -59,6 +73,12 @@ Three documents, in the order worth reading them:
   both TypeScript and Dart
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — what is built, what is next, and what is
   deliberately deferred
+- [`docs/COMPETITIVE-ANALYSIS.md`](docs/COMPETITIVE-ANALYSIS.md) — seven
+  messengers, what to take from each, and three market findings that change the
+  plan
+- [`docs/GROWTH.md`](docs/GROWTH.md) — the plan to 10,000 users
+- [`docs/UX.md`](docs/UX.md) — Telegram-shaped, checked against Nielsen's heuristics
+- [`docs/ANTI-ABUSE.md`](docs/ANTI-ABUSE.md) — one person, one account
 
 The short version: the network is the enemy, so the client's local database is
 what the UI reads from and every write is idempotent. Money will be handled by a
@@ -69,5 +89,11 @@ and `users.kind` are open from the first commit.
 ## Status
 
 M0 is complete and verified: two people can exchange messages, and it holds up
-across retries, reconnects and restarts. The Flutter client is written but has
-not been compiled — see its README.
+across retries, reconnects and restarts. Sign-in works from anywhere via email,
+with duplicate-account detection. The Flutter client is written but has not been
+compiled — see its README.
+
+The nearest thing to a deadline: WhatsApp — the most-used messenger in
+Tajikistan — has been blocked in Russia since February 2026, where a large share
+of the country's families have someone working. That conversation is broken right
+now. See [`docs/COMPETITIVE-ANALYSIS.md`](docs/COMPETITIVE-ANALYSIS.md).

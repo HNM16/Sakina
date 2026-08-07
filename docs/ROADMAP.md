@@ -11,29 +11,41 @@ avatars.
 - [x] Monorepo, Docker Compose, one-command local stack
 - [x] `packages/protocol` — the wire contract
 - [x] Schema: users, devices, sessions, chats, membership, messages
-- [x] Phone + OTP auth, device-bound sessions, rotating refresh tokens
+- [x] Email + OTP auth (phone kept in the identity model for launch)
+- [x] Duplicate-account detection: per-provider canonicalisation, disposable
+      refusal, per-device/network ceilings, invite codes — `docs/ANTI-ABUSE.md`
+- [x] Device-bound sessions, rotating refresh tokens
 - [x] WebSocket gateway: send, ack, deliver, typing, read cursors, sync
 - [x] Per-chat gapless `seq`; idempotent sends on `(chat_id, client_id)`
 - [x] Ledger tables with database-enforced invariants, holding nothing
 - [x] Flutter client: four screens, SQLite store, outbox, reconnect
 - [x] End-to-end smoke test (`services/gateway/scripts/e2e-smoke.mjs`)
 
-Verified: 24/24 backend checks pass, including the flaky-network retry case and
-offline catch-up. The Flutter client has not been compiled — see
-`apps/mobile/README.md`.
+Verified: 24/24 messaging checks and 15/15 auth checks pass, including the
+flaky-network retry case, offline catch-up, and every Gmail/Yandex address
+variant resolving to a single account. The Flutter client has not been compiled —
+see `apps/mobile/README.md`.
 
 ## M1 — a messenger people would actually use
 
 The gap between "it works" and "I would install this."
 
-- Contact discovery — phone-book matching, with a privacy design of its own
-  (hashed identifiers, no plaintext address-book upload)
+- **Group chats** — top of M1. Nobody migrates a one-to-one conversation; groups
+  are the atomic unit of adoption (`docs/GROWTH.md`). Admin roles, invite links,
+  member management
+- **Tajik stickers** — reads as frivolous, is a primary revenue line for LINE and
+  the cheapest cultural moat available. An illustrator and a few hundred dollars
+- **Usernames** — WhatsApp added them in 2026; they matter more here, where users
+  switch between Tajik and Russian SIMs. The schema column already exists
+- Contact discovery — phone-book matching, with a privacy design of its own,
+  following Signal's private contact discovery (hashed identifiers, never a
+  plaintext address-book upload)
 - Media: images and files. Presigned MinIO uploads, resumable, client-side
   downscaling before upload — the user is paying per megabyte
-- Group chats: admin roles, invite links, member management
 - Push notifications: FCM and APNs, routed per device
 - Profiles: display name, username, avatar
-- Message editing, deletion, reply-to, forwarding
+- Message editing, deletion, reply-to, forwarding — with **undo rather than
+  confirm** dialogs (`docs/UX.md`)
 - Proper i18n: ARB files, Tajik and Russian complete
 - **A real OTP path.** Direct arrangement with Tcell / Megafon Tajikistan /
   Babilon-M / ZET-Mobile, or a regional aggregator holding one. Plan for flash-call
