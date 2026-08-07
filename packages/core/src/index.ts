@@ -9,3 +9,4 @@ export * as chatsRepo from "./repo/chats.js";
 export * as messagesRepo from "./repo/messages.js";
 export * as sessionsRepo from "./repo/sessions.js";
 export * as signupRepo from "./repo/signup.js";
+export * as bansRepo from "./repo/bans.js";

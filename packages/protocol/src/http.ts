@@ -42,12 +42,30 @@ export const OtpRequestResponse = z.object({
   dev_code: z.string().optional(),
 });
 
+/**
+ * Something that survives an app reinstall, so a ban is not undone by deleting
+ * and re-downloading the app.
+ *
+ * Optional on purpose: the web client has nothing to offer, an old Android may
+ * fail to read SSAID, and a missing attestation must degrade to "less trusted",
+ * never to "cannot sign in". See docs/BANS.md for what each source is worth.
+ */
+export const DeviceAttestation = z.object({
+  source: z.enum(["android_id", "devicecheck", "ios_vendor_id", "web_none"]),
+  /** Raw platform identifier. The server hashes it; it is never stored plainly. */
+  value: z.string().min(1).max(512),
+  /** Play Integrity or App Attest verdict, when the client obtained one. */
+  integrity_token: z.string().max(8192).optional(),
+});
+export type DeviceAttestation = z.infer<typeof DeviceAttestation>;
+
 export const DeviceInfo = z.object({
   /** Stable per install. The client generates it once and persists it. */
   device_id: Uuid,
   platform: Platform,
   name: z.string().max(128).default("unknown"),
   push_token: z.string().max(512).optional(),
+  attestation: DeviceAttestation.optional(),
 });
 
 export const OtpVerifyBody = z.object({

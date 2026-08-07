@@ -6,6 +6,7 @@ import {
   DomainError,
   hashIp,
   issueOtp,
+  bansRepo,
   sessionsRepo,
   signupRepo,
   usersRepo,
@@ -110,10 +111,21 @@ export function registerAuthRoutes(app: FastifyInstance, ctx: AppContext): void 
       canonical,
     };
 
+    const known = await usersRepo.findByIdentity(ctx.db, kind, canonical);
+
+    // Bans are checked before anything else, and the device is checked before
+    // the account — the whole point is the case where the address is brand new
+    // and only the hardware is recognised.
+    await bansRepo.assertNotBanned(ctx.db, {
+      userId: known?.id,
+      platform: body.device.platform,
+      fingerprint: body.device.attestation?.value,
+      pepper: ctx.env.OTP_PEPPER,
+    });
+
     // Only a signup is rate-limited. Someone signing back in on a new handset,
     // or a family sharing one, must not be blocked by a limit meant for account
     // farming — so the check happens after we know whether this address is new.
-    const known = await usersRepo.findByIdentity(ctx.db, kind, canonical);
     if (!known) {
       await signupRepo.assertSignupAllowed(ctx.db, signupCtx, ctx.signupLimits);
     }
@@ -142,6 +154,23 @@ export function registerAuthRoutes(app: FastifyInstance, ctx: AppContext): void 
       name: body.device.name,
       pushToken: body.device.push_token,
     });
+
+    // Recorded after the account resolves, so the (device, account) edge exists
+    // for ban propagation later. A device with no attestation simply has no
+    // edge — it is not a reason to refuse the sign-in.
+    if (body.device.attestation) {
+      await bansRepo.recordFingerprint(
+        ctx.db,
+        {
+          platform: body.device.platform,
+          value: body.device.attestation.value,
+          source: body.device.attestation.source,
+          attested: body.device.attestation.integrity_token !== undefined,
+        },
+        user.id,
+        ctx.env.OTP_PEPPER,
+      );
+    }
 
     const refreshToken = await sessionsRepo.createSession(ctx.db, user.id, body.device.device_id);
     const accessToken = await ctx.signer.signAccessToken({

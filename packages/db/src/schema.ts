@@ -166,6 +166,86 @@ export const signupAttempts = pgTable(
 );
 
 /**
+ * A device that has been seen, identified by something that survives an app
+ * reinstall.
+ *
+ * This is what makes a ban stick when someone re-registers with a new address.
+ * The identifier differs by platform and both have hard limits, documented in
+ * docs/BANS.md:
+ *
+ *   Android — Settings.Secure.ANDROID_ID (SSAID). Scoped to our signing key,
+ *             survives uninstall/reinstall, cleared by a factory reset.
+ *   iOS     — a DeviceCheck bit. Apple prohibits fingerprinting, and IDFV
+ *             resets once every app from the vendor is removed; DeviceCheck is
+ *             the sanctioned mechanism and survives reinstall. Two bits only.
+ *
+ * Never the raw value: only a peppered hash is stored. Matching does not need
+ * the plaintext, and a leaked table of real device identifiers would be a
+ * tracking database we have no business holding.
+ */
+export const deviceFingerprints = pgTable(
+  "device_fingerprints",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    platform: platform("platform").notNull(),
+    /** HMAC of the platform identifier. The plaintext never lands here. */
+    fingerprintHash: text("fingerprint_hash").notNull(),
+    /** How the identifier was obtained, so weak sources can be weighted down. */
+    source: text("source").notNull(),
+    /** True when the platform vouched for the app being genuine and unmodified. */
+    attested: boolean("attested").notNull().default(false),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).notNull().defaultNow(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("device_fingerprints_key").on(t.platform, t.fingerprintHash)],
+);
+
+/** Which accounts have been seen on which hardware. The ban-propagation graph. */
+export const deviceFingerprintUsers = pgTable(
+  "device_fingerprint_users",
+  {
+    fingerprintId: uuid("fingerprint_id")
+      .notNull()
+      .references(() => deviceFingerprints.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.fingerprintId, t.userId] }),
+    index("device_fingerprint_users_user_idx").on(t.userId),
+  ],
+);
+
+export const banSubject = pgEnum("ban_subject", ["user", "device"]);
+
+/**
+ * Bans, against an account or against hardware.
+ *
+ * Append-only in spirit: lifting a ban sets `liftedAt` rather than deleting the
+ * row, because "was this person banned before" is a question moderation will
+ * need to answer and a deleted row cannot.
+ */
+export const bans = pgTable(
+  "bans",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    subject: banSubject("subject").notNull(),
+    /** users.id or device_fingerprints.id, per `subject`. */
+    subjectId: uuid("subject_id").notNull(),
+    reason: text("reason").notNull(),
+    /** Null for permanent. */
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    liftedAt: timestamp("lifted_at", { withTimezone: true }),
+    liftedReason: text("lifted_reason"),
+  },
+  (t) => [index("bans_subject_idx").on(t.subject, t.subjectId, t.liftedAt)],
+);
+
+/**
  * Invite codes.
  *
  * The strongest anti-abuse tool available at this stage, and the cheapest: an
@@ -360,6 +440,9 @@ export const ledgerEntries = pgTable(
 export const schema = {
   users,
   identities,
+  deviceFingerprints,
+  deviceFingerprintUsers,
+  bans,
   signupAttempts,
   inviteCodes,
   inviteRedemptions,

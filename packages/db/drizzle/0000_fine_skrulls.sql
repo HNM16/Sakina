@@ -1,5 +1,6 @@
 CREATE TYPE "public"."account_kind" AS ENUM('asset', 'liability', 'revenue', 'expense');--> statement-breakpoint
 CREATE TYPE "public"."account_owner_type" AS ENUM('user', 'merchant', 'system');--> statement-breakpoint
+CREATE TYPE "public"."ban_subject" AS ENUM('user', 'device');--> statement-breakpoint
 CREATE TYPE "public"."chat_kind" AS ENUM('direct', 'group', 'channel');--> statement-breakpoint
 CREATE TYPE "public"."entry_direction" AS ENUM('debit', 'credit');--> statement-breakpoint
 CREATE TYPE "public"."identity_kind" AS ENUM('email', 'phone');--> statement-breakpoint
@@ -8,6 +9,18 @@ CREATE TYPE "public"."message_type" AS ENUM('text', 'media', 'voice', 'system', 
 CREATE TYPE "public"."platform" AS ENUM('android', 'ios', 'web');--> statement-breakpoint
 CREATE TYPE "public"."tx_status" AS ENUM('pending', 'completed', 'failed', 'reversed');--> statement-breakpoint
 CREATE TYPE "public"."user_kind" AS ENUM('human', 'bot', 'service');--> statement-breakpoint
+CREATE TABLE "bans" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"subject" "ban_subject" NOT NULL,
+	"subject_id" uuid NOT NULL,
+	"reason" text NOT NULL,
+	"expires_at" timestamp with time zone,
+	"created_by" uuid,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"lifted_at" timestamp with time zone,
+	"lifted_reason" text
+);
+--> statement-breakpoint
 CREATE TABLE "chat_members" (
 	"chat_id" uuid NOT NULL,
 	"user_id" uuid NOT NULL,
@@ -27,6 +40,23 @@ CREATE TABLE "chats" (
 	"last_seq" bigint DEFAULT 0 NOT NULL,
 	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "device_fingerprint_users" (
+	"fingerprint_id" uuid NOT NULL,
+	"user_id" uuid NOT NULL,
+	"first_seen_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "device_fingerprint_users_fingerprint_id_user_id_pk" PRIMARY KEY("fingerprint_id","user_id")
+);
+--> statement-breakpoint
+CREATE TABLE "device_fingerprints" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"platform" "platform" NOT NULL,
+	"fingerprint_hash" text NOT NULL,
+	"source" text NOT NULL,
+	"attested" boolean DEFAULT false NOT NULL,
+	"first_seen_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"last_seen_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "devices" (
@@ -149,9 +179,12 @@ CREATE TABLE "users" (
 	"deleted_at" timestamp with time zone
 );
 --> statement-breakpoint
+ALTER TABLE "bans" ADD CONSTRAINT "bans_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "chat_members" ADD CONSTRAINT "chat_members_chat_id_chats_id_fk" FOREIGN KEY ("chat_id") REFERENCES "public"."chats"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "chat_members" ADD CONSTRAINT "chat_members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "chats" ADD CONSTRAINT "chats_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "device_fingerprint_users" ADD CONSTRAINT "device_fingerprint_users_fingerprint_id_device_fingerprints_id_fk" FOREIGN KEY ("fingerprint_id") REFERENCES "public"."device_fingerprints"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "device_fingerprint_users" ADD CONSTRAINT "device_fingerprint_users_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "devices" ADD CONSTRAINT "devices_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "identities" ADD CONSTRAINT "identities_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "invite_codes" ADD CONSTRAINT "invite_codes_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
@@ -163,7 +196,10 @@ ALTER TABLE "messages" ADD CONSTRAINT "messages_chat_id_chats_id_fk" FOREIGN KEY
 ALTER TABLE "messages" ADD CONSTRAINT "messages_sender_id_users_id_fk" FOREIGN KEY ("sender_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_device_id_devices_id_fk" FOREIGN KEY ("device_id") REFERENCES "public"."devices"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "bans_subject_idx" ON "bans" USING btree ("subject","subject_id","lifted_at");--> statement-breakpoint
 CREATE INDEX "chat_members_user_idx" ON "chat_members" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "device_fingerprint_users_user_idx" ON "device_fingerprint_users" USING btree ("user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "device_fingerprints_key" ON "device_fingerprints" USING btree ("platform","fingerprint_hash");--> statement-breakpoint
 CREATE INDEX "devices_user_idx" ON "devices" USING btree ("user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "identities_canonical_key" ON "identities" USING btree ("kind","canonical");--> statement-breakpoint
 CREATE INDEX "identities_user_idx" ON "identities" USING btree ("user_id");--> statement-breakpoint

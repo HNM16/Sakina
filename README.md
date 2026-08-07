@@ -23,8 +23,9 @@ pnpm dev               # api on :4000, gateway on :4001
 Verify the whole thing works:
 
 ```bash
-node services/gateway/scripts/e2e-smoke.mjs   # messaging: 24 checks
-node services/api/scripts/auth-smoke.mjs      # sign-in and duplicate accounts: 15 checks
+node services/gateway/scripts/e2e-smoke.mjs                    # messaging: 24 checks
+node services/api/scripts/auth-smoke.mjs                       # sign-in, duplicate accounts: 15 checks
+pnpm --filter=@sakina/api exec tsx scripts/ban-smoke.ts        # ban evasion: 10 checks
 ```
 
 The first registers two users, opens a chat, exchanges a Tajik-language message,
@@ -78,7 +79,12 @@ Read them in this order:
   plan
 - [`docs/GROWTH.md`](docs/GROWTH.md) — the plan to 10,000 users
 - [`docs/UX.md`](docs/UX.md) — Telegram-shaped, checked against Nielsen's heuristics
+- [`docs/DELIVERY.md`](docs/DELIVERY.md) — how a message actually reaches the
+  other person, and the one gap that matters
+- [`docs/CALLS.md`](docs/CALLS.md) — voice and video: WebRTC, and why CGNAT
+  decides the cost
 - [`docs/ANTI-ABUSE.md`](docs/ANTI-ABUSE.md) — one person, one account
+- [`docs/BANS.md`](docs/BANS.md) — making a ban survive a new address
 
 The short version: the network is the enemy, so the client's local database is
 what the UI reads from and every write is idempotent. Money will be handled by a
