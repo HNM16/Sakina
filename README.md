@@ -23,15 +23,24 @@ pnpm dev               # api on :4000, gateway on :4001
 Verify the whole thing works:
 
 ```bash
-node services/gateway/scripts/e2e-smoke.mjs                    # messaging: 24 checks
-node services/api/scripts/auth-smoke.mjs                       # sign-in, duplicate accounts: 15 checks
-pnpm --filter=@sakina/api exec tsx scripts/ban-smoke.ts        # ban evasion: 10 checks
+pnpm test        # 49 checks: auth, ban evasion, messaging
 ```
 
-The first registers two users, opens a chat, exchanges a Tajik-language message,
-and then checks the cases that actually matter on Tajik mobile data: a retried
-send whose ack was lost, and a client coming back after being offline. The second
-checks that the ways around SMS did not become ways around having an account.
+To actually *see* it — no Flutter SDK, no emulator, no phone:
+
+```bash
+pnpm dev:client  # http://localhost:4002
+```
+
+Open it in two tabs, sign in with two different emails, copy one user id into
+the other tab, and chat. Full guide in [`docs/TESTING.md`](docs/TESTING.md).
+
+![Two browser tabs chatting in Tajik](tools/dev-client/screenshot.png)
+
+Those cover the cases that actually matter on Tajik mobile data — a retried send
+whose ack was lost, a client coming back after being offline — plus every email
+variant resolving to one account, and a ban surviving a new address on the same
+handset.
 
 ## Signing in without a Tajik SIM
 
@@ -85,6 +94,7 @@ Read them in this order:
   decides the cost
 - [`docs/ANTI-ABUSE.md`](docs/ANTI-ABUSE.md) — one person, one account
 - [`docs/BANS.md`](docs/BANS.md) — making a ban survive a new address
+- [`docs/TESTING.md`](docs/TESTING.md) — how to run and see all of it
 
 The short version: the network is the enemy, so the client's local database is
 what the UI reads from and every write is idempotent. Money will be handled by a

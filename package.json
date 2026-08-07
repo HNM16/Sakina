@@ -2,7 +2,7 @@
   "name": "sakina",
   "version": "0.0.1",
   "private": true,
-  "description": "Sakina — a messenger for Tajikistan, built to become a super-app.",
+  "description": "Sakina \u2014 a messenger for Tajikistan, built to become a super-app.",
   "scripts": {
     "build": "pnpm -r --filter=./packages/* --filter=./services/* build",
     "typecheck": "pnpm -r --filter=./packages/* --filter=./services/* typecheck",
@@ -12,7 +12,13 @@
     "db:seed": "pnpm --filter=@sakina/db seed",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",
-    "infra:reset": "docker compose -f infra/docker-compose.yml down -v"
+    "infra:reset": "docker compose -f infra/docker-compose.yml down -v",
+    "dev:client": "node tools/dev-client/serve.mjs",
+    "test": "pnpm test:auth && pnpm test:bans && pnpm test:messaging",
+    "test:messaging": "node services/gateway/scripts/e2e-smoke.mjs",
+    "test:auth": "node services/api/scripts/auth-smoke.mjs",
+    "test:bans": "pnpm --filter=@sakina/api exec tsx scripts/ban-smoke.ts",
+    "test:browser": "node tools/dev-client/verify.mjs"
   },
   "devDependencies": {
     "tsx": "^4.19.2",
