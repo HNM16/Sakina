@@ -13,6 +13,46 @@ const Env = z.object({
     .default("true")
     .transform((v) => v === "true"),
   CORS_ORIGIN: z.string().default("*"),
+
+  EMAIL_PROVIDER: z.enum(["console", "resend", "http"]).default("console"),
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().default("Sakina <no-reply@sakina.tj>"),
+  EMAIL_HTTP_URL: z.string().optional(),
+  EMAIL_HTTP_AUTHORIZATION: z.string().optional(),
+
+  /** Comma-separated extra disposable domains, on top of the built-in list. */
+  DISPOSABLE_EMAIL_DOMAINS: z.string().default(""),
+  /** When set, ONLY these domains may register. Empty means any domain. */
+  ALLOWED_EMAIL_DOMAINS: z.string().default(""),
+
+  /** Invite-only is the strongest anti-abuse lever and the growth loop. */
+  REQUIRE_INVITE: z
+    .string()
+    .default("false")
+    .transform((v) => v === "true"),
+  INVITES_PER_USER: z.coerce.number().int().nonnegative().default(5),
+  MAX_SIGNUPS_PER_DEVICE: z.coerce.number().int().positive().default(3),
+  MAX_SIGNUPS_PER_IP: z.coerce.number().int().positive().default(20),
+  SIGNUP_WINDOW_HOURS: z.coerce.number().int().positive().default(24),
+  /** Seconds between code requests for one identity. 0 disables, for tests only. */
+  OTP_RESEND_COOLDOWN_SECONDS: z.coerce.number().int().nonnegative().default(60),
+
+  SMS_PROVIDER: z.enum(["stub", "telegram", "http"]).default("stub"),
+  TELEGRAM_GATEWAY_TOKEN: z.string().optional(),
+  TELEGRAM_GATEWAY_SENDER: z.string().optional(),
+  SMS_HTTP_URL: z.string().optional(),
+  SMS_HTTP_AUTHORIZATION: z.string().optional(),
+  SMS_HTTP_SENDER_ID: z.string().optional(),
+
+  /**
+   * Reserved identity/code pairs that skip delivery, in every environment.
+   * Format: "qa@sakina.tj:000000,+992000000001:111111".
+   *
+   * Kept out of dev-mode gating on purpose: App Store and Play reviewers cannot
+   * receive a Tajik SMS, so production needs at least one working pair or the
+   * app gets rejected for an un-signin-able account.
+   */
+  TEST_IDENTITIES: z.string().default(""),
 });
 
 export type Env = z.infer<typeof Env>;
@@ -34,6 +74,22 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     if (parsed.data.OTP_PEPPER.startsWith("dev-only")) {
       throw new Error("OTP_PEPPER must be set in production");
     }
+    if (parsed.data.EMAIL_PROVIDER === "console") {
+      throw new Error("EMAIL_PROVIDER must not be 'console' in production");
+    }
+  }
+
+  if (parsed.data.SMS_PROVIDER === "telegram" && !parsed.data.TELEGRAM_GATEWAY_TOKEN) {
+    throw new Error("TELEGRAM_GATEWAY_TOKEN is required when SMS_PROVIDER=telegram");
+  }
+  if (parsed.data.SMS_PROVIDER === "http" && !parsed.data.SMS_HTTP_URL) {
+    throw new Error("SMS_HTTP_URL is required when SMS_PROVIDER=http");
+  }
+  if (parsed.data.EMAIL_PROVIDER === "resend" && !parsed.data.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY is required when EMAIL_PROVIDER=resend");
+  }
+  if (parsed.data.EMAIL_PROVIDER === "http" && !parsed.data.EMAIL_HTTP_URL) {
+    throw new Error("EMAIL_HTTP_URL is required when EMAIL_PROVIDER=http");
   }
 
   return parsed.data;

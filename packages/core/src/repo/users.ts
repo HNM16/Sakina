@@ -1,7 +1,9 @@
 import { and, eq, isNull } from "drizzle-orm";
 import type { Database } from "@sakina/db";
-import { devices, users } from "@sakina/db";
+import { devices, identities, users } from "@sakina/db";
 import type { Platform, PublicUser } from "@sakina/protocol";
+import { DomainError } from "../errors.js";
+import type { IdentityKind } from "../otp.js";
 
 export function toPublicUser(row: typeof users.$inferSelect): PublicUser {
   return {
@@ -13,32 +15,107 @@ export function toPublicUser(row: typeof users.$inferSelect): PublicUser {
   };
 }
 
-export async function findByPhone(db: Database, phone: string) {
-  const rows = await db.select().from(users).where(eq(users.phone, phone)).limit(1);
-  return rows[0] ?? null;
-}
-
 export async function findById(db: Database, id: string) {
   const rows = await db.select().from(users).where(eq(users.id, id)).limit(1);
   return rows[0] ?? null;
 }
 
+/** Lookup is always by canonical form — that is the whole point of storing it. */
+export async function findByIdentity(db: Database, kind: IdentityKind, canonical: string) {
+  const rows = await db
+    .select({ user: users })
+    .from(identities)
+    .innerJoin(users, eq(users.id, identities.userId))
+    .where(and(eq(identities.kind, kind), eq(identities.canonical, canonical)))
+    .limit(1);
+
+  return rows[0]?.user ?? null;
+}
+
+export interface ResolveIdentityInput {
+  kind: IdentityKind;
+  /** As typed, for display. */
+  value: string;
+  /** Normalised, for uniqueness. */
+  canonical: string;
+  /** Placeholder display name for a brand-new account. */
+  displayName: string;
+}
+
+export interface ResolvedIdentity {
+  user: typeof users.$inferSelect;
+  /** False when this identity already belonged to someone — a returning user. */
+  isNewUser: boolean;
+}
+
 /**
- * Registration is implicit: a verified phone number that we have not seen
- * before becomes an account. The display name is a placeholder the user edits
- * later — asking for it before the first message is friction we do not need.
+ * Resolve a verified identity to an account, creating one if this is the first
+ * time we have seen it.
+ *
+ * The unique index on `(kind, canonical)` is what makes this safe: two requests
+ * racing with `john+a@gmail.com` and `j.ohn@gmail.com` both canonicalise to the
+ * same string, so exactly one insert wins and the loser reads back the winner's
+ * account instead of creating a second one.
  */
-export async function findOrCreateByPhone(db: Database, phone: string) {
-  const existing = await findByPhone(db, phone);
-  if (existing) return existing;
+export async function resolveIdentity(
+  db: Database,
+  input: ResolveIdentityInput,
+): Promise<ResolvedIdentity> {
+  const existing = await findByIdentity(db, input.kind, input.canonical);
+  if (existing) return { user: existing, isNewUser: false };
 
-  const created = await db
-    .insert(users)
-    .values({ phone, displayName: phone })
-    .onConflictDoNothing({ target: users.phone })
-    .returning();
+  try {
+    return await db.transaction(async (tx) => {
+      const created = await tx
+        .insert(users)
+        .values({ displayName: input.displayName })
+        .returning();
 
-  return created[0] ?? (await findByPhone(db, phone))!;
+      const user = created[0];
+      if (!user) throw new DomainError("conflict", "user insert returned no row");
+
+      await tx.insert(identities).values({
+        userId: user.id,
+        kind: input.kind,
+        value: input.value,
+        canonical: input.canonical,
+        verifiedAt: new Date(),
+      });
+
+      return { user, isNewUser: true };
+    });
+  } catch (err) {
+    // Lost the race on the unique index — the other request's account is the
+    // real one. The orphaned user row is rolled back with the transaction.
+    const raced = await findByIdentity(db, input.kind, input.canonical);
+    if (raced) return { user: raced, isNewUser: false };
+    throw err;
+  }
+}
+
+/** Attach an additional identity — how a phone number gets added at launch. */
+export async function linkIdentity(
+  db: Database,
+  userId: string,
+  input: Omit<ResolveIdentityInput, "displayName">,
+): Promise<void> {
+  const owner = await findByIdentity(db, input.kind, input.canonical);
+  if (owner && owner.id !== userId) {
+    throw new DomainError("conflict", "that address is already linked to another account");
+  }
+  if (owner) return;
+
+  await db.insert(identities).values({
+    userId,
+    kind: input.kind,
+    value: input.value,
+    canonical: input.canonical,
+    verifiedAt: new Date(),
+  });
+}
+
+export async function listIdentities(db: Database, userId: string) {
+  return db.select().from(identities).where(eq(identities.userId, userId));
 }
 
 export interface UpsertDeviceInput {

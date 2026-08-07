@@ -18,7 +18,24 @@ export const PhoneNumber = z
 export const Platform = z.enum(["android", "ios", "web"]);
 export type Platform = z.infer<typeof Platform>;
 
-export const OtpRequestBody = z.object({ phone: PhoneNumber });
+export const EmailAddress = z.string().email().max(254);
+
+/**
+ * Sign-in identity. Email is what works today — the team is not in Tajikistan
+ * and cannot receive +992 SMS. Phone stays in the union because it is what the
+ * product needs at launch, and because an account may hold both.
+ */
+export const IdentityInput = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("email"), value: EmailAddress }),
+  z.object({ kind: z.literal("phone"), value: PhoneNumber }),
+]);
+export type IdentityInput = z.infer<typeof IdentityInput>;
+
+export const OtpRequestBody = z.object({
+  identity: IdentityInput,
+  /** Sent so the code email arrives in the right language. */
+  locale: z.enum(["tg", "ru", "en"]).default("tg"),
+});
 export const OtpRequestResponse = z.object({
   expires_in: z.number().int().positive(),
   /** Present only when the API runs with a stub SMS provider. Never set in production. */
@@ -34,9 +51,11 @@ export const DeviceInfo = z.object({
 });
 
 export const OtpVerifyBody = z.object({
-  phone: PhoneNumber,
+  identity: IdentityInput,
   code: z.string().regex(/^\d{6}$/),
   device: DeviceInfo,
+  /** Required only when the server runs invite-only. */
+  invite_code: z.string().min(4).max(32).optional(),
 });
 
 export const AuthTokens = z.object({
@@ -49,6 +68,8 @@ export const AuthTokens = z.object({
 export const OtpVerifyResponse = z.object({
   user: PublicUser,
   tokens: AuthTokens,
+  /** True when this call created the account rather than signing one back in. */
+  is_new_user: z.boolean(),
 });
 
 export const RefreshBody = z.object({ refresh_token: z.string().min(1) });
@@ -61,9 +82,16 @@ export const DeviceSummary = z.object({
   created_at: z.number().int(),
 });
 
+export const IdentitySummary = z.object({
+  kind: z.enum(["email", "phone"]),
+  value: z.string(),
+  verified: z.boolean(),
+});
+
 export const MeResponse = z.object({
   user: PublicUser,
   devices: z.array(DeviceSummary),
+  identities: z.array(IdentitySummary),
 });
 
 export const CreateChatBody = z.discriminatedUnion("kind", [
@@ -92,6 +120,15 @@ export const HistoryResponse = z.object({
 export const ApiError = z.object({
   error: z.object({ code: z.string(), message: z.string() }),
 });
+
+export const InviteSummary = z.object({
+  code: z.string(),
+  remaining_uses: z.number().int().nonnegative(),
+  note: z.string().nullable(),
+  created_at: z.number().int(),
+});
+
+export const InviteListResponse = z.object({ invites: z.array(InviteSummary) });
 
 export type OtpRequestBody = z.infer<typeof OtpRequestBody>;
 export type OtpVerifyBody = z.infer<typeof OtpVerifyBody>;

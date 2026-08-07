@@ -1,6 +1,7 @@
 import {
   bigint,
   bigserial,
+  boolean,
   index,
   integer,
   jsonb,
@@ -20,11 +21,50 @@ import {
 export const userKind = pgEnum("user_kind", ["human", "bot", "service"]);
 export const platform = pgEnum("platform", ["android", "ios", "web"]);
 
+/**
+ * How an account can be proved. A user has many identities.
+ *
+ * Email is the identity that works today, because the team is not in
+ * Tajikistan and cannot receive +992 SMS. Phone is what the product needs at
+ * launch — for contact discovery, for trust, and eventually for the payments
+ * layer, where an email-only account is not something a regulator will accept.
+ *
+ * Modelling both from the start means adding phone later is `INSERT INTO
+ * identities`, not a migration of the user table and every auth path that
+ * touches it.
+ */
+export const identityKind = pgEnum("identity_kind", ["email", "phone"]);
+
+export const identities = pgTable(
+  "identities",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: identityKind("kind").notNull(),
+    /** Exactly as the user typed it. Shown back to them; never used for lookup. */
+    value: text("value").notNull(),
+    /**
+     * The normalised form, and the only thing uniqueness is judged on.
+     * `J.Doe+signup@googlemail.com` and `jdoe@gmail.com` both land here as
+     * `jdoe@gmail.com`, so the second signup collides with the first instead of
+     * quietly creating a second account. See packages/core/src/identity.ts.
+     */
+    canonical: text("canonical").notNull(),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("identities_canonical_key").on(t.kind, t.canonical),
+    index("identities_user_idx").on(t.userId),
+  ],
+);
+
 export const users = pgTable(
   "users",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    phone: text("phone").notNull(),
     username: text("username"),
     displayName: text("display_name").notNull(),
     avatarKey: text("avatar_key"),
@@ -37,10 +77,7 @@ export const users = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
-  (t) => [
-    uniqueIndex("users_phone_key").on(t.phone),
-    uniqueIndex("users_username_key").on(t.username),
-  ],
+  (t) => [uniqueIndex("users_username_key").on(t.username)],
 );
 
 /**
@@ -90,14 +127,83 @@ export const otpCodes = pgTable(
   "otp_codes",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    phone: text("phone").notNull(),
+    kind: identityKind("kind").notNull(),
+    /** Always the canonical form, so `a.b@gmail.com` cannot get its own code. */
+    canonical: text("canonical").notNull(),
     codeHash: text("code_hash").notNull(),
     attempts: integer("attempts").notNull().default(0),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     consumedAt: timestamp("consumed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("otp_phone_idx").on(t.phone, t.createdAt)],
+  (t) => [index("otp_identity_idx").on(t.kind, t.canonical, t.createdAt)],
+);
+
+/**
+ * Signup attempts, for the abuse question email brings that phone did not.
+ *
+ * Canonicalisation stops the lazy duplicate — the same mailbox typed three
+ * ways. It cannot stop a determined person with three genuinely different
+ * mailboxes, and no amount of string handling will. What actually limits that
+ * is cost per account: how many can come from one device, one network, one
+ * afternoon.
+ */
+export const signupAttempts = pgTable(
+  "signup_attempts",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    /** Install identifier — stable across accounts created on one handset. */
+    deviceId: uuid("device_id"),
+    ipHash: text("ip_hash"),
+    canonical: text("canonical").notNull(),
+    succeeded: boolean("succeeded").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("signup_attempts_device_idx").on(t.deviceId, t.createdAt),
+    index("signup_attempts_ip_idx").on(t.ipHash, t.createdAt),
+  ],
+);
+
+/**
+ * Invite codes.
+ *
+ * The strongest anti-abuse tool available at this stage, and the cheapest: an
+ * account has to be vouched for by an existing one. It happens to also be the
+ * growth mechanism — a closed beta that people ask to be let into spreads
+ * better than an open signup nobody is curious about, and the target here is
+ * five to ten thousand users, not five million.
+ */
+export const inviteCodes = pgTable(
+  "invite_codes",
+  {
+    code: text("code").primaryKey(),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    /** How many accounts this code may still create. */
+    remainingUses: integer("remaining_uses").notNull().default(1),
+    note: text("note"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("invite_codes_creator_idx").on(t.createdBy)],
+);
+
+export const inviteRedemptions = pgTable(
+  "invite_redemptions",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    code: text("code")
+      .notNull()
+      .references(() => inviteCodes.code, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("invite_redemptions_user_key").on(t.userId),
+    index("invite_redemptions_code_idx").on(t.code),
+  ],
 );
 
 // ---------------------------------------------------------------------------
@@ -253,6 +359,10 @@ export const ledgerEntries = pgTable(
 
 export const schema = {
   users,
+  identities,
+  signupAttempts,
+  inviteCodes,
+  inviteRedemptions,
   devices,
   sessions,
   otpCodes,

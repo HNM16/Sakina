@@ -71,32 +71,41 @@ class ApiClient {
     return decoded;
   }
 
-  /// Returns the dev code when the API runs with the stub SMS provider, so the
-  /// app is usable end to end before an operator deal exists.
-  Future<String?> requestOtp(String phone) async {
-    final res = await _send('POST', '/v1/auth/otp/request', body: {'phone': phone});
+  /// Returns the dev code when the API runs a stub provider, so the app is
+  /// usable end to end before any email or SMS vendor is wired up.
+  ///
+  /// Email is the identity that works today; the server also accepts
+  /// `kind: 'phone'`, which is what launch in Tajikistan will use.
+  Future<String?> requestOtp(String email, {String locale = 'tg'}) async {
+    final res = await _send('POST', '/v1/auth/otp/request', body: {
+      'identity': {'kind': 'email', 'value': email},
+      'locale': locale,
+    });
     return res['dev_code'] as String?;
   }
 
-  Future<({PublicUser user, AuthTokens tokens})> verifyOtp({
-    required String phone,
+  Future<({PublicUser user, AuthTokens tokens, bool isNewUser})> verifyOtp({
+    required String email,
     required String code,
     required String deviceId,
     required String deviceName,
+    String? inviteCode,
   }) async {
     final res = await _send('POST', '/v1/auth/otp/verify', body: {
-      'phone': phone,
+      'identity': {'kind': 'email', 'value': email},
       'code': code,
       'device': {
         'device_id': deviceId,
         'platform': 'android',
         'name': deviceName,
       },
+      if (inviteCode != null && inviteCode.isNotEmpty) 'invite_code': inviteCode,
     });
 
     return (
       user: PublicUser.fromJson(Map<String, dynamic>.from(res['user'] as Map)),
       tokens: AuthTokens.fromJson(Map<String, dynamic>.from(res['tokens'] as Map)),
+      isNewUser: res['is_new_user'] as bool? ?? false,
     );
   }
 

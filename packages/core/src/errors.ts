@@ -4,7 +4,8 @@ export type DomainErrorCode =
   | "not_found"
   | "conflict"
   | "rate_limited"
-  | "bad_request";
+  | "bad_request"
+  | "internal";
 
 export class DomainError extends Error {
   constructor(
@@ -23,4 +24,5 @@ export const HTTP_STATUS: Record<DomainErrorCode, number> = {
   conflict: 409,
   rate_limited: 429,
   bad_request: 400,
+  internal: 500,
 };

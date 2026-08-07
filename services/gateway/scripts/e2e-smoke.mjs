@@ -35,18 +35,20 @@ async function api(path, options = {}) {
   return body;
 }
 
-async function register(phone, deviceName) {
+async function register(email, deviceName) {
   const deviceId = randomUUID();
+  const identity = { kind: "email", value: email };
+
   const { dev_code } = await api("/v1/auth/otp/request", {
     method: "POST",
-    body: JSON.stringify({ phone }),
+    body: JSON.stringify({ identity, locale: "tg" }),
   });
   if (!dev_code) throw new Error("API is not in OTP dev mode; cannot run smoke test");
 
   const { user, tokens } = await api("/v1/auth/otp/verify", {
     method: "POST",
     body: JSON.stringify({
-      phone,
+      identity,
       code: dev_code,
       device: { device_id: deviceId, platform: "android", name: deviceName },
     }),
@@ -108,16 +110,16 @@ function connect(session) {
 }
 
 const suffix = Date.now().toString().slice(-7);
-const phoneA = `+9929${suffix}`;
-const phoneB = `+9928${suffix}`;
+const emailA = `alice${suffix}@example.com`;
+const emailB = `bob${suffix}@example.com`;
 
 console.log("\nSakina M0 smoke test\n");
 
 // --- registration ---------------------------------------------------------
 console.log("auth");
-const alice = await register(phoneA, "Alice Android");
-const bob = await register(phoneB, "Bob Android");
-check("two users registered via phone + OTP", !!alice.user.id && !!bob.user.id);
+const alice = await register(emailA, "Alice Android");
+const bob = await register(emailB, "Bob Android");
+check("two users registered via email + OTP", !!alice.user.id && !!bob.user.id);
 check("users are distinct", alice.user.id !== bob.user.id);
 
 // --- chat creation --------------------------------------------------------
@@ -215,7 +217,7 @@ check("receipt identifies the reader", receipt.d.user_id === bob.user.id);
 
 // --- authorization --------------------------------------------------------
 console.log("\nauthorization");
-const mallory = await register(`+9927${suffix}`, "Mallory");
+const mallory = await register(`mallory${suffix}@example.com`, "Mallory");
 const malloryWs = await connect(mallory);
 malloryWs.send({
   t: "send",

@@ -27,15 +27,50 @@ class L10n {
 
   static const _strings = <String, Map<String, String>>{
     'app_name': {'tg': 'Сакина', 'ru': 'Сакина', 'en': 'Sakina'},
+    'sign_in_subtitle': {
+      'tg': 'Барои вуруд почтаи электронии худро ворид кунед',
+      'ru': 'Введите вашу почту, чтобы войти',
+      'en': 'Enter your email to sign in',
+    },
+    'email_title': {
+      'tg': 'Почтаи электронӣ',
+      'ru': 'Электронная почта',
+      'en': 'Email',
+    },
+    'email_hint': {
+      'tg': 'nekruz@example.com',
+      'ru': 'nekruz@example.com',
+      'en': 'nekruz@example.com',
+    },
+    'email_invalid': {
+      'tg': 'Суроғаи почта нодуруст аст',
+      'ru': 'Неверный адрес почты',
+      'en': "That doesn't look like an email address",
+    },
+    'code_sent_to': {
+      'tg': 'Мо рамзро фиристодем ба',
+      'ru': 'Мы отправили код на',
+      'en': 'We sent a code to',
+    },
+    'change_email': {
+      'tg': 'Тағйири суроға',
+      'ru': 'Изменить адрес',
+      'en': 'Change address',
+    },
+    'invite_title': {
+      'tg': 'Рамзи даъват',
+      'ru': 'Код приглашения',
+      'en': 'Invite code',
+    },
+    'invite_hint': {
+      'tg': 'Аз дӯсте, ки аллакай дар Сакина аст',
+      'ru': 'От друга, который уже в Сакина',
+      'en': 'From a friend already on Sakina',
+    },
     'phone_title': {
       'tg': 'Рақами телефон',
       'ru': 'Номер телефона',
       'en': 'Phone number',
-    },
-    'phone_hint': {
-      'tg': 'Рақами худро ворид кунед',
-      'ru': 'Введите ваш номер',
-      'en': 'Enter your number',
     },
     'continue': {'tg': 'Идома', 'ru': 'Продолжить', 'en': 'Continue'},
     'code_title': {'tg': 'Рамзи тасдиқ', 'ru': 'Код подтверждения', 'en': 'Confirmation code'},

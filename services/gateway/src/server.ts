@@ -325,6 +325,8 @@ function toErrorCode(code: DomainError["code"]): ErrorCode {
     case "bad_request":
     case "conflict":
       return "bad_frame";
+    case "internal":
+      return "internal";
   }
 }
 
