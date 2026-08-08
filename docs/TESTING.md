@@ -35,13 +35,14 @@ configuring to sign in.**
 pnpm test
 ```
 
-Three suites, 49 checks:
+Four suites, 66 checks:
 
 | Suite | What it proves |
 | --- | --- |
 | `pnpm test:auth` | 15 checks. Every Gmail and Yandex address variant lands on **one** account; non-Gmail dots stay distinct; disposable domains refused; reserved test identities work but stay contained; one device cannot farm accounts. |
 | `pnpm test:bans` | 10 checks. A banned user with a **new email on the same handset** is refused. Also asserts the honest limits — a factory reset gets through. |
 | `pnpm test:messaging` | 24 checks. Two users exchange Tajik text; a retried send whose ack was lost does **not** duplicate; a client that went offline catches up; non-members are refused. |
+| `pnpm test:push` | 17 checks. A device with the app **closed** gets a notification; a device with it **open** does not; the sender is never notified of their own message; no message text appears in the payload; a dead token is retired rather than retried forever. Needs the worker running with `PUSH_PROVIDER=console`. |
 
 Each prints a tick per check and exits non-zero on failure. Run them after any
 change to auth or the protocol.
@@ -177,7 +178,7 @@ Being straight about the gaps, because a green test run can otherwise read as
 
 | | Status |
 | --- | --- |
-| **Push notifications** | Not built. The app only receives while open. Nothing here tests background delivery because there isn't any. **Top of M1** — see `docs/DELIVERY.md`. |
+| **Push on a real handset** | The server path is built and tested end to end with a recording provider. What is untested is FCM and APNs themselves, which needs a Firebase project and a physical phone — see `docs/PUSH.md`. |
 | **Calls** | Not built. Design in `docs/CALLS.md`. |
 | **Media, groups, stickers** | Not built. M1. |
 | **Device attestation** | Server side done and tested. The Flutter client does not yet collect ANDROID_ID or DeviceCheck tokens — see `docs/BANS.md`. |

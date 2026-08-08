@@ -1,5 +1,5 @@
 {
-  "id": "f01a8d6d-55da-4323-9e09-5165de919a57",
+  "id": "10196249-51b5-4c23-889f-620bb63a2e55",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -497,6 +497,27 @@
         "push_token": {
           "name": "push_token",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "push_provider": {
+          "name": "push_provider",
+          "type": "push_provider",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'none'"
+        },
+        "push_failures": {
+          "name": "push_failures",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "push_disabled_at": {
+          "name": "push_disabled_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
@@ -1736,6 +1757,15 @@
         "android",
         "ios",
         "web"
+      ]
+    },
+    "public.push_provider": {
+      "name": "push_provider",
+      "schema": "public",
+      "values": [
+        "fcm",
+        "apns",
+        "none"
       ]
     },
     "public.tx_status": {

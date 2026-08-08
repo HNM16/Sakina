@@ -81,6 +81,19 @@ class ChatRepository extends ChangeNotifier {
     await _flushOutbox();
   }
 
+  /// Called when a push says something changed.
+  ///
+  /// The push carries a chat id and a seq, never message text, so the content
+  /// still has to be fetched. If the socket is up this is a cheap sync frame;
+  /// if it is not, opening it triggers the same catch-up anyway.
+  Future<void> resync() async {
+    if (socket.current == SocketStatus.connected) {
+      await _onConnected();
+    }
+    // Otherwise the socket is already reconnecting on its own backoff, and
+    // `_onConnected` will fire when it lands. Nothing to force.
+  }
+
   /// Re-sends everything composed but never acked. Same client_id as the first
   /// attempt, so the server recognises the retry and does not duplicate it.
   Future<void> _flushOutbox() async {

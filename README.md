@@ -17,13 +17,13 @@ pnpm install
 pnpm infra:up          # postgres + redis + minio
 pnpm build
 pnpm db:migrate
-pnpm dev               # api on :4000, gateway on :4001
+pnpm dev               # api :4000, gateway :4001, worker :4003
 ```
 
 Verify the whole thing works:
 
 ```bash
-pnpm test        # 49 checks: auth, ban evasion, messaging
+pnpm test        # 66 checks: auth, ban evasion, messaging, push
 ```
 
 To actually *see* it — no Flutter SDK, no emulator, no phone:
@@ -67,6 +67,7 @@ apps/mobile      Flutter client — the product
 apps/web         Next.js — web client and landing
 services/api     Fastify: auth, chats, history
 services/gateway WebSocket: realtime delivery
+services/worker  push notifications for closed apps
 packages/protocol  The wire contract (zod schemas + types)
 packages/core      Domain logic and repositories
 packages/db        Drizzle schema and migrations
@@ -90,6 +91,8 @@ Read them in this order:
 - [`docs/UX.md`](docs/UX.md) — Telegram-shaped, checked against Nielsen's heuristics
 - [`docs/DELIVERY.md`](docs/DELIVERY.md) — how a message actually reaches the
   other person, and the one gap that matters
+- [`docs/PUSH.md`](docs/PUSH.md) — notifications when the app is closed, and the
+  Firebase setup you have to do yourself
 - [`docs/CALLS.md`](docs/CALLS.md) — voice and video: WebRTC, and why CGNAT
   decides the cost
 - [`docs/ANTI-ABUSE.md`](docs/ANTI-ABUSE.md) — one person, one account
@@ -106,8 +109,10 @@ and `users.kind` are open from the first commit.
 
 M0 is complete and verified: two people can exchange messages, and it holds up
 across retries, reconnects and restarts. Sign-in works from anywhere via email,
-with duplicate-account detection. The Flutter client is written but has not been
-compiled — see its README.
+with duplicate-account detection. Push notifications reach a closed app — the
+server path is tested end to end; the Firebase project and a real handset are
+yours to set up (see [`docs/PUSH.md`](docs/PUSH.md)). The Flutter client is
+written but has not been compiled — see its README.
 
 The nearest thing to a deadline: WhatsApp — the most-used messenger in
 Tajikistan — has been blocked in Russia since February 2026, where a large share

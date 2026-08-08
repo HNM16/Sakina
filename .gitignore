@@ -37,3 +37,9 @@ apps/mobile/windows/
 apps/mobile/.flutter-plugins
 apps/mobile/.flutter-plugins-dependencies
 apps/mobile/pubspec.lock
+
+# firebase config — identifies your project, not source
+apps/mobile/android/app/google-services.json
+apps/mobile/ios/Runner/GoogleService-Info.plist
+**/serviceAccountKey.json
+*.p8

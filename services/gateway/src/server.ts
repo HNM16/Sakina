@@ -1,7 +1,17 @@
 import { createServer, type Server } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
 import { createDb } from "@sakina/db";
-import { chatsRepo, createTokenSigner, DomainError, messagesRepo, usersRepo } from "@sakina/core";
+import {
+  chatsRepo,
+  createTokenSigner,
+  DomainError,
+  enqueuePush,
+  markOffline,
+  markOnline,
+  messagesRepo,
+  PRESENCE_TTL_SECONDS,
+  usersRepo,
+} from "@sakina/core";
 import {
   decodeClientFrame,
   PROTOCOL_VERSION,
@@ -77,15 +87,17 @@ export async function startGateway(env: Env) {
       })();
     });
 
-    socket.on("close", () => {
+    const teardown = () => {
       clearTimeout(helloTimer);
-      if (conn) registry.remove(conn);
-    });
+      if (!conn) return;
+      registry.remove(conn);
+      // Cleared eagerly so a push is not suppressed for a device that just
+      // left. If the process dies instead, the TTL handles it.
+      void markOffline(bus.redis, conn.deviceId).catch(() => {});
+    };
 
-    socket.on("error", () => {
-      clearTimeout(helloTimer);
-      if (conn) registry.remove(conn);
-    });
+    socket.on("close", teardown);
+    socket.on("error", teardown);
   });
 
   async function handleHello(
@@ -133,6 +145,11 @@ export async function startGateway(env: Env) {
     if (replaced && replaced.socket !== socket) replaced.socket.close();
 
     await usersRepo.touchDevice(db, claims.did);
+
+    // Visible to every gateway node, so the push worker can tell whether this
+    // device needs a notification or already has the message on screen.
+    await markOnline(bus.redis, claims.did, PRESENCE_TTL_SECONDS);
+
     const chats = await chatsRepo.listChatsForUser(db, claims.sub);
 
     sendFrame(socket, {
@@ -201,6 +218,20 @@ export async function startGateway(env: Env) {
       // Everyone gets the message — including the sender's other devices. Only
       // the device that sent it is skipped, since it already got the ack.
       exclude_device_id: conn.deviceId,
+    });
+
+    // Hand off to the worker rather than calling FCM here: a push is an HTTP
+    // round trip to a third party, and the user watching the spinner must not
+    // wait for it.
+    await enqueuePush(bus.redis, {
+      chat_id: frame.d.chat_id,
+      seq: message.seq,
+      message_id: message.id,
+      sender_id: conn.userId,
+      recipient_ids: memberIds.filter((id) => id !== conn.userId),
+      exclude_device_id: conn.deviceId,
+      is_group: memberIds.length > 2,
+      queued_at: Date.now(),
     });
   }
 
@@ -271,11 +302,15 @@ export async function startGateway(env: Env) {
     for (const conn of registry.all()) {
       if (!conn.alive) {
         registry.remove(conn);
+        void markOffline(bus.redis, conn.deviceId).catch(() => {});
         conn.socket.terminate();
         continue;
       }
       conn.alive = false;
       conn.socket.ping();
+      // Presence keys carry a TTL so a hard crash self-heals; the heartbeat is
+      // what keeps a live connection from expiring out of the set.
+      void markOnline(bus.redis, conn.deviceId, PRESENCE_TTL_SECONDS).catch(() => {});
     }
   }, HEARTBEAT_INTERVAL_MS);
 

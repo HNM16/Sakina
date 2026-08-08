@@ -20,6 +20,7 @@ import {
 
 export const userKind = pgEnum("user_kind", ["human", "bot", "service"]);
 export const platform = pgEnum("platform", ["android", "ios", "web"]);
+export const pushProvider = pgEnum("push_provider", ["fcm", "apns", "none"]);
 
 /**
  * How an account can be proved. A user has many identities.
@@ -93,7 +94,17 @@ export const devices = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     platform: platform("platform").notNull(),
     name: text("name").notNull().default("unknown"),
+    /** FCM registration token or APNs device token. Null until the OS grants one. */
     pushToken: text("push_token"),
+    pushProvider: pushProvider("push_provider").notNull().default("none"),
+    /**
+     * Consecutive hard failures. Push tokens rot constantly — reinstalls,
+     * restores from backup, OS updates — and a provider answering "unregistered"
+     * is authoritative. Counting lets a token be retired instead of retried
+     * forever against a device that no longer exists.
+     */
+    pushFailures: integer("push_failures").notNull().default(0),
+    pushDisabledAt: timestamp("push_disabled_at", { withTimezone: true }),
     lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     revokedAt: timestamp("revoked_at", { withTimezone: true }),

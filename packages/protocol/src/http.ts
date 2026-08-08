@@ -139,6 +139,18 @@ export const ApiError = z.object({
   error: z.object({ code: z.string(), message: z.string() }),
 });
 
+/**
+ * Registering the OS-issued push token. Separate from sign-in because the
+ * token arrives later — after the user grants notification permission, which
+ * on both platforms is a prompt they may dismiss and revisit.
+ */
+export const PushTokenBody = z.object({
+  device_id: Uuid,
+  token: z.string().min(1).max(4096),
+  provider: z.enum(["fcm", "apns"]),
+});
+export type PushTokenBody = z.infer<typeof PushTokenBody>;
+
 export const InviteSummary = z.object({
   code: z.string(),
   remaining_uses: z.number().int().nonnegative(),

@@ -26,6 +26,7 @@ import type { Env } from "./env.js";
 import { registerAuthRoutes } from "./routes/auth.js";
 import { registerMeRoutes } from "./routes/me.js";
 import { registerChatRoutes } from "./routes/chats.js";
+import { registerDeviceRoutes } from "./routes/devices.js";
 
 export interface AppContext {
   env: Env;
@@ -163,6 +164,7 @@ export async function buildApp(env: Env, overrides: Partial<AppContext> = {}) {
   await app.register(async (instance) => registerAuthRoutes(instance, ctx), { prefix: "/v1/auth" });
   await app.register(async (instance) => registerMeRoutes(instance, ctx), { prefix: "/v1" });
   await app.register(async (instance) => registerChatRoutes(instance, ctx), { prefix: "/v1" });
+  await app.register(async (instance) => registerDeviceRoutes(instance, ctx), { prefix: "/v1" });
 
   app.addHook("onClose", async () => {
     if (!overrides.db) await sql.end();

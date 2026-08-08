@@ -20,6 +20,12 @@ dependencies:
   shared_preferences: ^2.3.3
   uuid: ^4.5.1
   intl: ^0.19.0
+  # Push. firebase_messaging covers Android (FCM) and iOS (APNs via FCM), which
+  # is one integration instead of two — worth the dependency weight given push
+  # is the difference between a messenger and a demo.
+  firebase_core: ^3.8.0
+  firebase_messaging: ^15.1.5
+  flutter_local_notifications: ^18.0.1
 
 dev_dependencies:
   flutter_lints: ^5.0.0

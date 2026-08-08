@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
 import type { Database } from "@sakina/db";
 import { devices, identities, users } from "@sakina/db";
 import type { Platform, PublicUser } from "@sakina/protocol";
@@ -162,4 +162,100 @@ export async function listDevices(db: Database, userId: string) {
 
 export async function touchDevice(db: Database, deviceId: string): Promise<void> {
   await db.update(devices).set({ lastSeenAt: new Date() }).where(eq(devices.id, deviceId));
+}
+
+// ---------------------------------------------------------------------------
+// Push
+// ---------------------------------------------------------------------------
+
+export type PushProviderKind = "fcm" | "apns" | "none";
+
+/**
+ * Push targets for a set of users: every device that has a live token and has
+ * not been retired. The worker then removes the ones currently holding a socket.
+ */
+export async function pushTargetsForUsers(db: Database, userIds: string[]) {
+  if (userIds.length === 0) return [];
+
+  return db
+    .select({
+      deviceId: devices.id,
+      userId: devices.userId,
+      platform: devices.platform,
+      pushToken: devices.pushToken,
+      pushProvider: devices.pushProvider,
+    })
+    .from(devices)
+    .where(
+      and(
+        inArray(devices.userId, userIds),
+        isNull(devices.revokedAt),
+        isNull(devices.pushDisabledAt),
+        isNotNull(devices.pushToken),
+        ne(devices.pushProvider, "none"),
+      ),
+    );
+}
+
+export interface SetPushTokenInput {
+  deviceId: string;
+  userId: string;
+  token: string;
+  provider: PushProviderKind;
+}
+
+/** Registering a token clears any previous failure state — it is a new token. */
+export async function setPushToken(db: Database, input: SetPushTokenInput): Promise<void> {
+  await db
+    .update(devices)
+    .set({
+      pushToken: input.token,
+      pushProvider: input.provider,
+      pushFailures: 0,
+      pushDisabledAt: null,
+    })
+    .where(and(eq(devices.id, input.deviceId), eq(devices.userId, input.userId)));
+}
+
+export async function clearPushToken(db: Database, deviceId: string): Promise<void> {
+  await db
+    .update(devices)
+    .set({ pushToken: null, pushProvider: "none", pushFailures: 0, pushDisabledAt: null })
+    .where(eq(devices.id, deviceId));
+}
+
+/** How many consecutive soft failures before a token is retired. */
+export const PUSH_FAILURE_LIMIT = 5;
+
+/**
+ * A provider saying "unregistered" is authoritative — retire immediately.
+ * Anything else is transient and only counts toward the limit, because a
+ * temporary FCM outage must not wipe every token on the platform.
+ */
+export async function recordPushFailure(
+  db: Database,
+  deviceId: string,
+  permanent: boolean,
+): Promise<void> {
+  if (permanent) {
+    await db
+      .update(devices)
+      .set({ pushDisabledAt: new Date(), pushToken: null, pushProvider: "none" })
+      .where(eq(devices.id, deviceId));
+    return;
+  }
+
+  const updated = await db
+    .update(devices)
+    .set({ pushFailures: sql`${devices.pushFailures} + 1` })
+    .where(eq(devices.id, deviceId))
+    .returning({ failures: devices.pushFailures });
+
+  if ((updated[0]?.failures ?? 0) >= PUSH_FAILURE_LIMIT) {
+    await db.update(devices).set({ pushDisabledAt: new Date() }).where(eq(devices.id, deviceId));
+  }
+}
+
+export async function recordPushSuccess(db: Database, deviceId: string): Promise<void> {
+  await db.update(devices).set({ pushFailures: 0 }).where(eq(devices.id, deviceId));
 }

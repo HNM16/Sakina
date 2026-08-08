@@ -6,7 +6,7 @@
   "scripts": {
     "build": "pnpm -r --filter=./packages/* --filter=./services/* build",
     "typecheck": "pnpm -r --filter=./packages/* --filter=./services/* typecheck",
-    "dev": "pnpm --parallel --filter=@sakina/api --filter=@sakina/gateway dev",
+    "dev": "pnpm --parallel --filter=@sakina/api --filter=@sakina/gateway --filter=@sakina/worker dev",
     "db:generate": "pnpm --filter=@sakina/db generate",
     "db:migrate": "pnpm --filter=@sakina/db migrate",
     "db:seed": "pnpm --filter=@sakina/db seed",
@@ -14,11 +14,12 @@
     "infra:down": "docker compose -f infra/docker-compose.yml down",
     "infra:reset": "docker compose -f infra/docker-compose.yml down -v",
     "dev:client": "node tools/dev-client/serve.mjs",
-    "test": "pnpm test:auth && pnpm test:bans && pnpm test:messaging",
+    "test": "pnpm test:auth && pnpm test:bans && pnpm test:messaging && pnpm test:push",
     "test:messaging": "node services/gateway/scripts/e2e-smoke.mjs",
     "test:auth": "node services/api/scripts/auth-smoke.mjs",
     "test:bans": "pnpm --filter=@sakina/api exec tsx scripts/ban-smoke.ts",
-    "test:browser": "node tools/dev-client/verify.mjs"
+    "test:browser": "node tools/dev-client/verify.mjs",
+    "test:push": "node services/worker/scripts/push-smoke.mjs"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

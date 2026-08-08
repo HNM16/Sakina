@@ -109,6 +109,26 @@ class ApiClient {
     );
   }
 
+  /// Hands the OS-issued push token to the server. Called after the user grants
+  /// notification permission, and again whenever the platform rotates it.
+  Future<void> registerPushToken({
+    required String deviceId,
+    required String token,
+    required String provider,
+  }) async {
+    await _send(
+      'POST',
+      '/v1/devices/push-token',
+      body: {'device_id': deviceId, 'token': token, 'provider': provider},
+      authenticated: true,
+    );
+  }
+
+  /// Turning notifications off, and what sign-out calls.
+  Future<void> clearPushToken() async {
+    await _send('DELETE', '/v1/devices/push-token', authenticated: true);
+  }
+
   Future<AuthTokens> refresh(String refreshToken) async {
     final res = await _send('POST', '/v1/auth/refresh', body: {'refresh_token': refreshToken});
     return AuthTokens.fromJson(res);

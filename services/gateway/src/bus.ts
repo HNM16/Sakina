@@ -32,6 +32,8 @@ export interface FanoutEnvelope {
 
 export interface Bus {
   publish(envelope: FanoutEnvelope): Promise<void>;
+  /** Shared connection for presence and the push queue. */
+  readonly redis: Redis;
   close(): Promise<void>;
 }
 
@@ -60,6 +62,7 @@ export function createBus(
   });
 
   return {
+    redis: publisher,
     async publish(envelope) {
       await publisher.publish(FANOUT_CHANNEL, JSON.stringify(envelope));
     },

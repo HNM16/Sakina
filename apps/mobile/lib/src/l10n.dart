@@ -96,6 +96,16 @@ class L10n {
       'ru': 'Введите ID пользователя',
       'en': 'Enter a user ID',
     },
+    'push_new_message': {
+      'tg': 'Паёми нав',
+      'ru': 'Новое сообщение',
+      'en': 'New message',
+    },
+    'notifications_off': {
+      'tg': 'Огоҳиномаҳо хомӯшанд',
+      'ru': 'Уведомления выключены',
+      'en': 'Notifications are off',
+    },
     'error_generic': {
       'tg': 'Хатогӣ рух дод',
       'ru': 'Произошла ошибка',

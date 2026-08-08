@@ -1,9 +1,14 @@
+import 'dart:async';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
 import 'src/api_client.dart';
 import 'src/chat_repository.dart';
 import 'src/l10n.dart';
 import 'src/local_store.dart';
+import 'src/push_service.dart';
 import 'src/session.dart';
 import 'src/socket_client.dart';
 import 'src/ui/auth_screen.dart';
@@ -18,8 +23,23 @@ import 'src/ui/chat_list_screen.dart';
 const apiUrl = String.fromEnvironment('API_URL', defaultValue: 'http://10.0.2.2:4000');
 const wsUrl = String.fromEnvironment('WS_URL', defaultValue: 'ws://10.0.2.2:4001/ws');
 
+/// Push is optional at build time: without a Firebase config the app still
+/// runs, it just never notifies. That keeps the project buildable before anyone
+/// has set up a Firebase account.
+bool pushAvailable = false;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await Firebase.initializeApp();
+    // Registered before runApp so a push arriving with the app terminated can
+    // still be handled — Flutter looks this up by name in a fresh isolate.
+    FirebaseMessaging.onBackgroundMessage(firebaseBackgroundHandler);
+    pushAvailable = true;
+  } catch (err) {
+    debugPrint('push unavailable (no Firebase config?): $err');
+  }
 
   final session = await Session.load();
   final store = await LocalStore.open();
@@ -41,6 +61,7 @@ class _SakinaAppState extends State<SakinaApp> {
   late final ApiClient _api = ApiClient(baseUrl: apiUrl);
   SocketClient? _socket;
   ChatRepository? _repository;
+  PushService? _push;
 
   @override
   void initState() {
@@ -74,9 +95,30 @@ class _SakinaAppState extends State<SakinaApp> {
       _socket = socket;
       _repository = repository;
     });
+
+    if (pushAvailable) {
+      // Asked for after the chat list is on screen, not on the splash. A
+      // permission prompt makes far more sense once someone can see what it is
+      // they would be notified about.
+      final push = PushService(
+        api: _api,
+        // A push only says which chat changed; the repository does the rest.
+        onMessageForChat: (_) => unawaited(repository.resync()),
+      );
+      await push.start(widget.session.deviceId);
+      _push = push;
+    }
   }
 
   Future<void> _signOut() async {
+    // Detach the token first: a signed-out device must stop being notified.
+    try {
+      await _api.clearPushToken();
+    } catch (_) {
+      // Best effort — never block sign-out on it.
+    }
+    await _push?.dispose();
+    _push = null;
     await _socket?.dispose();
     _repository?.dispose();
     await widget.store.clear();
@@ -91,6 +133,7 @@ class _SakinaAppState extends State<SakinaApp> {
 
   @override
   void dispose() {
+    _push?.dispose();
     _socket?.dispose();
     _repository?.dispose();
     super.dispose();

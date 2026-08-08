@@ -7,6 +7,7 @@ CREATE TYPE "public"."identity_kind" AS ENUM('email', 'phone');--> statement-bre
 CREATE TYPE "public"."member_role" AS ENUM('owner', 'admin', 'member');--> statement-breakpoint
 CREATE TYPE "public"."message_type" AS ENUM('text', 'media', 'voice', 'system', 'payment', 'service_card');--> statement-breakpoint
 CREATE TYPE "public"."platform" AS ENUM('android', 'ios', 'web');--> statement-breakpoint
+CREATE TYPE "public"."push_provider" AS ENUM('fcm', 'apns', 'none');--> statement-breakpoint
 CREATE TYPE "public"."tx_status" AS ENUM('pending', 'completed', 'failed', 'reversed');--> statement-breakpoint
 CREATE TYPE "public"."user_kind" AS ENUM('human', 'bot', 'service');--> statement-breakpoint
 CREATE TABLE "bans" (
@@ -65,6 +66,9 @@ CREATE TABLE "devices" (
 	"platform" "platform" NOT NULL,
 	"name" text DEFAULT 'unknown' NOT NULL,
 	"push_token" text,
+	"push_provider" "push_provider" DEFAULT 'none' NOT NULL,
+	"push_failures" integer DEFAULT 0 NOT NULL,
+	"push_disabled_at" timestamp with time zone,
 	"last_seen_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"revoked_at" timestamp with time zone

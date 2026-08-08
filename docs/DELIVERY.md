@@ -37,7 +37,7 @@ the gaps is the difference between a demo and a messenger.
                        │                    │
 7.  online:            └── WS `message` ────┼──────────────► SQLite → renders ✅
                                             │
-8.  offline:                                └── FCM / APNs ─► notification ⬜
+8.  offline:                                └── FCM / APNs ─► notification ✅
                                                               │
 9.  reopens app:            ◄── WS `sync` {last_seq} ─────────┘ ✅
                             ─── the diff ──────────────────►
@@ -84,17 +84,38 @@ fine, and nothing client-side changes.
 **7. Online delivery.** The recipient's client writes to SQLite, then the UI
 re-reads. Same rule as sending: widgets never render a network response.
 
-**8. ⬜ Offline delivery — the gap that matters.** When the app is closed the
-WebSocket is dead. The OS killed it, and no amount of protocol design changes
-that. Delivery then requires the platform push services: **FCM on Android, APNs
-on iOS**. This is not built. Until it is, Sakina only delivers to people who
-already have it open, which is a demo rather than a messenger. It is the single
-highest-priority item in M1.
+**8. ✅ Offline delivery — push.** When the app is closed the WebSocket is dead.
+The OS killed it, and no amount of protocol design changes that. Delivery then
+goes through the platform push services: **FCM on Android, APNs on iOS** (via
+FCM, so the server talks to one provider rather than two).
 
-The design when it is built: push carries no message content, only "you have
-something new in chat X". The client wakes, opens the socket, and syncs. Content
-in the notification payload means handing message text to Google and Apple, and
-it breaks the moment E2EE arrives.
+Three pieces make it work:
+
+- **Presence in Redis**, keyed per device with a TTL refreshed by the gateway's
+  heartbeat. The gateway's own registry only knows its own sockets, so "is this
+  device connected *anywhere*" has to live somewhere shared. Keyed per device
+  because the decision is per device — a laptop with the web client open does
+  not mean the phone in a pocket should stay silent.
+- **A Redis queue**, so the gateway never waits on an HTTP round trip to Google
+  while a user watches a send spinner.
+- **`services/worker`**, which drains the queue, drops every device that
+  currently holds a socket, and sends to the rest. A provider answering
+  "unregistered" retires that token immediately; anything else is transient and
+  only counts toward a limit, so an FCM outage cannot wipe every token on the
+  platform.
+
+**The payload carries no message text.** It carries `chat_id` and `seq`. The
+client wakes, syncs, and composes the lock-screen notification from its own
+SQLite. Content in the payload means handing message text to Google and Apple,
+and it would have to be undone the moment E2EE arrives. A generic alert body is
+still sent rather than a silent data-only push, because silent pushes are
+throttled hard on iOS and unreliable in Android's Doze — a notification that
+arrives beats a perfectly minimal one that does not.
+
+Verified by `services/worker/scripts/push-smoke.mjs`: an offline device is
+pushed, an online one is not, the sender is never pushed for their own message,
+no message text appears anywhere in the payload, and a dead token is retired
+rather than retried.
 
 **9. Catch-up.** On reconnect the client sends its highest `seq` per chat and
 gets back the diff. Because `seq` is gapless per chat, a hole is detectable by
@@ -124,8 +145,8 @@ an incoming message to disk.
 
 | | Why it matters |
 | --- | --- |
-| **Push notifications (FCM/APNs)** | Without this the app only works while open. **Highest priority in M1.** |
 | **`delivered` receipts** | Users read the second tick as "it arrived"; we currently cannot say that. |
+| **Notification enrichment** | The lock screen currently says "Паёми нав". Showing the real text needs an iOS Notification Service Extension and an Android enrichment step reading local SQLite. |
 | **Media** | Presigned upload to MinIO, message carries the key. Never proxy bytes through the gateway. |
 | **Group fan-out at scale** | Fine for small groups. A 10,000-member group needs the write fanned out differently. |
 | **Server-side retention** | Messages accumulate forever. Fine at 10k users, a decision to make before it is not. |
