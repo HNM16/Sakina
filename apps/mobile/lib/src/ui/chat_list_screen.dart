@@ -60,8 +60,12 @@ class ChatListScreen extends StatelessWidget {
               ? Center(child: Text(l10n.t('no_chats')))
               : ListView.separated(
                   itemCount: chats.length,
+                  addAutomaticKeepAlives: false,
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, index) => _ChatTile(
+                    // The chat list reorders as messages arrive; a stable key
+                    // lets Flutter move elements rather than rebuild them all.
+                    key: ValueKey(chats[index].id),
                     chat: chats[index],
                     selfId: repository.selfId,
                     onTap: () => Navigator.of(context).push(
@@ -133,7 +137,12 @@ class ChatListScreen extends StatelessWidget {
 }
 
 class _ChatTile extends StatelessWidget {
-  const _ChatTile({required this.chat, required this.selfId, required this.onTap});
+  const _ChatTile({
+    super.key,
+    required this.chat,
+    required this.selfId,
+    required this.onTap,
+  });
 
   final ChatSummary chat;
   final String selfId;

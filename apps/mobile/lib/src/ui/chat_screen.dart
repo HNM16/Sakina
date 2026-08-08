@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -22,22 +24,32 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    // Tells the repository which chat is on screen, so it only keeps this
+    // chat's history in memory and loads it if this is the first open.
+    unawaited(widget.repository.openChat(widget.chatId));
     WidgetsBinding.instance.addPostFrameCallback((_) => _markRead());
   }
 
   @override
   void dispose() {
+    widget.repository.closeChat(widget.chatId);
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   void _markRead() {
+    // The list is kept in seq order, so the highest seq is the last one that
+    // has been acked. Folding over every message to rediscover that was O(n)
+    // work on a hot path.
     final messages = widget.repository.messagesFor(widget.chatId);
-    final highest = messages
-        .map((m) => m.seq ?? 0)
-        .fold<int>(0, (a, b) => a > b ? a : b);
-    widget.repository.markRead(widget.chatId, highest);
+    for (var i = messages.length - 1; i >= 0; i -= 1) {
+      final seq = messages[i].seq;
+      if (seq != null) {
+        widget.repository.markRead(widget.chatId, seq);
+        return;
+      }
+    }
   }
 
   Future<void> _send() async {
@@ -86,10 +98,22 @@ class _ChatScreenState extends State<ChatScreen> {
                   controller: _scrollController,
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: messages.length,
-                  itemBuilder: (context, index) => _Bubble(
-                    message: messages[index],
-                    isMine: messages[index].senderId == selfId,
-                  ),
+                  // Keeping offscreen bubbles alive costs memory on a device
+                  // that has little of it, and buys nothing — they are cheap to
+                  // rebuild from a list already in memory.
+                  addAutomaticKeepAlives: false,
+                  addRepaintBoundaries: true,
+                  itemBuilder: (context, index) {
+                    final message = messages[index];
+                    return _Bubble(
+                      // A stable key lets Flutter reuse elements when the list
+                      // grows, instead of rebuilding every bubble because the
+                      // indices shifted.
+                      key: ValueKey(message.clientId),
+                      message: message,
+                      isMine: message.senderId == selfId,
+                    );
+                  },
                 ),
               ),
               SafeArea(
@@ -128,8 +152,12 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
+/// Hoisted: `DateFormat` parses its pattern on construction, and building one
+/// per bubble per rebuild was measurable work for a string that never changes.
+final _timeFormat = DateFormat.Hm();
+
 class _Bubble extends StatelessWidget {
-  const _Bubble({required this.message, required this.isMine});
+  const _Bubble({super.key, required this.message, required this.isMine});
 
   final Message message;
   final bool isMine;
@@ -159,7 +187,7 @@ class _Bubble extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  DateFormat.Hm().format(message.createdAt),
+                  _timeFormat.format(message.createdAt),
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
                 if (isMine) ...[

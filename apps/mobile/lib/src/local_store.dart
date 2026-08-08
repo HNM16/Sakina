@@ -51,6 +51,12 @@ class LocalStore {
         await db.execute(
           'CREATE INDEX messages_outbox ON messages (state, created_at)',
         );
+        // Serves the per-chat "newest message" lookup in loadChats() and the
+        // ordering in loadMessages(). Without it both degrade to a scan once a
+        // chat has real history behind it.
+        await db.execute(
+          'CREATE INDEX messages_chat_recent ON messages (chat_id, seq DESC, created_at DESC)',
+        );
       },
     );
     return LocalStore._(db);
@@ -68,30 +74,46 @@ class LocalStore {
     await batch.commit(noResult: true);
   }
 
+  /// One query, not one per chat.
+  ///
+  /// This used to select the chats and then run a separate "last message" query
+  /// for each of them, plus a sort in Dart — so a user with thirty chats paid
+  /// thirty-one queries every time it ran, on the UI isolate. Because the chat
+  /// list was reloaded whenever anything changed, that was the most expensive
+  /// thing the app did and it ran on every incoming message.
+  ///
+  /// The correlated subquery picks each chat's newest message, and ordering
+  /// happens inside SQLite where it is free.
   Future<List<ChatSummary>> loadChats() async {
-    final rows = await _db.query('chats');
-    final chats = <ChatSummary>[];
-    for (final row in rows) {
-      final id = row['id'] as String;
-      chats.add(ChatSummary.fromRow(row, lastMessage: await _lastMessage(id)));
-    }
-    chats.sort((a, b) {
-      final at = a.lastMessage?.createdAt.millisecondsSinceEpoch ?? 0;
-      final bt = b.lastMessage?.createdAt.millisecondsSinceEpoch ?? 0;
-      return bt.compareTo(at);
-    });
-    return chats;
-  }
-
-  Future<Message?> _lastMessage(String chatId) async {
-    final rows = await _db.query(
-      'messages',
-      where: 'chat_id = ?',
-      whereArgs: [chatId],
-      orderBy: 'COALESCE(seq, 9223372036854775807) DESC, created_at DESC',
-      limit: 1,
+    final rows = await _db.rawQuery(
+      'SELECT c.id, c.kind, c.title, c.last_seq, c.read_up_to_seq, c.members_json,'
+      '       m.client_id AS m_client_id, m.chat_id AS m_chat_id,'
+      '       m.sender_id AS m_sender_id, m.payload_json AS m_payload_json,'
+      '       m.created_at AS m_created_at, m.id AS m_id, m.seq AS m_seq,'
+      '       m.state AS m_state '
+      'FROM chats c '
+      'LEFT JOIN messages m ON m.client_id = ('
+      '  SELECT client_id FROM messages WHERE chat_id = c.id'
+      '  ORDER BY COALESCE(seq, 9223372036854775807) DESC, created_at DESC LIMIT 1'
+      ') '
+      'ORDER BY COALESCE(m.created_at, 0) DESC',
     );
-    return rows.isEmpty ? null : Message.fromRow(rows.first);
+
+    return rows.map((row) {
+      final last = row['m_client_id'] == null
+          ? null
+          : Message.fromRow(<String, dynamic>{
+              'client_id': row['m_client_id'],
+              'chat_id': row['m_chat_id'],
+              'sender_id': row['m_sender_id'],
+              'payload_json': row['m_payload_json'],
+              'created_at': row['m_created_at'],
+              'id': row['m_id'],
+              'seq': row['m_seq'],
+              'state': row['m_state'],
+            });
+      return ChatSummary.fromRow(row, lastMessage: last);
+    }).toList();
   }
 
   /// Unsent messages sort last: they were composed after everything the server

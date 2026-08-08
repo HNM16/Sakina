@@ -49,7 +49,31 @@ class ChatRepository extends ChangeNotifier {
   final Map<String, List<Message>> _messages = {};
   List<Message> messagesFor(String chatId) => _messages[chatId] ?? const [];
 
+  /// Which chat is on screen. Lets the repository avoid loading history for
+  /// chats nobody is looking at.
+  String? _activeChatId;
+
+  /// Called when a chat screen opens. Loads its history if it is not in memory.
+  Future<void> openChat(String chatId) async {
+    _activeChatId = chatId;
+    if (!_messages.containsKey(chatId)) {
+      _messages[chatId] = await store.loadMessages(chatId);
+      notifyListeners();
+    }
+  }
+
+  void closeChat(String chatId) {
+    if (_activeChatId == chatId) _activeChatId = null;
+  }
+
   final Map<String, DateTime> _typing = {};
+
+  /// How long a typing indicator stays up after the last frame.
+  static const _typingWindow = Duration(seconds: 4);
+
+  /// Last time we told the server *we* were typing, so keystrokes do not each
+  /// become a socket frame.
+  DateTime? _lastTypingSent;
 
   /// Load whatever the device already knows, before any network call. The chat
   /// list must be on screen at launch even with the radio off.
@@ -120,24 +144,42 @@ class ChatRepository extends ChangeNotifier {
             .toList();
         await store.upsertChats(chats);
         _chats = await store.loadChats();
+        // Only the chat actually on screen needs its history in memory at
+        // connect time; the rest load when opened. Eagerly decoding every
+        // message of every chat was multiplying startup cost by chat count.
         for (final chat in _chats) {
-          _messages[chat.id] = await store.loadMessages(chat.id);
+          if (_messages.containsKey(chat.id) || chat.id == _activeChatId) {
+            _messages[chat.id] = await store.loadMessages(chat.id);
+          }
         }
         notifyListeners();
 
       case 'message':
         final message = Message.fromJson(Map<String, dynamic>.from(data as Map));
         await store.putMessage(message);
-        await _refresh(message.chatId);
+        _applyMessage(message);
 
       case 'sent':
         final map = Map<String, dynamic>.from(data as Map);
-        await store.markSent(
-          map['client_id'] as String,
-          id: map['id'] as String,
-          seq: map['seq'] as int,
-        );
-        await _refresh(map['chat_id'] as String);
+        final clientId = map['client_id'] as String;
+        final chatId = map['chat_id'] as String;
+        await store.markSent(clientId, id: map['id'] as String, seq: map['seq'] as int);
+
+        // Flip the one bubble from clock to tick. Re-reading the chat to learn
+        // something we already know would cost a hundred row decodes.
+        final list = _messages[chatId];
+        final index = list?.indexWhere((m) => m.clientId == clientId) ?? -1;
+        if (list != null && index != -1) {
+          list[index] = list[index].copyWith(
+            id: map['id'] as String,
+            seq: map['seq'] as int,
+            state: MessageState.sent,
+          );
+          _chatListDirty = true;
+          _scheduleNotify();
+        } else {
+          await _refresh(chatId);
+        }
 
       case 'sync':
         final map = Map<String, dynamic>.from(data as Map);
@@ -146,7 +188,10 @@ class ChatRepository extends ChangeNotifier {
             .toList();
         if (messages.isNotEmpty) {
           await store.putMessages(messages);
-          await _refresh(map['chat_id'] as String);
+          // One scheduled rebuild for the whole page, not one per message.
+          for (final message in messages) {
+            _applyMessage(message);
+          }
         }
         // `has_more` means we fell too far behind to catch up inline; the rest
         // is fetched over HTTP rather than dragged through the socket.
@@ -157,20 +202,33 @@ class ChatRepository extends ChangeNotifier {
       case 'read':
         final map = Map<String, dynamic>.from(data as Map);
         await store.setReadCursor(map['chat_id'] as String, map['up_to_seq'] as int);
-        _chats = await store.loadChats();
-        notifyListeners();
+        _chatListDirty = true;
+        _scheduleNotify();
 
       case 'typing':
         final map = Map<String, dynamic>.from(data as Map);
-        _typing['${map['chat_id']}:${map['user_id']}'] = DateTime.now();
-        notifyListeners();
+        final key = '${map['chat_id']}:${map['user_id']}';
+        final wasTyping = _typing[key] != null &&
+            DateTime.now().difference(_typing[key]!) < _typingWindow;
+        _typing[key] = DateTime.now();
+        // Typing frames arrive several times a second per participant. Only the
+        // transition from "not typing" to "typing" changes anything on screen;
+        // the repeats are keepalives and must not rebuild the message list.
+        if (!wasTyping) _scheduleNotify();
 
       case 'error':
         final map = Map<String, dynamic>.from(data as Map);
         final ref = map['ref'] as String?;
         if (ref != null) {
           await store.markFailed(ref);
-          notifyListeners();
+          for (final entry in _messages.entries) {
+            final index = entry.value.indexWhere((m) => m.clientId == ref);
+            if (index != -1) {
+              entry.value[index] = entry.value[index].copyWith(state: MessageState.failed);
+              break;
+            }
+          }
+          _scheduleNotify();
         }
         debugPrint('socket error: ${map['code']} ${map['message']}');
     }
@@ -186,10 +244,69 @@ class ChatRepository extends ChangeNotifier {
     }
   }
 
+  /// Full reload of one chat. Correct but expensive — prefer [_applyMessage].
   Future<void> _refresh(String chatId) async {
     _messages[chatId] = await store.loadMessages(chatId);
     _chats = await store.loadChats();
-    notifyListeners();
+    _scheduleNotify();
+  }
+
+  /// The hot path: one message arrived, so update one message.
+  ///
+  /// The previous version re-read the whole chat (up to a hundred rows, each
+  /// re-decoded from JSON) *and* the whole chat list on every single incoming
+  /// message, all on the UI isolate. A burst of twenty messages meant twenty
+  /// full reloads and twenty whole-tree rebuilds, nineteen of which were thrown
+  /// away before anything was painted.
+  ///
+  /// Now the in-memory list is patched in place and the chat list is refreshed
+  /// once per frame.
+  void _applyMessage(Message message) {
+    final list = _messages[message.chatId] ??= <Message>[];
+    final existing = list.indexWhere((m) => m.clientId == message.clientId);
+
+    if (existing != -1) {
+      list[existing] = message;
+    } else {
+      // seq is gapless and monotonic, so an arriving message almost always
+      // belongs at the end. Checking that turns the common case into an O(1)
+      // append instead of re-sorting the list every time.
+      final lastSeq = list.isEmpty ? null : list.last.seq;
+      if (lastSeq == null || (message.seq ?? 1 << 62) >= lastSeq) {
+        list.add(message);
+      } else {
+        list.add(message);
+        list.sort((a, b) => (a.seq ?? 1 << 62).compareTo(b.seq ?? 1 << 62));
+      }
+    }
+
+    _chatListDirty = true;
+    _scheduleNotify();
+  }
+
+  /// Coalesce notifications to at most one per frame.
+  ///
+  /// `notifyListeners` rebuilds every widget under an `AnimatedBuilder`, so
+  /// calling it once per socket frame is the difference between a smooth list
+  /// and a stuttering one. Batching on the scheduler means a burst that arrives
+  /// in the same tick produces exactly one rebuild, right before the paint that
+  /// would have shown it anyway.
+  bool _notifyScheduled = false;
+  bool _chatListDirty = false;
+
+  void _scheduleNotify() {
+    if (_notifyScheduled) return;
+    _notifyScheduled = true;
+
+    scheduleMicrotask(() async {
+      _notifyScheduled = false;
+      if (_chatListDirty) {
+        _chatListDirty = false;
+        // One query now, rather than one per chat — see LocalStore.loadChats.
+        _chats = await store.loadChats();
+      }
+      notifyListeners();
+    });
   }
 
   /// Writes the message locally first and returns immediately — the bubble
@@ -209,7 +326,7 @@ class ChatRepository extends ChangeNotifier {
     );
 
     await store.putMessage(message);
-    await _refresh(chatId);
+    _applyMessage(message);
 
     socket.send({
       't': 'send',
@@ -230,7 +347,15 @@ class ChatRepository extends ChangeNotifier {
     });
   }
 
+  /// Throttled hard. This is called from `onChanged`, so without a throttle
+  /// every keystroke became a WebSocket frame — a burst of traffic on metered
+  /// mobile data, and a rebuild on the recipient for each one.
   void notifyTyping(String chatId) {
+    final now = DateTime.now();
+    if (_lastTypingSent != null && now.difference(_lastTypingSent!) < const Duration(seconds: 3)) {
+      return;
+    }
+    _lastTypingSent = now;
     socket.send({
       't': 'typing',
       'd': {'chat_id': chatId},
@@ -238,9 +363,11 @@ class ChatRepository extends ChangeNotifier {
   }
 
   bool isTyping(String chatId) {
-    final cutoff = DateTime.now().subtract(const Duration(seconds: 4));
-    return _typing.entries
-        .any((e) => e.key.startsWith('$chatId:') && e.value.isAfter(cutoff));
+    final cutoff = DateTime.now().subtract(_typingWindow);
+    for (final entry in _typing.entries) {
+      if (entry.value.isAfter(cutoff) && entry.key.startsWith('$chatId:')) return true;
+    }
+    return false;
   }
 
   @override

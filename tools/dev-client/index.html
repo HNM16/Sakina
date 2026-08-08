@@ -241,11 +241,12 @@ function handleFrame(frame) {
       const list = messages.get(d.chat_id) ?? [];
       const pending = list.find((m) => m.client_id === d.client_id);
       if (pending) Object.assign(pending, { id: d.id, seq: d.seq, state: "sent" });
-      render();
+      scheduleRender(d.chat_id);
       break;
     }
 
     case "sync":
+      // One scheduled render for the whole page, not one per message.
       for (const m of d.messages) upsert(d.chat_id, m);
       break;
 
@@ -255,7 +256,7 @@ function handleFrame(frame) {
           const m = list.find((x) => x.client_id === d.ref);
           if (m) m.state = "failed";
         }
-        render();
+        scheduleRender(activeChat);
       }
       console.warn("server error:", d.code, d.message);
       break;
@@ -265,14 +266,57 @@ function handleFrame(frame) {
 function upsert(chatId, msg) {
   const list = messages.get(chatId) ?? [];
   const existing = list.findIndex((m) => m.client_id === msg.client_id);
-  if (existing !== -1) list[existing] = { ...msg, state: "sent" };
-  else list.push({ ...msg, state: "sent" });
-  // seq is gapless per chat, so sorting on it is the whole ordering story.
-  list.sort((a, b) => (a.seq ?? 1e15) - (b.seq ?? 1e15));
+
+  if (existing !== -1) {
+    list[existing] = { ...msg, state: "sent" };
+  } else {
+    // seq is gapless and monotonic, so an arriving message almost always
+    // belongs at the end. Checking that first turns the common case into an
+    // O(1) push instead of re-sorting the whole list on every message.
+    const last = list[list.length - 1];
+    if (!last || (msg.seq ?? 1e15) >= (last.seq ?? 1e15)) {
+      list.push({ ...msg, state: "sent" });
+    } else {
+      list.push({ ...msg, state: "sent" });
+      list.sort((a, b) => (a.seq ?? 1e15) - (b.seq ?? 1e15));
+    }
+  }
+
   messages.set(chatId, list);
   if (!chats.has(chatId)) refreshChats();
-  render();
-  renderChats();
+  scheduleRender(chatId);
+}
+
+/**
+ * Coalesce work into one render per frame.
+ *
+ * A burst of twenty messages arriving in the same tick used to mean twenty
+ * full re-renders, all of them thrown away except the last. Batching on
+ * requestAnimationFrame means the DOM is touched once, right before the
+ * browser paints.
+ */
+let renderPending = false;
+let chatListDirty = false;
+
+function scheduleRender(chatId) {
+  if (chatId === activeChat) renderPending = true;
+  chatListDirty = true;
+
+  if (renderPending || chatListDirty) {
+    if (scheduleRender.queued) return;
+    scheduleRender.queued = true;
+    requestAnimationFrame(() => {
+      scheduleRender.queued = false;
+      if (renderPending) {
+        renderPending = false;
+        render();
+      }
+      if (chatListDirty) {
+        chatListDirty = false;
+        renderChats();
+      }
+    });
+  }
 }
 
 // --- chats ----------------------------------------------------------------
@@ -307,9 +351,25 @@ function title(chat) {
   return others.map((m) => m.display_name).join(", ") || "Saved messages";
 }
 
+let lastChatSignature = "";
+
 function renderChats() {
   const box = $("chats");
-  box.innerHTML = "";
+
+  // The chat list changes far less often than the message list. A cheap
+  // signature check skips the rebuild entirely for the common case of another
+  // message landing in the chat already on screen.
+  const signature = [...chats.values()]
+    .map((c) => {
+      const last = (messages.get(c.id) ?? []).at(-1);
+      return `${c.id}:${c.id === activeChat}:${last?.client_id ?? ""}:${last?.seq ?? ""}`;
+    })
+    .join("|");
+
+  if (signature === lastChatSignature) return;
+  lastChatSignature = signature;
+
+  box.textContent = "";
   for (const chat of chats.values()) {
     const div = document.createElement("div");
     div.className = "chat" + (chat.id === activeChat ? " active" : "");
@@ -333,25 +393,86 @@ function select(chatId) {
   $("text").focus();
 }
 
+/** client_id -> node, for the chat currently on screen. */
+let renderedChat = null;
+const renderedNodes = new Map();
+
+function messageClass(m, mine) {
+  return (
+    "msg" +
+    (mine ? " mine" : "") +
+    (m.state === "pending" ? " pending" : "") +
+    (m.state === "failed" ? " failed" : "")
+  );
+}
+
+/**
+ * Keyed, incremental DOM update.
+ *
+ * The previous version cleared the container and rebuilt every bubble on every
+ * incoming message — 120 messages meant 120 rebuilds of a growing list, which
+ * is quadratic and was blocking the main thread for up to 90ms at a time.
+ *
+ * Now each message owns a node keyed by client_id: new ones are appended,
+ * changed ones are patched in place, and untouched ones are never looked at.
+ */
 function render() {
   const box = $("log");
-  box.innerHTML = "";
-  for (const m of messages.get(activeChat) ?? []) {
-    const div = document.createElement("div");
+
+  // Switching chats is the only case that legitimately clears everything.
+  if (renderedChat !== activeChat) {
+    box.textContent = "";
+    renderedNodes.clear();
+    renderedChat = activeChat;
+  }
+
+  const list = messages.get(activeChat) ?? [];
+  const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+  const fragment = document.createDocumentFragment();
+
+  for (const m of list) {
     const mine = m.sender_id === session.userId;
-    div.className = "msg" + (mine ? " mine" : "") + (m.state === "pending" ? " pending" : "") +
-                    (m.state === "failed" ? " failed" : "");
+    const existing = renderedNodes.get(m.client_id);
+
+    if (existing) {
+      // Only the two things that actually change after a message is on screen:
+      // its delivery state, and the seq the ack assigns it.
+      const cls = messageClass(m, mine);
+      if (existing.className !== cls) existing.className = cls;
+      const seq = String(m.seq ?? "");
+      if (existing.dataset.seq !== seq) {
+        existing.dataset.seq = seq;
+        const tick = m.state === "pending" ? "◷" : m.state === "failed" ? "✕" : "✓";
+        existing.lastChild.textContent = mine
+          ? `${tick} seq ${m.seq ?? "—"}`
+          : `seq ${m.seq ?? "—"}`;
+      }
+      continue;
+    }
+
+    const div = document.createElement("div");
+    div.className = messageClass(m, mine);
     div.dataset.seq = m.seq ?? "";
+
     const body = document.createElement("div");
     body.textContent = m.payload?.text ?? "";
+
     const meta = document.createElement("div");
     meta.className = "meta";
     const tick = m.state === "pending" ? "◷" : m.state === "failed" ? "✕" : "✓";
     meta.textContent = mine ? `${tick} seq ${m.seq ?? "—"}` : `seq ${m.seq ?? "—"}`;
+
     div.append(body, meta);
-    box.appendChild(div);
+    renderedNodes.set(m.client_id, div);
+    fragment.appendChild(div);
   }
-  box.scrollTop = box.scrollHeight;
+
+  // One DOM insertion for the whole batch rather than one per message.
+  if (fragment.childNodes.length > 0) box.appendChild(fragment);
+
+  // Only chase the bottom if the user was already there — yanking someone away
+  // from history they are reading is worse than a missed autoscroll.
+  if (nearBottom) box.scrollTop = box.scrollHeight;
 }
 
 // --- sending --------------------------------------------------------------
@@ -376,7 +497,7 @@ $("send").onsubmit = (e) => {
     payload: { type: "text", text }, created_at: Date.now(), seq: null, state: "pending",
   });
   messages.set(activeChat, list);
-  render();
+  scheduleRender(activeChat);
 
   if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(frame));
   else outbox.push(frame);

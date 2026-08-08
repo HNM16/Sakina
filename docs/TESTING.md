@@ -171,6 +171,19 @@ product claim, and it is only provable on real hardware on a real network.
 
 ---
 
+## 5. Performance
+
+```bash
+pnpm bench:throughput   # gateway latency at realistic load, plus saturation
+pnpm bench:fps          # frame rate under a burst, at 4x CPU throttle
+```
+
+Both have a pass/fail bar rather than just printing numbers. Full write-up,
+including the before-and-after of the 60fps work, in
+[`docs/PERFORMANCE.md`](PERFORMANCE.md).
+
+---
+
 ## What cannot be tested yet
 
 Being straight about the gaps, because a green test run can otherwise read as
@@ -182,5 +195,6 @@ Being straight about the gaps, because a green test run can otherwise read as
 | **Calls** | Not built. Design in `docs/CALLS.md`. |
 | **Media, groups, stickers** | Not built. M1. |
 | **Device attestation** | Server side done and tested. The Flutter client does not yet collect ANDROID_ID or DeviceCheck tokens — see `docs/BANS.md`. |
-| **Load** | Never run under load. No idea where the gateway falls over. Worth knowing before a beta. |
+| **Flutter frame rate on a device** | The client optimisations are reasoned from the browser profile, not measured — no Dart SDK here. Needs `flutter run --profile` on a cheap Android. |
+| **Load beyond 40 sockets** | The throughput benchmark runs 20 chats. Thousands of concurrent connections, large groups, and deep history are all untested — see `docs/PERFORMANCE.md`. |
 | **Real network conditions** | Only testable on a phone in Tajikistan on a real cell. This is the one that matters most and the one this environment cannot reach. |

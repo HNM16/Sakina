@@ -62,30 +62,39 @@ export async function insertMessage(
 
   try {
     return await db.transaction(async (tx) => {
-      const membership = await tx
-        .select({ userId: chatMembers.userId })
-        .from(chatMembers)
-        .where(
-          and(
-            eq(chatMembers.chatId, input.chatId),
-            eq(chatMembers.userId, input.senderId),
-            isNull(chatMembers.leftAt),
-          ),
-        )
-        .limit(1);
-
-      if (!membership[0]) {
-        throw new DomainError("forbidden", "sender is not a member of this chat");
-      }
-
+      // Membership is folded into the UPDATE rather than checked by a separate
+      // SELECT. This is a hot path — every message pays for it — and the round
+      // trip saved is one of the handful the send path makes. The row lock and
+      // the authorisation now happen in a single statement.
       const bumped = await tx
         .update(chats)
         .set({ lastSeq: sql`${chats.lastSeq} + 1` })
-        .where(eq(chats.id, input.chatId))
+        .where(
+          and(
+            eq(chats.id, input.chatId),
+            sql`EXISTS (SELECT 1 FROM ${chatMembers}
+                        WHERE ${chatMembers.chatId} = ${input.chatId}
+                          AND ${chatMembers.userId} = ${input.senderId}
+                          AND ${chatMembers.leftAt} IS NULL)`,
+          ),
+        )
         .returning({ lastSeq: chats.lastSeq });
 
       const seq = bumped[0]?.lastSeq;
-      if (seq === undefined) throw new DomainError("not_found", "chat not found");
+      if (seq === undefined) {
+        // No row means either the chat does not exist or the sender is not in
+        // it. Telling them apart costs a query, which is fine here because this
+        // is the error path and it runs rarely.
+        const chatExists = await tx
+          .select({ id: chats.id })
+          .from(chats)
+          .where(eq(chats.id, input.chatId))
+          .limit(1);
+
+        throw chatExists[0]
+          ? new DomainError("forbidden", "sender is not a member of this chat")
+          : new DomainError("not_found", "chat not found");
+      }
 
       const inserted = await tx
         .insert(messages)

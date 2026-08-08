@@ -19,11 +19,15 @@
     "test:auth": "node services/api/scripts/auth-smoke.mjs",
     "test:bans": "pnpm --filter=@sakina/api exec tsx scripts/ban-smoke.ts",
     "test:browser": "node tools/dev-client/verify.mjs",
-    "test:push": "node services/worker/scripts/push-smoke.mjs"
+    "test:push": "node services/worker/scripts/push-smoke.mjs",
+    "bench": "pnpm bench:throughput && pnpm bench:fps",
+    "bench:throughput": "node services/gateway/scripts/bench-throughput.mjs",
+    "bench:fps": "node tools/dev-client/bench-fps.mjs"
   },
   "devDependencies": {
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "ws": "^8.21.2"
   },
   "packageManager": "pnpm@10.33.0",
   "engines": {

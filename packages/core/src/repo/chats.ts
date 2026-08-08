@@ -247,3 +247,47 @@ function fromRawMessage(row: RawMessageRow): Message {
     deletedAt: toNullableDate(row.deleted_at),
   });
 }
+
+// ---------------------------------------------------------------------------
+// Membership cache
+// ---------------------------------------------------------------------------
+
+/**
+ * Chat membership, cached in process for a few seconds.
+ *
+ * `getMemberIds` runs on every single message, read receipt and typing frame,
+ * and it answers a question that almost never changes — a direct chat's two
+ * members are fixed for its whole life. Under load it was a meaningful share of
+ * the queries the gateway made.
+ *
+ * A short TTL rather than explicit invalidation, deliberately: correctness here
+ * degrades gracefully. The worst case for a stale entry is that someone added
+ * to a group waits a few seconds for their first message, or someone just
+ * removed receives one more. Both self-heal, and neither is worth the coupling
+ * that precise invalidation across processes would cost.
+ */
+const MEMBER_CACHE_TTL_MS = 5_000;
+const MEMBER_CACHE_MAX = 5_000;
+
+const memberCache = new Map<string, { ids: string[]; expiresAt: number }>();
+
+export function invalidateMemberCache(chatId?: string): void {
+  if (chatId) memberCache.delete(chatId);
+  else memberCache.clear();
+}
+
+/** Cached form of [getMemberIds] for the hot fan-out path. */
+export async function getMemberIdsCached(db: Database, chatId: string): Promise<string[]> {
+  const now = Date.now();
+  const hit = memberCache.get(chatId);
+  if (hit && hit.expiresAt > now) return hit.ids;
+
+  const ids = await getMemberIds(db, chatId);
+
+  // Crude bound rather than a real LRU: this is a cache of small string arrays
+  // and the eviction policy matters far less than not growing without limit.
+  if (memberCache.size >= MEMBER_CACHE_MAX) memberCache.clear();
+  memberCache.set(chatId, { ids, expiresAt: now + MEMBER_CACHE_TTL_MS });
+
+  return ids;
+}

@@ -211,7 +211,7 @@ export async function startGateway(env: Env) {
 
     if (deduped) return;
 
-    const memberIds = await chatsRepo.getMemberIds(db, frame.d.chat_id);
+    const memberIds = await chatsRepo.getMemberIdsCached(db, frame.d.chat_id);
     await bus.publish({
       user_ids: memberIds,
       frame: { t: "message", d: message },
@@ -245,7 +245,7 @@ export async function startGateway(env: Env) {
 
     await chatsRepo.setReadCursor(db, frame.d.chat_id, conn.userId, frame.d.up_to_seq);
 
-    const memberIds = await chatsRepo.getMemberIds(db, frame.d.chat_id);
+    const memberIds = await chatsRepo.getMemberIdsCached(db, frame.d.chat_id);
     await bus.publish({
       user_ids: memberIds,
       frame: {
@@ -260,7 +260,7 @@ export async function startGateway(env: Env) {
     conn: Connection,
     frame: Extract<ClientFrame, { t: "typing" }>,
   ): Promise<void> {
-    const memberIds = await chatsRepo.getMemberIds(db, frame.d.chat_id);
+    const memberIds = await chatsRepo.getMemberIdsCached(db, frame.d.chat_id);
     if (!memberIds.includes(conn.userId)) {
       throw new DomainError("forbidden", "not a member of this chat");
     }

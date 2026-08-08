@@ -24,6 +24,7 @@ Verify the whole thing works:
 
 ```bash
 pnpm test        # 66 checks: auth, ban evasion, messaging, push
+pnpm bench       # frame rate and gateway latency, with pass/fail bars
 ```
 
 To actually *see* it — no Flutter SDK, no emulator, no phone:
@@ -98,6 +99,8 @@ Read them in this order:
 - [`docs/ANTI-ABUSE.md`](docs/ANTI-ABUSE.md) — one person, one account
 - [`docs/BANS.md`](docs/BANS.md) — making a ban survive a new address
 - [`docs/TESTING.md`](docs/TESTING.md) — how to run and see all of it
+- [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) — the 60fps work, with before and
+  after numbers
 
 The short version: the network is the enemy, so the client's local database is
 what the UI reads from and every write is idempotent. Money will be handled by a
