@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:uuid/uuid.dart';
 
 import 'api_client.dart';
@@ -26,7 +27,7 @@ class ChatRepository extends ChangeNotifier {
       if (state == SocketStatus.connected) {
         unawaited(_onConnected());
       }
-      notifyListeners();
+      if (!_disposed) notifyListeners();
     });
   }
 
@@ -58,6 +59,7 @@ class ChatRepository extends ChangeNotifier {
     _activeChatId = chatId;
     if (!_messages.containsKey(chatId)) {
       _messages[chatId] = await store.loadMessages(chatId);
+      if (_disposed) return;
       notifyListeners();
     }
   }
@@ -79,6 +81,7 @@ class ChatRepository extends ChangeNotifier {
   /// list must be on screen at launch even with the radio off.
   Future<void> bootstrap() async {
     _chats = await store.loadChats();
+    if (_disposed) return;
     notifyListeners();
   }
 
@@ -152,6 +155,7 @@ class ChatRepository extends ChangeNotifier {
             _messages[chat.id] = await store.loadMessages(chat.id);
           }
         }
+        if (_disposed) return;
         notifyListeners();
 
       case 'message':
@@ -261,6 +265,14 @@ class ChatRepository extends ChangeNotifier {
   ///
   /// Now the in-memory list is patched in place and the chat list is refreshed
   /// once per frame.
+  /// Sort key for a message that has not been acked yet.
+  ///
+  /// Mirrors `COALESCE(seq, 9223372036854775807)` in [LocalStore], so the order
+  /// held in memory is the same one the database would return. Pending messages
+  /// belong at the end: they were composed after everything the server has
+  /// acked, and they slot into place once their seq arrives.
+  static const _pendingSortKey = 9223372036854775807;
+
   void _applyMessage(Message message) {
     final list = _messages[message.chatId] ??= <Message>[];
     final existing = list.indexWhere((m) => m.clientId == message.clientId);
@@ -269,44 +281,61 @@ class ChatRepository extends ChangeNotifier {
       list[existing] = message;
     } else {
       // seq is gapless and monotonic, so an arriving message almost always
-      // belongs at the end. Checking that turns the common case into an O(1)
-      // append instead of re-sorting the list every time.
-      final lastSeq = list.isEmpty ? null : list.last.seq;
-      if (lastSeq == null || (message.seq ?? 1 << 62) >= lastSeq) {
-        list.add(message);
-      } else {
-        list.add(message);
-        list.sort((a, b) => (a.seq ?? 1 << 62).compareTo(b.seq ?? 1 << 62));
+      // belongs at the end — but not always *the* end, because unsent messages
+      // sit there waiting for their ack. Scanning back from the end is O(1) for
+      // the common case and still puts a newly acked message ahead of anything
+      // still pending, which a blind append would get wrong.
+      final key = message.seq ?? _pendingSortKey;
+      var index = list.length;
+      while (index > 0 && (list[index - 1].seq ?? _pendingSortKey) > key) {
+        index -= 1;
       }
+      list.insert(index, message);
     }
 
     _chatListDirty = true;
     _scheduleNotify();
   }
 
-  /// Coalesce notifications to at most one per frame.
+  /// Coalesce rebuilds to at most one per frame.
   ///
-  /// `notifyListeners` rebuilds every widget under an `AnimatedBuilder`, so
+  /// `notifyListeners` rebuilds everything under an `AnimatedBuilder`, so
   /// calling it once per socket frame is the difference between a smooth list
-  /// and a stuttering one. Batching on the scheduler means a burst that arrives
-  /// in the same tick produces exactly one rebuild, right before the paint that
-  /// would have shown it anyway.
+  /// and a stuttering one.
+  ///
+  /// This waits for the next frame rather than a microtask, and the distinction
+  /// matters: every WebSocket frame arrives in its own event-loop turn, so
+  /// microtask batching would still produce one rebuild per message and achieve
+  /// nothing. Deferring to the frame is what actually collapses a burst of
+  /// twenty messages into one rebuild.
   bool _notifyScheduled = false;
   bool _chatListDirty = false;
+  bool _disposed = false;
 
   void _scheduleNotify() {
-    if (_notifyScheduled) return;
+    if (_disposed || _notifyScheduled) return;
     _notifyScheduled = true;
 
-    scheduleMicrotask(() async {
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
       _notifyScheduled = false;
+      if (_disposed) return;
+
       if (_chatListDirty) {
         _chatListDirty = false;
         // One query now, rather than one per chat — see LocalStore.loadChats.
         _chats = await store.loadChats();
+        // The await gives the widget tree a chance to be torn down underneath
+        // us; notifying a disposed ChangeNotifier throws.
+        if (_disposed) return;
       }
+
       notifyListeners();
     });
+
+    // `addPostFrameCallback` only runs if a frame is actually scheduled, and an
+    // idle app schedules none. Without this, a message arriving while nothing
+    // is animating would never be shown.
+    SchedulerBinding.instance.scheduleFrame();
   }
 
   /// Writes the message locally first and returns immediately — the bubble
@@ -372,6 +401,9 @@ class ChatRepository extends ChangeNotifier {
 
   @override
   void dispose() {
+    // Set before cancelling: a frame callback already queued will check this
+    // and bail rather than notifying a disposed ChangeNotifier, which throws.
+    _disposed = true;
     _frameSub.cancel();
     _stateSub.cancel();
     super.dispose();

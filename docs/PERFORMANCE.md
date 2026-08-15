@@ -94,7 +94,7 @@ What changed:
 | `loadChats()` | N+1 → **one query**, ordered in SQLite, plus an index on `(chat_id, seq DESC, created_at DESC)` |
 | Incoming message | full chat reload → **patch one message in memory** |
 | `sent` ack | full chat reload → **flip one bubble's state** |
-| Notifications | one per frame → **coalesced to one per microtask** |
+| Notifications | one per socket frame → **coalesced to one per rendered frame** |
 | Typing received | full rebuild → **rebuild only on the not-typing→typing transition** |
 | Typing sent | one frame per keystroke → **throttled to one per 3s** |
 | `markRead` | O(n) fold over every message → **scan back from the end** |
@@ -106,6 +106,23 @@ What changed:
 Flutter changes are reasoned from the same profile the browser client made
 visible, not verified on a device. Run `flutter run --profile` with the
 performance overlay on a real cheap Android before believing any of it.
+
+A review pass over the uncompiled Dart found three bugs the first version
+introduced, worth recording because they are what "unverified" actually means:
+
+- **Batching on a microtask does not batch anything.** Every WebSocket frame
+  arrives in its own event-loop turn, so a microtask fires once per message and
+  the coalescing achieved nothing. It now defers to `addPostFrameCallback` —
+  plus an explicit `scheduleFrame()`, because a post-frame callback never runs
+  if the app is idle and no frame is pending, which would have meant messages
+  silently never appearing.
+- **Appending broke ordering against pending messages.** Unsent messages have no
+  seq and sort last (`COALESCE(seq, MAX)` in SQLite). Blindly appending an acked
+  message put it *after* a pending one. Insertion now scans back from the end —
+  still O(1) for the common case, and correct when the tail is unsent.
+- **`notifyListeners()` after dispose throws.** A frame callback scheduled just
+  before sign-out would fire against a disposed `ChangeNotifier`. Every notify
+  path is now guarded, including after each `await`.
 
 ---
 
@@ -124,10 +141,11 @@ ack latency  (send → server assigned a seq)     p50 3.6ms   p95 4.9ms   p99 7.
 end-to-end   (sender's wire → recipient's socket) p50 3.9ms   p95 5.5ms   p99 9.5ms
 ```
 
-**Phase 2 — saturation.** 670–800 msg/s on a single Node process against one
-Postgres on a shared dev container. That is roughly **13× a busy-hour peak for
-10,000 users**, so throughput is not the constraint at this stage and optimising
-it further would be premature.
+**Phase 2 — saturation.** Roughly **500–800 msg/s** on a single Node process
+against one Postgres, varying run to run with whatever else the container is
+doing — treat it as an order of magnitude, not a figure. Even the low end is
+around **10× a busy-hour peak for 10,000 users**, so throughput is not the
+constraint at this stage and optimising it further would be premature.
 
 ### What changed
 
@@ -149,8 +167,8 @@ group waits a few seconds for their first message, or someone just removed gets
 one more. Both self-heal, and neither justifies the cross-process coupling that
 precise invalidation would need.
 
-Effect: 749 → 795 msg/s saturation, and p50 end-to-end under saturation dropped
-37%. Modest, which is the honest result — the send path was not badly written to
+Effect: roughly 750 → 800 msg/s saturation, and p50 end-to-end under saturation
+dropped about 37%. Modest, which is the honest result — the send path was not badly written to
 begin with, and the remaining cost is inherent to writing a row durably.
 
 ### Running it
