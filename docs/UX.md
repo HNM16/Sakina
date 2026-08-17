@@ -1,5 +1,8 @@
 # Interface: Telegram-shaped, Nielsen-checked
 
+> Colour, type and the mark live in [`BRAND.md`](BRAND.md). This document is
+> about behaviour — what the interface *does*, not what it looks like.
+
 Two constraints, and they mostly agree with each other.
 
 **Telegram-shaped**, because familiarity is free adoption. Every target user

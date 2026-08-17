@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../chat_repository.dart';
 import '../l10n.dart';
 import '../models.dart';
+import '../theme.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key, required this.repository, required this.chatId});
@@ -164,7 +165,7 @@ class _Bubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final palette = SakinaPalette.of(context);
 
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
@@ -175,8 +176,12 @@ class _Bubble extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.78,
         ),
         decoration: BoxDecoration(
-          color: isMine ? scheme.primaryContainer : scheme.surfaceContainerHighest,
+          // Named roles rather than Material containers: reading bubble colours
+          // off the generated scheme means a seed change quietly restyles the
+          // conversation.
+          color: isMine ? palette.bubbleMine : palette.bubbleTheirs,
           borderRadius: BorderRadius.circular(16),
+          border: isMine ? null : Border.all(color: palette.line),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -201,7 +206,11 @@ class _Bubble extends StatelessWidget {
                       MessageState.failed => Icons.error_outline,
                     },
                     size: 14,
-                    color: message.state == MessageState.failed ? scheme.error : null,
+                    // Muted grey lands around 3:1 on the deep tile bubble —
+                    // fine for a decorative glyph, not for the one pixel that
+                    // tells you whether your message left the phone. It keeps
+                    // the inherited text colour; only failure is coloured.
+                    color: message.state == MessageState.failed ? palette.anor : null,
                   ),
                 ],
               ],

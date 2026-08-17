@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../api_client.dart';
 import '../l10n.dart';
 import '../session.dart';
+import '../theme.dart';
 
 /// Two steps: address, then the six-digit code.
 ///
@@ -167,6 +168,8 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   List<Widget> _addressStep(L10n l10n) => [
+        const Center(child: ChorkhonaMark(size: 64)),
+        const SizedBox(height: 20),
         Text(
           l10n.t('app_name'),
           textAlign: TextAlign.center,

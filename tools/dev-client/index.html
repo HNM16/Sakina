@@ -3,23 +3,27 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sakina dev client</title>
+<title>Сакина — dev client</title>
 <style>
+  /* Sakina's palette — see docs/BRAND.md. Шаб (night) ground, Фирӯза
+     (turquoise) accent, Анор (pomegranate) reserved for loss. */
   :root {
-    --bg: #0f1115; --panel: #171a21; --line: #262b36; --text: #e6e8ec;
-    --muted: #8b93a3; --mine: #1b5e4a; --theirs: #232833; --accent: #1b7f5f;
-    --warn: #b3541e; --err: #b3303a;
+    --bg: #0A1220; --panel: #111B2C; --line: #22314B; --text: #E7EDF7;
+    --muted: #8496B3; --mine: #14504A; --theirs: #18243A; --accent: #35B9AC;
+    --warn: #E3AC55; --err: #D25A54;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    /* Noto Sans first: Tajik Cyrillic needs ғ ӣ қ ӯ ҳ ҷ, and a face without
+       them falls back mid-word. */
+    margin: 0; font: 14px/1.5 "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column;
   }
   header {
     display: flex; align-items: center; gap: 12px; padding: 10px 14px;
     background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap;
   }
-  header strong { color: var(--accent); }
+  header strong { color: var(--accent); letter-spacing: -.02em; }
   #status { margin-left: auto; font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--line); }
   #status.on { background: var(--accent); }
   #status.warn { background: var(--warn); }
@@ -35,9 +39,9 @@
   .chat .last { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   section { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   #log { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
-  .msg { max-width: 70%; padding: 7px 11px; border-radius: 14px; background: var(--theirs); align-self: flex-start; word-break: break-word; }
-  .msg.mine { background: var(--mine); align-self: flex-end; }
-  .msg .meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .msg { max-width: 70%; padding: 7px 11px; border-radius: 14px; background: var(--theirs); border: 1px solid var(--line); align-self: flex-start; word-break: break-word; }
+  .msg.mine { background: var(--mine); border-color: transparent; align-self: flex-end; }
+  .msg .meta { font-size: 11px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
   .msg.pending { opacity: .6; }
   .msg.failed { background: var(--err); }
   form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--line); }

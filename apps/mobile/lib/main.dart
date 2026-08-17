@@ -11,6 +11,7 @@ import 'src/local_store.dart';
 import 'src/push_service.dart';
 import 'src/session.dart';
 import 'src/socket_client.dart';
+import 'src/theme.dart';
 import 'src/ui/auth_screen.dart';
 import 'src/ui/chat_list_screen.dart';
 
@@ -146,10 +147,11 @@ class _SakinaAppState extends State<SakinaApp> {
     return MaterialApp(
       title: 'Sakina',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seed: const Color(0xFF1B7F5F)),
-        useMaterial3: true,
-      ),
+      // Dark by default: cheaper on battery, readable in mountain sun, and
+      // honest to a name that means stillness. See src/theme.dart.
+      theme: SakinaTheme.day(),
+      darkTheme: SakinaTheme.night(),
+      themeMode: ThemeMode.dark,
       // Includes the Tajik fallback delegates — Flutter has no `tg` locale of
       // its own. See lib/src/l10n.dart.
       localizationsDelegates: localizationDelegates,

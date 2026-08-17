@@ -89,6 +89,8 @@ Read them in this order:
   messengers, what to take from each, and three market findings that change the
   plan
 - [`docs/GROWTH.md`](docs/GROWTH.md) — the plan to 10,000 users
+- [`docs/BRAND.md`](docs/BRAND.md) — the visual identity: the chorkhona mark,
+  firuza on night, and the six glyphs that decide the font
 - [`docs/UX.md`](docs/UX.md) — Telegram-shaped, checked against Nielsen's heuristics
 - [`docs/DELIVERY.md`](docs/DELIVERY.md) — how a message actually reaches the
   other person, and the one gap that matters

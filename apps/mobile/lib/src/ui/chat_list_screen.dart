@@ -4,6 +4,7 @@ import '../chat_repository.dart';
 import '../l10n.dart';
 import '../models.dart';
 import '../socket_client.dart';
+import '../theme.dart';
 import 'chat_screen.dart';
 
 class ChatListScreen extends StatelessWidget {
@@ -37,7 +38,12 @@ class ChatListScreen extends StatelessWidget {
                     preferredSize: const Size.fromHeight(24),
                     child: Container(
                       width: double.infinity,
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      // A quiet band, not a coloured alarm. Saffron is for
+                      // rare warmth and pomegranate for loss (docs/BRAND.md);
+                      // a dropped socket on a Tajik mobile network is neither,
+                      // it is Tuesday. The text keeps full contrast because it
+                      // is the part worth reading.
+                      color: SakinaPalette.of(context).line,
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Text(
                         repository.connection == SocketStatus.connecting
