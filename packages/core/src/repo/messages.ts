@@ -72,28 +72,51 @@ export async function insertMessage(
         .where(
           and(
             eq(chats.id, input.chatId),
+            // Membership AND the right to post, in one predicate. In a channel
+            // only owners and admins may write; that restriction is what makes
+            // a channel a channel, so it is enforced in the same atomic
+            // statement that allocates the seq rather than in a route that
+            // something else could bypass.
             sql`EXISTS (SELECT 1 FROM ${chatMembers}
                         WHERE ${chatMembers.chatId} = ${input.chatId}
                           AND ${chatMembers.userId} = ${input.senderId}
-                          AND ${chatMembers.leftAt} IS NULL)`,
+                          AND ${chatMembers.leftAt} IS NULL
+                          AND (${chats.kind} <> 'channel'
+                               OR ${chatMembers.role} IN ('owner', 'admin')))`,
           ),
         )
         .returning({ lastSeq: chats.lastSeq });
 
       const seq = bumped[0]?.lastSeq;
       if (seq === undefined) {
-        // No row means either the chat does not exist or the sender is not in
-        // it. Telling them apart costs a query, which is fine here because this
-        // is the error path and it runs rarely.
-        const chatExists = await tx
-          .select({ id: chats.id })
+        // No row means one of three things: no such chat, not a member, or a
+        // member of a channel without the right to post. Telling them apart
+        // costs a query, which is fine here because this is the error path and
+        // it runs rarely — and "only admins can post in this channel" is a
+        // message someone can act on, where "forbidden" is not.
+        const chatRow = await tx
+          .select({ id: chats.id, kind: chats.kind })
           .from(chats)
           .where(eq(chats.id, input.chatId))
           .limit(1);
 
-        throw chatExists[0]
-          ? new DomainError("forbidden", "sender is not a member of this chat")
-          : new DomainError("not_found", "chat not found");
+        if (!chatRow[0]) throw new DomainError("not_found", "chat not found");
+
+        const membership = await tx
+          .select({ role: chatMembers.role })
+          .from(chatMembers)
+          .where(
+            and(
+              eq(chatMembers.chatId, input.chatId),
+              eq(chatMembers.userId, input.senderId),
+              isNull(chatMembers.leftAt),
+            ),
+          )
+          .limit(1);
+
+        throw membership[0]
+          ? new DomainError("forbidden", "only admins can post in this channel")
+          : new DomainError("forbidden", "sender is not a member of this chat");
       }
 
       const inserted = await tx

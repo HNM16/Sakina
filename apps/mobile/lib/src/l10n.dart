@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-/// Strings, in Tajik first.
+/// Strings, Russian first.
 ///
 /// A lookup table rather than generated ARB files, because M0 has fifteen
 /// strings and the build-time codegen is not yet earning its keep. The point of
@@ -10,18 +10,39 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 /// widget, ever. Swapping this for `flutter_localizations` + ARB later is then a
 /// mechanical change instead of an audit of every screen.
 ///
-/// Tajik (тоҷикӣ) is the default; Russian is widely used in Dushanbe and by
-/// migrant users. Uzbek and English come after M1.
+/// Russian is the default, Tajik second, English third. That ordering is a
+/// product decision, not a linguistic one: Russian is the language the whole
+/// target audience can read — in Dushanbe, across the generations that were
+/// schooled in it, and above all among the migrant workers in Russia who are a
+/// large share of who this app is for. Tajik is the language of the country and
+/// the reason the font choice is non-negotiable (ғ ӣ қ ӯ ҳ ҷ), so it is one tap
+/// away rather than buried. English is for the diaspora and for us.
+///
+/// A user whose phone is set to neither lands on Russian, because guessing
+/// Tajik for a Kazakh or Uzbek phone helps nobody. [supportedLocales] is
+/// ordered, and Flutter's resolution falls through to the first entry, so the
+/// order below IS the policy.
 class L10n {
   const L10n(this.locale);
 
   final Locale locale;
 
   static const supportedLocales = [
-    Locale('tg'),
     Locale('ru'),
+    Locale('tg'),
     Locale('en'),
   ];
+
+  /// The language names, each written in its own language. Never translate
+  /// these — a picker that says "Russian" to someone who only reads Tajik is
+  /// useless, which is why every real language switcher on earth is endonymic.
+  static const languageNames = <String, String>{
+    'ru': 'Русский',
+    'tg': 'Тоҷикӣ',
+    'en': 'English',
+  };
+
+  static const fallbackLanguage = 'ru';
 
   static L10n of(BuildContext context) => L10n(Localizations.localeOf(context));
 
@@ -116,7 +137,7 @@ class L10n {
   String t(String key) {
     final entry = _strings[key];
     if (entry == null) return key;
-    return entry[locale.languageCode] ?? entry['tg'] ?? key;
+    return entry[locale.languageCode] ?? entry[fallbackLanguage] ?? key;
   }
 }
 

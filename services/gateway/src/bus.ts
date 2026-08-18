@@ -1,6 +1,7 @@
 import { Redis } from "ioredis";
 import { z } from "zod";
 import type { ServerFrame } from "@sakina/protocol";
+import { FANOUT_CHANNEL } from "@sakina/core";
 
 /**
  * Cross-node fan-out.
@@ -16,7 +17,7 @@ import type { ServerFrame } from "@sakina/protocol";
  * the client side changes.
  */
 
-export const FANOUT_CHANNEL = "sakina:fanout";
+export { FANOUT_CHANNEL };
 
 const Envelope = z.object({
   user_ids: z.array(z.string().uuid()),

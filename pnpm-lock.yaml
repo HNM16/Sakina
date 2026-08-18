@@ -285,6 +285,9 @@ importers:
       fastify:
         specifier: ^5.2.1
         version: 5.11.2
+      ioredis:
+        specifier: ^5.11.1
+        version: 5.11.1
       zod:
         specifier: ^3.24.1
         version: 3.25.76

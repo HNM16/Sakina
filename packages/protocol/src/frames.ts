@@ -89,6 +89,26 @@ export const ReadyFrame = z.object({
 /** A message addressed to this client. Also echoed to the sender's OTHER devices. */
 export const MessageFrame = z.object({ t: z.literal("message"), d: Message });
 
+/**
+ * A chat appeared, or something about it changed.
+ *
+ * Sent when someone is added to a group or channel, when a title changes, and
+ * when a member leaves. Without it, being added to a group is invisible until
+ * the client next reconnects — which on a phone that stays connected for hours
+ * means the group simply does not exist yet as far as the user can tell.
+ *
+ * It carries the whole summary rather than a delta: chat summaries are small,
+ * they change rarely, and a client applying a patch it cannot fully order is a
+ * bug generator. The client upserts by id.
+ */
+export const ChatFrame = z.object({ t: z.literal("chat"), d: ChatSummary });
+
+/** A chat is gone for this user — they left, or were removed. */
+export const ChatRemovedFrame = z.object({
+  t: z.literal("chat_removed"),
+  d: z.object({ chat_id: Uuid }),
+});
+
 /** Ack of the sender's own `send`. Carries the server-assigned seq — the client
  *  swaps its optimistic local row for this and flips state to `sent`. */
 export const SentFrame = z.object({
@@ -147,6 +167,8 @@ export const ErrorFrame = z.object({
 export const PongFrame = z.object({ t: z.literal("pong"), d: z.object({}).default({}) });
 
 export const ServerFrame = z.discriminatedUnion("t", [
+  ChatFrame,
+  ChatRemovedFrame,
   ReadyFrame,
   MessageFrame,
   SentFrame,

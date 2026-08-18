@@ -64,9 +64,21 @@ class _SakinaAppState extends State<SakinaApp> {
   ChatRepository? _repository;
   PushService? _push;
 
+  /// null means "follow the phone", which resolves to Russian for a phone set
+  /// to anything we do not speak. See src/l10n.dart.
+  Locale? _locale;
+
+  Future<void> _setLanguage(String? code) async {
+    await widget.session.setLanguage(code);
+    if (!mounted) return;
+    setState(() => _locale = code == null ? null : Locale(code));
+  }
+
   @override
   void initState() {
     super.initState();
+    final saved = widget.session.language;
+    if (saved != null) _locale = Locale(saved);
     if (widget.session.isAuthenticated) {
       _api.accessToken = widget.session.accessToken;
       _startSession();
@@ -156,13 +168,21 @@ class _SakinaAppState extends State<SakinaApp> {
       // its own. See lib/src/l10n.dart.
       localizationsDelegates: localizationDelegates,
       supportedLocales: L10n.supportedLocales,
+      // null hands resolution back to the phone, which falls through to the
+      // first supported locale — Russian.
+      locale: _locale,
       home: repository == null
           ? AuthScreen(
               api: _api,
               session: widget.session,
               onSignedIn: _startSession,
             )
-          : ChatListScreen(repository: repository, onSignOut: _signOut),
+          : ChatListScreen(
+              repository: repository,
+              onSignOut: _signOut,
+              language: widget.session.language,
+              onLanguageChanged: _setLanguage,
+            ),
     );
   }
 }

@@ -1,5 +1,13 @@
 import { z } from "zod";
-import { ChatKind, ChatSummary, Message, PublicUser, Uuid } from "./message.js";
+import {
+  ChatKind,
+  ChatSummary,
+  DEFAULT_LOCALE,
+  Locale,
+  Message,
+  PublicUser,
+  Uuid,
+} from "./message.js";
 
 /**
  * The HTTP contract. Deliberately small — HTTP handles only what a socket is
@@ -34,7 +42,7 @@ export type IdentityInput = z.infer<typeof IdentityInput>;
 export const OtpRequestBody = z.object({
   identity: IdentityInput,
   /** Sent so the code email arrives in the right language. */
-  locale: z.enum(["tg", "ru", "en"]).default("tg"),
+  locale: Locale.default(DEFAULT_LOCALE),
 });
 export const OtpRequestResponse = z.object({
   expires_in: z.number().int().positive(),
@@ -112,14 +120,102 @@ export const MeResponse = z.object({
   identities: z.array(IdentitySummary),
 });
 
+/**
+ * A channel handle, e.g. `dushanbe_news`. Stored and compared lowercase.
+ *
+ * Latin-only on purpose, and this one is worth defending: a handle is something
+ * people type from a poster, read out on the radio, and send in an SMS. Cyrillic
+ * handles would look right and be unreachable from half the keyboards in the
+ * country — and a handle that mixes scripts is a homograph attack waiting to
+ * impersonate a news channel.
+ */
+export const ChatUsername = z
+  .string()
+  .min(5)
+  .max(32)
+  .regex(/^[a-z][a-z0-9_]{4,31}$/, "5-32 characters: a-z, 0-9 and _, starting with a letter");
+
 export const CreateChatBody = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("direct"), peer_id: Uuid }),
   z.object({
     kind: z.literal("group"),
     title: z.string().min(1).max(128),
     member_ids: z.array(Uuid).min(1).max(200),
+    description: z.string().max(512).optional(),
+  }),
+  z.object({
+    kind: z.literal("channel"),
+    title: z.string().min(1).max(128),
+    /** Optional: a channel can stay private and be joined by invite only. */
+    username: ChatUsername.optional(),
+    description: z.string().max(512).optional(),
+    /** Channels usually start empty; the creator is the only member. */
+    member_ids: z.array(Uuid).max(200).default([]),
   }),
 ]);
+
+/** Adding people to a group, or seeding a channel with its first members. */
+export const AddMembersBody = z.object({
+  user_ids: z.array(Uuid).min(1).max(200),
+});
+
+export const UpdateChatBody = z.object({
+  title: z.string().min(1).max(128).optional(),
+  description: z.string().max(512).nullable().optional(),
+  username: ChatUsername.nullable().optional(),
+});
+
+export const SetRoleBody = z.object({
+  user_id: Uuid,
+  /** Cannot be "owner": ownership transfer is a separate, deliberate action. */
+  role: z.enum(["admin", "member"]),
+});
+
+// ---------------------------------------------------------------------------
+// Media
+// ---------------------------------------------------------------------------
+
+/**
+ * Step one of an upload: ask the server where to put the bytes.
+ *
+ * The bytes never pass through the API. The client uploads straight to object
+ * storage with a short-lived presigned URL, which keeps a 40MB video off the
+ * Node event loop and means the API can stay small while media is the biggest
+ * thing the product moves.
+ */
+export const UploadRequestBody = z.object({
+  /** Where it is going. Checked for membership and post rights before signing. */
+  chat_id: Uuid,
+  /** Original filename, used for the extension and shown for documents. */
+  name: z.string().min(1).max(255),
+  mime: z.string().min(1).max(160),
+  size: z.number().int().positive(),
+  /** True when this is the poster frame for a video or a preview for a photo. */
+  thumbnail: z.boolean().default(false),
+});
+
+export const UploadTicket = z.object({
+  /** The permanent identifier. This is what goes in the message payload. */
+  key: z.string().min(1),
+  /** Short-lived. Upload here with the given method and headers, then send. */
+  url: z.string(),
+  method: z.enum(["PUT", "POST"]),
+  headers: z.record(z.string()),
+  expires_in: z.number().int().positive(),
+  max_size: z.number().int().positive(),
+});
+
+export const MediaUrlResponse = z.object({
+  key: z.string(),
+  url: z.string(),
+  expires_in: z.number().int().positive(),
+});
+
+export const MediaLimits = z.object({
+  image: z.number().int().positive(),
+  video: z.number().int().positive(),
+  file: z.number().int().positive(),
+});
 
 export const ChatListResponse = z.object({ chats: z.array(ChatSummary) });
 
@@ -166,5 +262,10 @@ export type OtpVerifyResponse = z.infer<typeof OtpVerifyResponse>;
 export type AuthTokens = z.infer<typeof AuthTokens>;
 export type MeResponse = z.infer<typeof MeResponse>;
 export type CreateChatBody = z.infer<typeof CreateChatBody>;
+export type AddMembersBody = z.infer<typeof AddMembersBody>;
+export type UpdateChatBody = z.infer<typeof UpdateChatBody>;
+export type SetRoleBody = z.infer<typeof SetRoleBody>;
+export type UploadRequestBody = z.infer<typeof UploadRequestBody>;
+export type UploadTicket = z.infer<typeof UploadTicket>;
 export type HistoryResponse = z.infer<typeof HistoryResponse>;
 export type { ChatKind, ChatSummary };

@@ -40,6 +40,19 @@ Two things that look like tells and are not:
 
 ## Language
 
-Tajik first, then Russian, then English. Tajik Cyrillic needs ғ ӣ қ ӯ ҳ ҷ — check
-any font against those six before specifying it, and check any layout against
-Tajik string lengths, which run roughly a third longer than English.
+**Russian first, then Tajik, then English.** The order is a product decision,
+not a linguistic one: Russian is the language every part of the audience can
+read, including the migrant workers in Russia who are a large share of who this
+is for. A phone set to neither lands on Russian.
+
+That does not demote Tajik in the places it decides things:
+
+- **Fonts are still chosen on Tajik.** Tajik Cyrillic needs ғ ӣ қ ӯ ҳ ҷ. Check
+  any face against those six before specifying it — Russian coverage proves
+  nothing about them.
+- **Layouts are still sized on Tajik.** Tajik strings run roughly a third longer
+  than English, and longer than Russian too. Size against the longest of the
+  three, which is almost always Tajik.
+- **The picker is endonymic.** Русский / Тоҷикӣ / English, each in its own
+  language. Never translate a language name into a language the reader does not
+  have.

@@ -13,6 +13,12 @@ const Env = z.object({
     .default("true")
     .transform((v) => v === "true"),
   CORS_ORIGIN: z.string().default("*"),
+  /**
+   * Used only to publish chat changes onto the gateway's fan-out channel, so
+   * that being added to a group shows up on an already-connected phone. The API
+   * never subscribes.
+   */
+  REDIS_URL: z.string().default("redis://localhost:6379"),
 
   EMAIL_PROVIDER: z.enum(["console", "resend", "http"]).default("console"),
   RESEND_API_KEY: z.string().optional(),
@@ -53,6 +59,29 @@ const Env = z.object({
    * app gets rejected for an un-signin-able account.
    */
   TEST_IDENTITIES: z.string().default(""),
+
+  // -------------------------------------------------------------------------
+  // Media storage
+  // -------------------------------------------------------------------------
+  /**
+   * `local` writes to disk and serves through this API with a signed URL. It
+   * needs no infrastructure, which is what makes the whole upload path testable
+   * on a laptop — the same reason PUSH_PROVIDER has a console mode.
+   * `s3` is MinIO in production.
+   */
+  STORAGE_PROVIDER: z.enum(["local", "s3"]).default("local"),
+  STORAGE_LOCAL_DIR: z.string().default(".data/media"),
+  /** Absolute base for signed media URLs. Must be reachable by the phone, not by the server. */
+  STORAGE_PUBLIC_BASE: z.string().default("http://127.0.0.1:4000"),
+  S3_ENDPOINT: z.string().default("http://127.0.0.1:9000"),
+  S3_REGION: z.string().default("us-east-1"),
+  S3_BUCKET: z.string().default("sakina-media"),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  S3_FORCE_PATH_STYLE: z
+    .string()
+    .default("true")
+    .transform((v) => v === "true"),
 });
 
 export type Env = z.infer<typeof Env>;

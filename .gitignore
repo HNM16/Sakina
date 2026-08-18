@@ -43,3 +43,6 @@ apps/mobile/android/app/google-services.json
 apps/mobile/ios/Runner/GoogleService-Info.plist
 **/serviceAccountKey.json
 *.p8
+
+# local media store (STORAGE_PROVIDER=local)
+.data/

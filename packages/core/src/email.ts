@@ -1,3 +1,5 @@
+import { DEFAULT_LOCALE } from "@sakina/protocol";
+
 /**
  * Verification-code delivery over email.
  *
@@ -42,17 +44,17 @@ interface OtpCopy {
   body: (code: string) => string;
 }
 
-/** Tajik first, then Russian, then English — the same order as the app. */
+/** Russian first, then Tajik, then English — the same order as the app. */
 const COPY: Record<string, OtpCopy> = {
-  tg: {
-    subject: "Рамзи вуруд ба Сакина",
-    body: (code) =>
-      `Рамзи тасдиқи шумо: ${code}\n\nИн рамз 10 дақиқа эътибор дорад.\nАгар шумо онро дархост накарда бошед, ин номаро нодида гиред.`,
-  },
   ru: {
     subject: "Код входа в Сакина",
     body: (code) =>
       `Ваш код подтверждения: ${code}\n\nКод действителен 10 минут.\nЕсли вы его не запрашивали, просто проигнорируйте это письмо.`,
+  },
+  tg: {
+    subject: "Рамзи вуруд ба Сакина",
+    body: (code) =>
+      `Рамзи тасдиқи шумо: ${code}\n\nИн рамз 10 дақиқа эътибор дорад.\nАгар шумо онро дархост накарда бошед, ин номаро нодида гиред.`,
   },
   en: {
     subject: "Your Sakina sign-in code",
@@ -62,7 +64,7 @@ const COPY: Record<string, OtpCopy> = {
 };
 
 function copyFor(locale: string | undefined): OtpCopy {
-  return COPY[locale ?? "tg"] ?? COPY.tg!;
+  return COPY[locale ?? DEFAULT_LOCALE] ?? COPY.ru!;
 }
 
 export interface ResendOptions {

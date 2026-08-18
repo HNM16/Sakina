@@ -1,7 +1,13 @@
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Database } from "@sakina/db";
 import { chatMembers, chats, messages, users } from "@sakina/db";
-import type { ChatSummary, Message, MessagePayload, PublicUser } from "@sakina/protocol";
+import type {
+  ChatSummary,
+  MemberRole,
+  Message,
+  MessagePayload,
+  PublicUser,
+} from "@sakina/protocol";
 import { DomainError } from "../errors.js";
 import { toWireMessage } from "./messages.js";
 
@@ -18,6 +24,72 @@ export async function isMember(db: Database, chatId: string, userId: string): Pr
     )
     .limit(1);
   return rows.length > 0;
+}
+
+/**
+ * How many members a chat list response will carry per chat.
+ *
+ * A group tops out at 200 and fits. A channel does not: a broadcast with
+ * 40,000 subscribers would put 40,000 user rows into every chat-list response
+ * for every subscriber. The list carries a sample and the true count; the full
+ * member list is its own paginated endpoint when someone actually asks.
+ */
+export const MEMBER_PREVIEW_LIMIT = 64;
+
+/**
+ * Who may post.
+ *
+ * In a direct chat and a group, everyone who is still a member. In a channel,
+ * only owners and admins — that restriction IS the difference between a channel
+ * and a group, so it lives here rather than in a route, and both the HTTP path
+ * and the gateway call it.
+ */
+export function canPost(kind: "direct" | "group" | "channel", role: MemberRole): boolean {
+  if (kind !== "channel") return true;
+  return role === "owner" || role === "admin";
+}
+
+/**
+ * The membership row, or null. One query, used by every permission check.
+ *
+ * Returns the role too, because every caller that needs to know "is this person
+ * in this chat" also needs to know "and may they do this", and asking twice is
+ * two round trips for one decision.
+ */
+export async function getMembership(
+  db: Database,
+  chatId: string,
+  userId: string,
+): Promise<{ role: MemberRole; kind: "direct" | "group" | "channel" } | null> {
+  const rows = await db
+    .select({ role: chatMembers.role, kind: chats.kind })
+    .from(chatMembers)
+    .innerJoin(chats, eq(chats.id, chatMembers.chatId))
+    .where(
+      and(
+        eq(chatMembers.chatId, chatId),
+        eq(chatMembers.userId, userId),
+        isNull(chatMembers.leftAt),
+      ),
+    )
+    .limit(1);
+  const row = rows[0];
+  return row ? { role: row.role, kind: row.kind } : null;
+}
+
+/** Throws unless the user is a member AND allowed to post. */
+export async function assertCanPost(
+  db: Database,
+  chatId: string,
+  userId: string,
+): Promise<void> {
+  const membership = await getMembership(db, chatId, userId);
+  if (!membership) {
+    throw new DomainError("forbidden", "sender is not a member of this chat");
+  }
+  if (!canPost(membership.kind, membership.role)) {
+    throw new DomainError("forbidden", "only admins can post in this channel");
+  }
 }
 
 /** Fan-out list for the gateway: who should receive a message posted to this chat. */
@@ -97,13 +169,88 @@ export async function createGroupChat(
   creatorId: string,
   title: string,
   memberIds: string[],
+  description?: string,
 ): Promise<string> {
-  const unique = [...new Set([creatorId, ...memberIds])];
+  return createMultiChat(db, {
+    kind: "group",
+    creatorId,
+    title,
+    memberIds,
+    description,
+  });
+}
+
+/**
+ * A channel: one-to-many, where only owners and admins post.
+ *
+ * Structurally a chat like any other — same seq allocator, same fan-out, same
+ * sync — because the whole point of the design in docs/PROTOCOL.md is that new
+ * chat shapes are not new subsystems. What makes it a channel is one predicate,
+ * [canPost], and the fact that joining does not require an invitation when it
+ * has a public username.
+ */
+export async function createChannel(
+  db: Database,
+  creatorId: string,
+  input: { title: string; username?: string; description?: string; memberIds?: string[] },
+): Promise<string> {
+  return createMultiChat(db, {
+    kind: "channel",
+    creatorId,
+    title: input.title,
+    memberIds: input.memberIds ?? [],
+    description: input.description,
+    username: input.username,
+  });
+}
+
+async function createMultiChat(
+  db: Database,
+  input: {
+    kind: "group" | "channel";
+    creatorId: string;
+    title: string;
+    memberIds: string[];
+    description?: string;
+    username?: string;
+  },
+): Promise<string> {
+  const unique = [...new Set([input.creatorId, ...input.memberIds])];
+
+  // Every id has to be a real user. Without this an invented uuid becomes a
+  // silent foreign-key error halfway through the transaction, and the caller
+  // sees "conflict" instead of "that person does not exist".
+  const known = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(inArray(users.id, unique));
+  if (known.length !== unique.length) {
+    const found = new Set(known.map((u) => u.id));
+    const missing = unique.filter((id) => !found.has(id));
+    throw new DomainError("bad_request", `unknown user: ${missing[0]}`);
+  }
+
+  if (input.username) {
+    const taken = await db
+      .select({ id: chats.id })
+      .from(chats)
+      .where(eq(chats.username, input.username))
+      .limit(1);
+    if (taken.length > 0) {
+      throw new DomainError("conflict", `@${input.username} is already taken`);
+    }
+  }
 
   return db.transaction(async (tx) => {
     const created = await tx
       .insert(chats)
-      .values({ kind: "group", title, createdBy: creatorId })
+      .values({
+        kind: input.kind,
+        title: input.title,
+        description: input.description ?? null,
+        username: input.username ?? null,
+        createdBy: input.creatorId,
+      })
       .returning({ id: chats.id });
 
     const chatId = created[0]?.id;
@@ -113,12 +260,139 @@ export async function createGroupChat(
       unique.map((userId) => ({
         chatId,
         userId,
-        role: userId === creatorId ? ("owner" as const) : ("member" as const),
+        role: userId === input.creatorId ? ("owner" as const) : ("member" as const),
       })),
     );
 
     return chatId;
   });
+}
+
+/**
+ * Add people to a group or channel.
+ *
+ * Rejoining is an update, not an insert: someone who left and comes back has a
+ * row already, and the primary key is (chat_id, user_id). Their read cursor is
+ * deliberately left where it was — coming back to a group should not mark two
+ * months of messages unread.
+ */
+export async function addMembers(
+  db: Database,
+  chatId: string,
+  userIds: string[],
+): Promise<string[]> {
+  const unique = [...new Set(userIds)];
+  if (unique.length === 0) return [];
+
+  const known = await db.select({ id: users.id }).from(users).where(inArray(users.id, unique));
+  if (known.length !== unique.length) {
+    const found = new Set(known.map((u) => u.id));
+    throw new DomainError("bad_request", `unknown user: ${unique.find((id) => !found.has(id))}`);
+  }
+
+  const added = await db
+    .insert(chatMembers)
+    .values(unique.map((userId) => ({ chatId, userId, role: "member" as const })))
+    .onConflictDoUpdate({
+      target: [chatMembers.chatId, chatMembers.userId],
+      set: { leftAt: null },
+      // Only resurrect rows that are actually gone; re-adding a current member
+      // must not quietly reset anything about them.
+      setWhere: sql`${chatMembers.leftAt} IS NOT NULL`,
+    })
+    .returning({ userId: chatMembers.userId });
+
+  invalidateMemberCache(chatId);
+  return added.map((r) => r.userId);
+}
+
+/**
+ * Remove someone, or leave.
+ *
+ * A tombstone rather than a delete: history stays attributable, the read cursor
+ * survives a rejoin, and "X left" remains true afterwards. Deleting the row
+ * would orphan every message they sent.
+ */
+export async function removeMember(
+  db: Database,
+  chatId: string,
+  userId: string,
+): Promise<void> {
+  await db
+    .update(chatMembers)
+    .set({ leftAt: new Date() })
+    .where(
+      and(
+        eq(chatMembers.chatId, chatId),
+        eq(chatMembers.userId, userId),
+        isNull(chatMembers.leftAt),
+      ),
+    );
+  invalidateMemberCache(chatId);
+}
+
+export async function setMemberRole(
+  db: Database,
+  chatId: string,
+  userId: string,
+  role: "admin" | "member",
+): Promise<void> {
+  const rows = await db
+    .update(chatMembers)
+    .set({ role })
+    .where(
+      and(
+        eq(chatMembers.chatId, chatId),
+        eq(chatMembers.userId, userId),
+        isNull(chatMembers.leftAt),
+        // The owner is not demotable by this path. Handing over a channel is a
+        // separate, deliberate act, not a side effect of tidying up admins.
+        sql`${chatMembers.role} <> 'owner'`,
+      ),
+    )
+    .returning({ userId: chatMembers.userId });
+
+  if (rows.length === 0) {
+    throw new DomainError("bad_request", "that person is not a member, or is the owner");
+  }
+}
+
+export async function updateChat(
+  db: Database,
+  chatId: string,
+  patch: { title?: string; description?: string | null; username?: string | null },
+): Promise<void> {
+  if (patch.username) {
+    const taken = await db
+      .select({ id: chats.id })
+      .from(chats)
+      .where(and(eq(chats.username, patch.username), sql`${chats.id} <> ${chatId}`))
+      .limit(1);
+    if (taken.length > 0) {
+      throw new DomainError("conflict", `@${patch.username} is already taken`);
+    }
+  }
+
+  const values: Record<string, unknown> = {};
+  if (patch.title !== undefined) values.title = patch.title;
+  if (patch.description !== undefined) values.description = patch.description;
+  if (patch.username !== undefined) values.username = patch.username;
+  if (Object.keys(values).length === 0) return;
+
+  await db.update(chats).set(values).where(eq(chats.id, chatId));
+}
+
+/** Look a channel up by its public handle, for joining from a link. */
+export async function findByUsername(
+  db: Database,
+  username: string,
+): Promise<{ id: string; kind: "direct" | "group" | "channel" } | null> {
+  const rows = await db
+    .select({ id: chats.id, kind: chats.kind })
+    .from(chats)
+    .where(eq(chats.username, username.toLowerCase()))
+    .limit(1);
+  return rows[0] ?? null;
 }
 
 export async function setReadCursor(
@@ -147,7 +421,11 @@ function toPublicUser(row: typeof users.$inferSelect): PublicUser {
 
 export async function listChatsForUser(db: Database, userId: string): Promise<ChatSummary[]> {
   const memberships = await db
-    .select({ chatId: chatMembers.chatId, readUpToSeq: chatMembers.readUpToSeq })
+    .select({
+      chatId: chatMembers.chatId,
+      readUpToSeq: chatMembers.readUpToSeq,
+      role: chatMembers.role,
+    })
     .from(chatMembers)
     .where(and(eq(chatMembers.userId, userId), isNull(chatMembers.leftAt)));
 
@@ -165,24 +443,37 @@ export async function listChatsForUser(db: Database, userId: string): Promise<Ch
   ]);
 
   const membersByChat = new Map<string, PublicUser[]>();
+  const countByChat = new Map<string, number>();
   for (const row of memberRows) {
+    countByChat.set(row.chatId, (countByChat.get(row.chatId) ?? 0) + 1);
     const list = membersByChat.get(row.chatId) ?? [];
-    list.push(toPublicUser(row.user));
+    // The count is exact; the list is a preview. A channel with 40,000
+    // subscribers must not put 40,000 user rows in every chat-list response.
+    if (list.length < MEMBER_PREVIEW_LIMIT) list.push(toPublicUser(row.user));
     membersByChat.set(row.chatId, list);
   }
 
   const readByChat = new Map(memberships.map((m) => [m.chatId, Number(m.readUpToSeq)]));
+  const roleByChat = new Map(memberships.map((m) => [m.chatId, m.role]));
 
-  return chatRows.map((chat) => ({
-    id: chat.id,
-    kind: chat.kind,
-    title: chat.title,
-    avatar_key: chat.avatarKey,
-    last_seq: Number(chat.lastSeq),
-    read_up_to_seq: readByChat.get(chat.id) ?? 0,
-    members: membersByChat.get(chat.id) ?? [],
-    last_message: lastMessages.get(chat.id) ?? null,
-  }));
+  return chatRows.map((chat) => {
+    const role = roleByChat.get(chat.id) ?? "member";
+    return {
+      id: chat.id,
+      kind: chat.kind,
+      title: chat.title,
+      avatar_key: chat.avatarKey,
+      description: chat.description,
+      username: chat.username,
+      last_seq: Number(chat.lastSeq),
+      read_up_to_seq: readByChat.get(chat.id) ?? 0,
+      members: membersByChat.get(chat.id) ?? [],
+      member_count: countByChat.get(chat.id) ?? 0,
+      role,
+      can_post: canPost(chat.kind, role),
+      last_message: lastMessages.get(chat.id) ?? null,
+    };
+  });
 }
 
 /**
@@ -290,4 +581,48 @@ export async function getMemberIdsCached(db: Database, chatId: string): Promise<
   memberCache.set(chatId, { ids, expiresAt: now + MEMBER_CACHE_TTL_MS });
 
   return ids;
+}
+
+/**
+ * A page of members, oldest first.
+ *
+ * Separate from the chat summary because a channel's audience does not belong
+ * in a chat-list response — see [MEMBER_PREVIEW_LIMIT]. Ordered by joinedAt so
+ * paging is stable while people are joining.
+ */
+export async function listMembers(
+  db: Database,
+  chatId: string,
+  limit: number,
+  offset: number,
+): Promise<{ members: (PublicUser & { role: MemberRole })[]; total: number }> {
+  const [rows, counted] = await Promise.all([
+    db
+      .select({ user: users, role: chatMembers.role })
+      .from(chatMembers)
+      .innerJoin(users, eq(users.id, chatMembers.userId))
+      .where(and(eq(chatMembers.chatId, chatId), isNull(chatMembers.leftAt)))
+      // Role first, then join order, then id.
+      //
+      // The id is not decoration: everyone added when the chat was created
+      // shares a joinedAt, because defaultNow() is the TRANSACTION timestamp
+      // rather than the statement's. Without a total order, paging a member
+      // list can show the same person twice and skip someone else.
+      //
+      // Role ascending happens to be owner, admin, member — that is the order
+      // the enum is declared in, and it is also the order people expect to read
+      // them in, so it is worth the coupling.
+      .orderBy(asc(chatMembers.role), asc(chatMembers.joinedAt), asc(chatMembers.userId))
+      .limit(limit)
+      .offset(offset),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(chatMembers)
+      .where(and(eq(chatMembers.chatId, chatId), isNull(chatMembers.leftAt))),
+  ]);
+
+  return {
+    members: rows.map((r) => ({ ...toPublicUser(r.user), role: r.role })),
+    total: counted[0]?.count ?? 0,
+  };
 }

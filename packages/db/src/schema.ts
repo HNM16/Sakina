@@ -317,6 +317,14 @@ export const chats = pgTable("chats", {
   kind: chatKind("kind").notNull(),
   title: text("title"),
   avatarKey: text("avatar_key"),
+  description: text("description"),
+  /**
+   * Public handle for a channel, e.g. `dushanbe_news`. Lowercase, Latin only,
+   * unique across chats — and it will eventually have to be unique across
+   * users too, since @name has to resolve to one thing. Null for everything
+   * that is not a public channel.
+   */
+  username: text("username"),
   /**
    * The per-chat sequence allocator. Sequence numbers are handed out with
    *   UPDATE chats SET last_seq = last_seq + 1 WHERE id = $1 RETURNING last_seq
@@ -326,7 +334,9 @@ export const chats = pgTable("chats", {
   lastSeq: bigint("last_seq", { mode: "number" }).notNull().default(0),
   createdBy: uuid("created_by").references(() => users.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  uniqueIndex("chats_username_key").on(t.username),
+]);
 
 export const chatMembers = pgTable(
   "chat_members",

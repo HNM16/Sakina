@@ -18,6 +18,7 @@ class Session {
   static const _kRefreshToken = 'refresh_token';
   static const _kUserId = 'user_id';
   static const _kDisplayName = 'display_name';
+  static const _kLanguage = 'language';
 
   static Future<Session> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -36,6 +37,21 @@ class Session {
 
   bool get isAuthenticated => accessToken != null && userId != null;
 
+  /// The language the user picked, or null to follow the phone.
+  ///
+  /// Survives sign-out along with the device id: someone who chose Tajik on a
+  /// Russian-locale handset should not have to choose it again after signing
+  /// back in.
+  String? get language => _prefs.getString(_kLanguage);
+
+  Future<void> setLanguage(String? code) async {
+    if (code == null) {
+      await _prefs.remove(_kLanguage);
+    } else {
+      await _prefs.setString(_kLanguage, code);
+    }
+  }
+
   Future<void> save({
     required String accessToken,
     required String refreshToken,
@@ -53,7 +69,8 @@ class Session {
   }
 
   Future<void> clear() async {
-    // The device id survives sign-out: it identifies the install, not the account.
+    // The device id and the language survive sign-out: one identifies the
+    // install, the other is a preference of the person holding it.
     for (final key in [_kAccessToken, _kRefreshToken, _kUserId, _kDisplayName]) {
       await _prefs.remove(key);
     }

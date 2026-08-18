@@ -22,6 +22,22 @@ import { z } from "zod";
 
 export const Uuid = z.string().uuid();
 
+/**
+ * The languages Sakina speaks, in priority order. The order is the policy and
+ * is relied on by the clients: Flutter's locale resolution falls through to the
+ * first entry, so a phone set to Uzbek or Kazakh lands on Russian.
+ *
+ * Russian first because it is the language every part of the audience can read
+ * — in Dushanbe, in the generations schooled in it, and among the migrant
+ * workers in Russia who are a large share of who this is for. Tajik second
+ * because it is the country's language and the reason the font is not
+ * negotiable (ғ ӣ қ ӯ ҳ ҷ). English third, for the diaspora.
+ */
+export const Locale = z.enum(["ru", "tg", "en"]);
+export type Locale = z.infer<typeof Locale>;
+
+export const DEFAULT_LOCALE: Locale = "ru";
+
 /** Tajikistani somoni. Money is ALWAYS integer minor units (diram, 1/100 TJS). Never a float. */
 export const Currency = z.literal("TJS");
 
@@ -42,13 +58,37 @@ export const TextPayload = z.object({
   text: z.string().min(1).max(4096),
 });
 
+/**
+ * What kind of thing an attachment is, from the reader's point of view rather
+ * than the encoder's. A .webm is a video whether or not the recipient's phone
+ * can decode it, and the renderer needs to know which shape to draw before it
+ * has fetched a byte.
+ *
+ * Derived from the mime type on the server (see mediaKindFor) so that a client
+ * cannot claim an executable is an image.
+ */
+export const MediaKind = z.enum(["image", "video", "file"]);
+export type MediaKind = z.infer<typeof MediaKind>;
+
 export const MediaPayload = z.object({
   type: z.literal("media"),
+  kind: MediaKind,
   key: z.string().min(1), // object-storage key, not a signed URL — URLs expire, keys don't
   mime: z.string().min(1),
   size: z.number().int().nonnegative(),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
+  /** Videos only. Rendered before playback so the row does not resize on load. */
+  duration_ms: z.number().int().positive().optional(),
+  /**
+   * Poster frame for a video, or a downscaled preview for a large image.
+   *
+   * This is the field that decides whether the app is usable on Tajik mobile
+   * data: without it, opening a chat downloads every full-size photo in it.
+   */
+  thumb_key: z.string().min(1).optional(),
+  /** Original filename. Meaningless for photos, essential for documents. */
+  name: z.string().min(1).max(255).optional(),
   caption: z.string().max(1024).optional(),
 });
 
@@ -127,6 +167,9 @@ export const PublicUser = z.object({
 });
 export type PublicUser = z.infer<typeof PublicUser>;
 
+export const MemberRole = z.enum(["owner", "admin", "member"]);
+export type MemberRole = z.infer<typeof MemberRole>;
+
 export const ChatSummary = z.object({
   id: Uuid,
   kind: ChatKind,
@@ -134,7 +177,27 @@ export const ChatSummary = z.object({
   avatar_key: z.string().nullable(),
   last_seq: z.number().int().nonnegative(),
   read_up_to_seq: z.number().int().nonnegative(),
+  /**
+   * For a direct chat and a small group this is everyone. For a channel it is
+   * capped — a broadcast with 40,000 subscribers must not put 40,000 rows in a
+   * chat list response. Use member_count for the number.
+   */
   members: z.array(PublicUser),
+  member_count: z.number().int().nonnegative(),
+  /** The viewer's own role, so the client knows what to offer without asking. */
+  role: MemberRole,
+  /**
+   * Whether the viewer may post. Always true in a direct chat or a group; in a
+   * channel only for owners and admins.
+   *
+   * The server sends this so the composer can be hidden rather than shown and
+   * then rejected — but it is a hint for the UI, never the enforcement. The
+   * gateway and the HTTP path both re-check on every send.
+   */
+  can_post: z.boolean(),
+  /** Public handle for a channel, e.g. @dushanbe_news. Null for private chats. */
+  username: z.string().nullable(),
+  description: z.string().nullable(),
   last_message: Message.nullable(),
 });
 export type ChatSummary = z.infer<typeof ChatSummary>;

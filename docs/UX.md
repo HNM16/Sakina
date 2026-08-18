@@ -44,9 +44,12 @@ The user should never wonder whether something happened.
 
 ### 2. Match between the system and the real world
 
-- **Tajik first**, then Russian, then English. Not a machine translation — the
+- **Russian first**, then Tajik, then English. Not a machine translation — the
   strings in `l10n.dart` are written, and error messages say what happened in
-  plain language rather than naming an error code.
+  plain language rather than naming an error code. Russian leads because it is
+  the one language the whole audience shares, migrant workers included; Tajik is
+  one tap away in the picker rather than buried, and it still decides every font
+  and every button width.
 - **Tajik Cyrillic sorts correctly**, via the ICU collation in the database. Under
   the C locale, ғ ӣ қ ӯ ҳ ҷ sort wrongly and contact lists come out scrambled —
   a small detail that makes an app feel foreign in about two seconds.

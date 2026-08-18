@@ -1,5 +1,6 @@
 import { SignJWT, importPKCS8 } from "jose";
 import { connect as connectHttp2, constants as http2 } from "node:http2";
+import { DEFAULT_LOCALE } from "@sakina/protocol";
 
 /**
  * Push notifications.
@@ -59,13 +60,13 @@ export interface PushProvider {
 
 /** Generic copy, in the same three languages as the app. Never message content. */
 const COPY: Record<string, { title: string; body: string; bodyGroup: string }> = {
-  tg: { title: "Сакина", body: "Паёми нав", bodyGroup: "Паёми нав дар гурӯҳ" },
   ru: { title: "Сакина", body: "Новое сообщение", bodyGroup: "Новое сообщение в группе" },
+  tg: { title: "Сакина", body: "Паёми нав", bodyGroup: "Паёми нав дар гурӯҳ" },
   en: { title: "Sakina", body: "New message", bodyGroup: "New message in a group" },
 };
 
 export function pushCopy(locale: string | undefined, isGroup = false) {
-  const copy = COPY[locale ?? "tg"] ?? COPY.tg!;
+  const copy = COPY[locale ?? DEFAULT_LOCALE] ?? COPY.ru!;
   return { title: copy.title, body: isGroup ? copy.bodyGroup : copy.body };
 }
 

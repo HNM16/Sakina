@@ -3,7 +3,8 @@
 A messenger for Tajikistan, built so it can become a super-app without being
 rebuilt.
 
-Telegram-shaped to begin with — fast, reliable on a bad connection, Tajik first.
+Telegram-shaped to begin with: fast, reliable on a bad connection, and speaking
+Russian, Tajik and English.
 Structured from the first commit so that payments, utility bills and mini-apps
 arrive as message types on the same bus rather than as a second product bolted
 alongside.
