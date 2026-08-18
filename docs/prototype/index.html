@@ -1,0 +1,1263 @@
+<title>Sakina Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================================
+   Page chrome. Follows the VIEWER's theme.
+
+   The phone screen inside has its own night/day toggle, because that is app
+   content and not a property of this page. Two independent token sets, which is
+   why the phone tokens are namespaced --s-* and never touched by the media
+   query below.
+   =========================================================================== */
+:root {
+  color-scheme: light dark;
+
+  /* Neutrals biased toward the app's own night ground rather than pure grey —
+     the same blue-slate family, lightened. Chosen, not inherited. */
+  --page-bg: #EDF1F6;
+  --page-panel: #FFFFFF;
+  --page-line: #D5DEEA;
+  --page-ink: #14202F;
+  --page-muted: #5A6C88;
+  --page-accent: #12867C;
+  --page-warn: #B07A1E;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page-bg: #070D17;
+    --page-panel: #101A29;
+    --page-line: #1E2B41;
+    --page-ink: #E7EDF7;
+    --page-muted: #8496B3;
+    --page-accent: #35B9AC;
+    --page-warn: #E3AC55;
+  }
+}
+
+:root[data-theme="dark"] {
+  --page-bg: #070D17;
+  --page-panel: #101A29;
+  --page-line: #1E2B41;
+  --page-ink: #E7EDF7;
+  --page-muted: #8496B3;
+  --page-accent: #35B9AC;
+  --page-warn: #E3AC55;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--page-ink);
+  font-family: "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(20px, 4vw, 48px) clamp(16px, 4vw, 32px) 72px;
+}
+
+/* --------------------------------------------------------------------- */
+header.masthead { display: flex; flex-direction: column; gap: 14px; margin-bottom: 34px; }
+
+.brandline { display: flex; align-items: center; gap: 14px; }
+
+h1 {
+  margin: 0;
+  font-size: clamp(28px, 5vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.thesis {
+  margin: 0;
+  max-width: 62ch;
+  font-size: clamp(16px, 2.2vw, 18px);
+  color: var(--page-muted);
+}
+
+.caveat {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  max-width: 68ch;
+  padding: 12px 14px;
+  border: 1px solid var(--page-line);
+  border-left: 3px solid var(--page-warn);
+  border-radius: 4px;
+  background: var(--page-panel);
+  font-size: 14px;
+}
+.caveat strong { color: var(--page-warn); }
+
+/* --------------------------------------------------------------------- */
+.stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .stage { grid-template-columns: minmax(0, 1fr); }
+}
+
+.viewport {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: clamp(16px, 3vw, 32px) 8px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--page-accent) 9%, transparent), transparent 62%),
+    var(--page-panel);
+  border: 1px solid var(--page-line);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.device-label {
+  font-size: 12.5px;
+  color: var(--page-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.device-label b { color: var(--page-ink); font-weight: 600; }
+
+/* The phone shell. Sized in real logical units and then scaled to fit. */
+.shell-scaler { transform-origin: top center; }
+
+.shell {
+  position: relative;
+  background: var(--s-ground);
+  border: 10px solid #05080F;
+  border-radius: 40px;
+  box-shadow: 0 22px 50px -18px rgba(4, 10, 22, 0.55);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-size: 15px;
+  color: var(--s-text);
+}
+
+/* Dynamic Island / notch, drawn from the matrix's safeTop. */
+.island {
+  position: absolute;
+  top: 9px; left: 50%;
+  transform: translateX(-50%);
+  width: 108px; height: 26px;
+  background: #05080F;
+  border-radius: 999px;
+  z-index: 40;
+  pointer-events: none;
+}
+.shell[data-vendor="samsung"] .island {
+  width: 11px; height: 11px; top: 10px;
+}
+.shell[data-vendor="none"] .island { display: none; }
+
+/* Home indicator */
+.home-bar {
+  position: absolute;
+  bottom: 7px; left: 50%;
+  transform: translateX(-50%);
+  width: 116px; height: 4px;
+  border-radius: 999px;
+  background: var(--s-muted);
+  opacity: 0.5;
+  z-index: 40;
+  pointer-events: none;
+}
+
+/* ===========================================================================
+   App tokens. Straight out of apps/mobile/lib/src/theme.dart — these are the
+   values the Flutter app uses, not an approximation of them.
+   =========================================================================== */
+.shell[data-mode="night"] {
+  --s-ground:  #0A1220;
+  --s-surface: #111B2C;
+  --s-raised:  #18243A;
+  --s-line:    #22314B;
+  --s-text:    #E7EDF7;
+  --s-muted:   #8496B3;
+  --s-accent:  #35B9AC;
+  --s-saffron: #E3AC55;
+  --s-anor:    #D25A54;
+  --s-mine:    #14504A;
+  --s-theirs:  #18243A;
+  --s-on-accent: #0A1220;
+}
+.shell[data-mode="day"] {
+  --s-ground:  #F4F7FB;
+  --s-surface: #FFFFFF;
+  --s-raised:  #FFFFFF;
+  --s-line:    #DFE7F1;
+  --s-text:    #0C1524;
+  --s-muted:   #5A6C88;
+  --s-accent:  #12867C;
+  --s-saffron: #B07A1E;
+  --s-anor:    #B23B36;
+  --s-mine:    #D2EEE9;
+  --s-theirs:  #FFFFFF;
+  --s-on-accent: #FFFFFF;
+}
+
+.screen {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  background: var(--s-ground);
+}
+
+/* Two-pane at >= 600 logical units, exactly as SakinaLayout.usesTwoPane does. */
+.pane-list { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.pane-detail { display: none; }
+.shell[data-twopane="true"] .pane-list {
+  flex: 0 0 var(--list-w);
+  border-right: 1px solid var(--s-line);
+}
+.shell[data-twopane="true"] .pane-detail { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+
+/* --------------------------------------------------------------------- */
+.appbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  padding-top: calc(10px + var(--safe-top, 0px));
+  background: var(--s-surface);
+  border-bottom: 1px solid var(--s-line);
+  min-height: 56px;
+  flex: none;
+}
+.appbar .title { font-weight: 600; font-size: 17px; line-height: 1.2; }
+.appbar .sub { font-size: 12px; color: var(--s-muted); line-height: 1.2; }
+.appbar .spacer { margin-left: auto; }
+
+.iconbtn {
+  width: 40px; height: 40px;
+  min-width: 40px;
+  display: grid; place-items: center;
+  border: 0; border-radius: 999px;
+  background: transparent;
+  color: var(--s-text);
+  cursor: pointer;
+  font: inherit;
+}
+.iconbtn:hover { background: color-mix(in oklab, var(--s-text) 8%, transparent); }
+.iconbtn:focus-visible { outline: 2px solid var(--s-accent); outline-offset: 1px; }
+.iconbtn svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+.strip {
+  background: var(--s-line);
+  color: var(--s-text);
+  font-size: 12px;
+  text-align: center;
+  padding: 4px;
+  flex: none;
+}
+
+.body { flex: 1; overflow-y: auto; min-height: 0; }
+
+/* Chat list rows */
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 16px;
+  min-height: 56px;
+  cursor: pointer;
+  background: none; border: 0; width: 100%;
+  text-align: start;
+  color: inherit; font: inherit;
+}
+.row:hover { background: color-mix(in oklab, var(--s-text) 5%, transparent); }
+.row:focus-visible { outline: 2px solid var(--s-accent); outline-offset: -2px; }
+.row[aria-current="true"] { background: color-mix(in oklab, var(--s-accent) 14%, transparent); }
+
+.avatar {
+  width: 48px; height: 48px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--s-line);
+  display: grid; place-items: center;
+  font-weight: 600;
+  color: var(--s-text);
+}
+.avatar svg { width: 22px; height: 22px; fill: none; stroke: var(--s-muted); stroke-width: 1.7; }
+.shell[data-narrow="true"] .avatar { width: 40px; height: 40px; }
+
+.row .who { min-width: 0; flex: 1; }
+.row .name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .prev { font-size: 13px; color: var(--s-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.badge {
+  flex: none;
+  min-width: 20px; height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--s-accent);
+  color: var(--s-on-accent);
+  font-size: 11px; font-weight: 700;
+  display: grid; place-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Messages */
+.log { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; }
+
+.bubble {
+  max-width: var(--bubble-max, 78%);
+  margin: 0 16px;
+  padding: 8px 12px;
+  border-radius: 16px;
+  background: var(--s-theirs);
+  border: 1px solid var(--s-line);
+  align-self: flex-start;
+  word-break: break-word;
+}
+.bubble.mine { background: var(--s-mine); border-color: transparent; align-self: flex-end; }
+.bubble.has-media { width: min(var(--bubble-max, 78%), 270px); }
+.bubble .meta {
+  display: flex; align-items: center; justify-content: flex-end; gap: 4px;
+  font-size: 11px; color: var(--s-muted);
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+.bubble.mine .meta { color: color-mix(in oklab, var(--s-text) 78%, transparent); }
+.bubble .meta svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+.sysmsg {
+  align-self: center;
+  font-size: 12.5px;
+  color: var(--s-muted);
+  padding: 2px 12px;
+  text-align: center;
+}
+
+/* Attachment states — the three real ones from media_bubble.dart */
+.att {
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--s-line);
+  display: grid; place-items: center;
+  height: 150px;
+  cursor: pointer;
+  gap: 6px;
+  color: var(--s-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  border: 0;
+  width: 100%;
+  font-family: inherit;
+}
+.att svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+.att.photo {
+  /* A stand-in for a real photograph, drawn rather than fetched: this page
+     invents no product screenshots and no user content. */
+  background:
+    linear-gradient(160deg, #1d3a4d 0%, #2b5566 42%, #4d7d7a 70%, #8fae86 100%);
+  height: 170px;
+}
+.att.filerow {
+  height: auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-start;
+  background: transparent;
+  padding: 4px 0;
+  text-align: start;
+}
+.att.filerow .fname { color: var(--s-text); font-size: 14px; }
+
+/* Composer */
+.composer {
+  display: flex; gap: 8px; align-items: flex-end;
+  padding: 8px;
+  padding-bottom: calc(8px + var(--safe-bottom, 0px));
+  border-top: 1px solid var(--s-line);
+  background: var(--s-ground);
+  flex: none;
+}
+.field {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--s-line);
+  border-radius: 12px;
+  background: var(--s-surface);
+  color: var(--s-muted);
+  font: inherit;
+  font-size: 14px;
+  display: flex; align-items: center;
+}
+.sendbtn {
+  width: 44px; height: 44px;
+  flex: none;
+  border: 0; border-radius: 12px;
+  background: var(--s-accent);
+  color: var(--s-on-accent);
+  display: grid; place-items: center;
+  cursor: pointer;
+}
+.sendbtn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.readonly {
+  padding: 14px 16px;
+  padding-bottom: calc(14px + var(--safe-bottom, 0px));
+  text-align: center;
+  font-size: 13px;
+  color: var(--s-muted);
+  border-top: 1px solid var(--s-line);
+  flex: none;
+}
+
+/* FAB */
+.pane-list { position: relative; }
+.fab {
+  position: absolute;
+  right: 18px;
+  bottom: calc(20px + var(--safe-bottom, 0px));
+  width: 56px; height: 56px;
+  border: 0; border-radius: 18px;
+  background: var(--s-accent);
+  color: var(--s-on-accent);
+  display: grid; place-items: center;
+  cursor: pointer;
+  box-shadow: 0 6px 18px -6px rgba(0,0,0,.5);
+  z-index: 30;
+}
+.fab svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Sheets and forms */
+.sheet-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(3, 7, 14, .55);
+  z-index: 50;
+  display: flex; align-items: flex-end;
+}
+.sheet {
+  width: 100%;
+  background: var(--s-surface);
+  border-radius: 18px 18px 0 0;
+  padding: 8px 0 calc(10px + var(--safe-bottom, 0px));
+  border-top: 1px solid var(--s-line);
+}
+.grabber { width: 34px; height: 4px; border-radius: 99px; background: var(--s-muted); opacity: .5; margin: 4px auto 10px; }
+.sheet .row { min-height: 48px; }
+.sheet .row svg { width: 21px; height: 21px; fill: none; stroke: var(--s-muted); stroke-width: 1.7; flex: none; }
+.sheet-title { padding: 2px 16px 8px; font-weight: 600; }
+.divider { height: 1px; background: var(--s-line); margin: 6px 0; }
+
+.form { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.label { font-size: 12px; color: var(--s-muted); margin-bottom: 5px; }
+.input {
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--s-line);
+  border-radius: 12px;
+  background: var(--s-surface);
+  color: var(--s-text);
+  font-size: 14px;
+  display: flex; align-items: center;
+}
+.input.placeholder { color: var(--s-muted); }
+.input.focused { border-color: var(--s-accent); border-width: 1.5px; }
+.helper { font-size: 11.5px; color: var(--s-muted); margin-top: 5px; line-height: 1.4; }
+.btn {
+  min-height: 48px;
+  border: 0; border-radius: 12px;
+  background: var(--s-accent);
+  color: var(--s-on-accent);
+  font: inherit; font-weight: 600; font-size: 15px;
+  cursor: pointer;
+  width: 100%;
+}
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--s-anor); border: 1px solid var(--s-line); }
+.chiprow { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 5px 10px; border-radius: 999px;
+  background: var(--s-raised); border: 1px solid var(--s-line);
+  font-size: 12.5px;
+}
+.rolechip { font-size: 11px; color: var(--s-saffron); }
+
+.centered {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px; padding: 24px; text-align: center;
+}
+
+/* Radios in the language sheet */
+.radio { display: flex; align-items: center; gap: 12px; padding: 10px 16px; min-height: 48px; cursor: pointer; background:none;border:0;width:100%;color:inherit;font:inherit;text-align:start; }
+.radio .dot { width: 20px; height: 20px; border-radius: 999px; border: 2px solid var(--s-muted); flex: none; display: grid; place-items: center; }
+.radio[aria-checked="true"] .dot { border-color: var(--s-accent); }
+.radio[aria-checked="true"] .dot::after { content: ""; width: 10px; height: 10px; border-radius: 999px; background: var(--s-accent); }
+
+/* ===========================================================================
+   Control rail
+   =========================================================================== */
+.rail { display: flex; flex-direction: column; gap: 22px; position: sticky; top: 24px; }
+@media (max-width: 900px) { .rail { position: static; } }
+
+.group > h3 {
+  margin: 0 0 9px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--page-muted);
+}
+
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button {
+  padding: 8px 12px;
+  min-height: 40px;
+  border: 1px solid var(--page-line);
+  border-radius: 6px;
+  background: var(--page-panel);
+  color: var(--page-ink);
+  font: inherit; font-size: 13.5px;
+  cursor: pointer;
+}
+.seg button:hover { border-color: var(--page-accent); }
+.seg button:focus-visible { outline: 2px solid var(--page-accent); outline-offset: 1px; }
+.seg button[aria-pressed="true"] {
+  background: var(--page-accent);
+  border-color: var(--page-accent);
+  color: #FFF;
+  font-weight: 600;
+}
+.screenlist { display: flex; flex-direction: column; gap: 3px; }
+.screenlist button {
+  text-align: start;
+  padding: 9px 11px;
+  min-height: 40px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--page-ink);
+  font: inherit; font-size: 14px;
+  cursor: pointer;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.screenlist button:hover { background: var(--page-panel); }
+.screenlist button:focus-visible { outline: 2px solid var(--page-accent); outline-offset: 1px; }
+.screenlist button[aria-pressed="true"] {
+  background: var(--page-panel);
+  border-color: var(--page-accent);
+  font-weight: 600;
+}
+.screenlist .note { font-size: 11.5px; color: var(--page-muted); font-weight: 400; }
+
+.spec {
+  font-size: 12.5px;
+  color: var(--page-muted);
+  border-top: 1px solid var(--page-line);
+  padding-top: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.spec div { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; }
+.spec b { color: var(--page-ink); font-weight: 600; }
+
+/* ===========================================================================
+   Prose sections below the stage
+   =========================================================================== */
+section.prose { margin-top: 56px; max-width: 78ch; }
+section.prose h2 {
+  font-size: clamp(20px, 3vw, 26px);
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+section.prose > p { color: var(--page-muted); margin-top: 0; }
+section.prose h3 { font-size: 16px; margin: 28px 0 6px; }
+section.prose p, section.prose li { font-size: 15px; }
+section.prose li { margin-bottom: 5px; }
+
+pre {
+  background: var(--page-panel);
+  border: 1px solid var(--page-line);
+  border-left: 3px solid var(--page-accent);
+  border-radius: 4px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.65;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.92em; }
+p code, li code, td code {
+  background: color-mix(in oklab, var(--page-accent) 12%, transparent);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.tablewrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: start; padding: 8px 12px; border-bottom: 1px solid var(--page-line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--page-muted); font-weight: 700; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+.sw { width: 118px; }
+.sw i { display: block; height: 46px; border-radius: 5px; border: 1px solid var(--page-line); }
+.sw b { display: block; font-size: 12.5px; margin-top: 5px; font-weight: 600; }
+.sw span { font-size: 11.5px; color: var(--page-muted); font-variant-numeric: tabular-nums; }
+
+footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--page-line); font-size: 13px; color: var(--page-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="brandline">
+    <svg width="46" height="46" viewBox="0 0 100 100" aria-hidden="true">
+      <g fill="none" stroke="#35B9AC" stroke-width="5" stroke-linejoin="round">
+        <rect x="12" y="12" width="76" height="76" rx="3"/>
+        <rect x="26.2" y="26.2" width="47.6" height="47.6" rx="3" transform="rotate(45 50 50)"/>
+        <rect x="33" y="33" width="34" height="34" rx="3"/>
+      </g>
+      <rect x="42" y="42" width="16" height="16" rx="2" transform="rotate(45 50 50)" fill="#E3AC55"/>
+    </svg>
+    <h1>Sakina Prototype</h1>
+  </div>
+  <p class="thesis">
+    A quiet app so the conversation can be loud. Click through every screen, at
+    any of six real device sizes, in all three languages.
+  </p>
+  <div class="caveat">
+    <span>
+      <strong>This is a design prototype, not the app.</strong> It is HTML
+      rendering the same palette, strings and layout rules the Flutter client
+      uses — so what you see is accurate — but the Flutter app has never been
+      compiled, because there is no Flutter SDK in the environment it was built
+      in. To run the real thing, see <a href="#running" style="color:var(--page-accent)">Running it for real</a> below.
+    </span>
+  </div>
+</header>
+
+<div class="stage">
+  <div class="viewport">
+    <div class="device-label" id="deviceLabel"></div>
+    <div class="shell-scaler" id="scaler">
+      <div class="shell" id="shell" data-mode="night" data-vendor="apple">
+        <div class="island"></div>
+        <div class="screen" id="screen"></div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rail">
+    <div class="group">
+      <h3>Device</h3>
+      <div class="seg" id="devices"></div>
+    </div>
+
+    <div class="group">
+      <h3>Language</h3>
+      <div class="seg" id="langs"></div>
+    </div>
+
+    <div class="group">
+      <h3>Theme</h3>
+      <div class="seg" id="modes"></div>
+    </div>
+
+    <div class="spec" id="spec"></div>
+
+    <div class="group">
+      <h3>Screen</h3>
+      <div class="screenlist" id="screens"></div>
+    </div>
+  </div>
+</div>
+
+<section class="prose" id="running">
+  <h2>Running it for real</h2>
+  <p>Three ways, in increasing order of effort and fidelity.</p>
+
+  <h3>1. The browser client — two real people chatting, in about a minute</h3>
+  <p>
+    This is the one worth doing first. It is a real client speaking the real
+    protocol to the real server: sign-in, sockets, idempotent retries,
+    offline catch-up. No Flutter, no emulator, no phone.
+  </p>
+<pre>git clone https://github.com/HNM16/Sakina &amp;&amp; cd Sakina
+pnpm install
+pnpm infra:up        # postgres + redis + minio, via Docker
+pnpm build
+pnpm db:migrate
+pnpm dev             # api :4000, gateway :4001, worker :4003
+
+# in a second terminal
+pnpm dev:client      # http://localhost:4002</pre>
+  <p>
+    Open <code>localhost:4002</code> in two tabs, sign in with two different
+    email addresses (the code is returned in the response — no mail server
+    needed), copy one tab's user id into the other, and talk. Kill the gateway
+    mid-conversation and watch the messages queue and then arrive.
+  </p>
+
+  <h3>2. The test suites — the fastest verdict</h3>
+<pre>pnpm test          # 125 checks
+pnpm test:devices  # the layout at 31 real device sizes, in a real browser</pre>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Command</th><th class="num">Checks</th><th>What it proves</th></tr></thead>
+    <tbody>
+      <tr><td><code>test:auth</code></td><td class="num">15</td><td>Every Gmail and Yandex variant lands on one account; disposable domains refused; one device cannot farm accounts</td></tr>
+      <tr><td><code>test:bans</code></td><td class="num">10</td><td>A banned user with a new email on the same handset is refused</td></tr>
+      <tr><td><code>test:messaging</code></td><td class="num">24</td><td>A retried send whose ack was lost does not duplicate; an offline client catches up</td></tr>
+      <tr><td><code>test:push</code></td><td class="num">17</td><td>A closed app is notified; an open one is not; no message text in the payload</td></tr>
+      <tr><td><code>test:social</code></td><td class="num">48</td><td>A channel subscriber is refused at every entry point; a stolen media key is rejected; HTML and SVG uploads refused</td></tr>
+      <tr><td><code>test:l10n</code></td><td class="num">7</td><td>Every string in three languages; every key the UI asks for exists</td></tr>
+      <tr><td><code>test:dart</code></td><td class="num">4</td><td>Imports resolve, brackets balance, no undefined Sakina symbols</td></tr>
+      <tr><td><code>test:devices</code></td><td class="num">16</td><td>The layout at all 31 device widths, including a real browser at each viewport</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>
+    The suites assert real limits, so the server has to be running with the
+    limits they assert. <code>test:auth</code> checks that one device
+    <em>cannot</em> farm accounts, which means the per-device cap must be at its
+    default — while the same suite creates a dozen accounts from one address, so
+    the per-IP ceiling has to be lifted:
+  </p>
+<pre>MAX_SIGNUPS_PER_DEVICE=3 MAX_SIGNUPS_PER_IP=1000000 \
+OTP_RESEND_COOLDOWN_SECONDS=0 TEST_IDENTITIES="qa@sakina.tj:000000" \
+STORAGE_PROVIDER=local pnpm dev</pre>
+
+  <h3>3. The Flutter app — the real client, and the honest caveat</h3>
+  <p>
+    Every screen in this prototype exists as Dart in <code>apps/mobile</code>.
+    None of it has ever been compiled. That is not a figure of speech: there is
+    no Flutter SDK in the environment this was built in, so the code is
+    read-checked and machine-checked but never once run.
+  </p>
+<pre>cd apps/mobile
+flutter create .          # generates android/ ios/ — they are gitignored
+flutter pub get
+flutter run --dart-define=API_URL=http://10.0.2.2:4000 \
+            --dart-define=WS_URL=ws://10.0.2.2:4001/ws</pre>
+  <p>
+    <code>10.0.2.2</code> is how the Android emulator reaches your host machine;
+    on an iOS simulator use <code>localhost</code>, and on a real handset use
+    your computer's LAN address. <strong>Expect compile errors on the first
+    run</strong> — that is the whole point of the caveat, and fixing them is the
+    next real task. <code>flutter analyze</code> before <code>flutter run</code>
+    will find most of them in one pass.
+  </p>
+</section>
+
+<section class="prose">
+  <h2>The palette</h2>
+  <p>From <code>apps/mobile/lib/src/theme.dart</code>. Firuza is the glaze on Samanid tilework; it is the only accent.</p>
+  <div class="swatches" id="swatches"></div>
+  <p>
+    Saffron is for rare warmth — an admin badge, a channel handle. Pomegranate
+    appears only when something is lost. A screen with three accent colours has
+    none.
+  </p>
+</section>
+
+<footer>
+  Prototype of Sakina — a messenger for Tajikistan.
+  Palette, strings and layout rules taken from the repository; nothing here is
+  invented. Photographs in the message list are drawn gradients, not stock
+  images: this page contains no fabricated product screenshots and no user
+  content.
+</footer>
+
+</div>
+
+<script type="module">
+// ===========================================================================
+// Real data, lifted from the repository.
+// ===========================================================================
+
+/** apps/mobile/lib/src/l10n.dart — verbatim. */
+const S = {"app_name": {"ru": "Сакина","tg": "Сакина","en": "Sakina"},"sign_in_subtitle": {"ru": "Введите вашу почту, чтобы войти","tg": "Барои вуруд почтаи электронии худро ворид кунед","en": "Enter your email to sign in"},"email_title": {"ru": "Электронная почта","tg": "Почтаи электронӣ","en": "Email"},"email_hint": {"ru": "nekruz@example.com","tg": "nekruz@example.com","en": "nekruz@example.com"},"email_invalid": {"ru": "Неверный адрес почты","tg": "Суроғаи почта нодуруст аст","en": "That doesn't look like an email address"},"code_sent_to": {"ru": "Мы отправили код на","tg": "Мо рамзро фиристодем ба","en": "We sent a code to"},"change_email": {"ru": "Изменить адрес","tg": "Тағйири суроға","en": "Change address"},"invite_title": {"ru": "Код приглашения","tg": "Рамзи даъват","en": "Invite code"},"invite_hint": {"ru": "От друга, который уже в Сакина","tg": "Аз дӯсте, ки аллакай дар Сакина аст","en": "From a friend already on Sakina"},"phone_title": {"ru": "Номер телефона","tg": "Рақами телефон","en": "Phone number"},"continue": {"ru": "Продолжить","tg": "Идома","en": "Continue"},"code_title": {"ru": "Код подтверждения","tg": "Рамзи тасдиқ","en": "Confirmation code"},"code_hint": {"ru": "Введите 6-значный код","tg": "Рамзи 6-рақамаро ворид кунед","en": "Enter the 6-digit code"},"chats": {"ru": "Чаты","tg": "Сӯҳбатҳо","en": "Chats"},"no_chats": {"ru": "Пока нет чатов","tg": "Ҳанӯз сӯҳбате нест","en": "No chats yet"},"message_hint": {"ru": "Сообщение...","tg": "Паём...","en": "Message..."},"send": {"ru": "Отправить","tg": "Фиристодан","en": "Send"},"connecting": {"ru": "Подключение...","tg": "Пайвастшавӣ...","en": "Connecting..."},"offline": {"ru": "Не в сети","tg": "Офлайн","en": "Offline"},"typing": {"ru": "печатает...","tg": "менависад...","en": "typing..."},"sign_out": {"ru": "Выйти","tg": "Баромад","en": "Sign out"},"new_chat": {"ru": "Новый чат","tg": "Сӯҳбати нав","en": "New chat"},"peer_id_hint": {"ru": "Введите ID пользователя","tg": "ID-и корбарро ворид кунед","en": "Enter a user ID"},"push_new_message": {"ru": "Новое сообщение","tg": "Паёми нав","en": "New message"},"notifications_off": {"ru": "Уведомления выключены","tg": "Огоҳиномаҳо хомӯшанд","en": "Notifications are off"},"error_generic": {"ru": "Произошла ошибка","tg": "Хатогӣ рух дод","en": "Something went wrong"},"language": {"ru": "Язык","tg": "Забон","en": "Language"},"language_system": {"ru": "Как на телефоне","tg": "Мисли телефон","en": "Match my phone"},"saved_messages": {"ru": "Избранное","tg": "Захирашуда","en": "Saved messages"},"new_group": {"ru": "Новая группа","tg": "Гурӯҳи нав","en": "New group"},"new_channel": {"ru": "Новый канал","tg": "Шабакаи нав","en": "New channel"},"join_channel": {"ru": "Подписаться на канал","tg": "Обуна ба шабака","en": "Join a channel"},"group_name": {"ru": "Название группы","tg": "Номи гурӯҳ","en": "Group name"},"group_name_hint": {"ru": "Наша семья","tg": "Оилаи мо","en": "Our family"},"channel_name": {"ru": "Название канала","tg": "Номи шабака","en": "Channel name"},"channel_name_hint": {"ru": "Новости Душанбе","tg": "Хабарҳои Душанбе","en": "Dushanbe news"},"chat_description": {"ru": "Описание","tg": "Тавсиф","en": "Description"},"chat_description_hint": {"ru": "Необязательно","tg": "Ихтиёрӣ","en": "Optional"},"channel_handle": {"ru": "Публичная ссылка","tg": "Пайванди оммавӣ","en": "Public link"},"channel_handle_help": {"ru": "Латиница, цифры и _. Так канал найдут по ссылке.","tg": "Ҳарфҳои лотинӣ, рақамҳо ва _. Бо ин пайванд шабакаро меёбанд.","en": "Latin letters, digits and _. This is how people find the channel."},"channel_handle_invalid": {"ru": "От 5 до 32 символов: a-z, 0-9 и _","tg": "Аз 5 то 32 аломат: a-z, 0-9 ва _","en": "5 to 32 characters: a-z, 0-9 and _"},"channel_private_note": {"ru": "Без ссылки канал будет закрытым — подписчиков добавляете вы.","tg": "Бе пайванд шабака пӯшида мешавад — обуначиёнро шумо илова мекунед.","en": "Without a link the channel stays private and you add subscribers yourself."},"members": {"ru": "Участники","tg": "Аъзоён","en": "Members"},"subscribers": {"ru": "Подписчики","tg": "Обуначиён","en": "Subscribers"},"add_people": {"ru": "Добавить людей","tg": "Илова кардани одамон","en": "Add people"},"add_by_id": {"ru": "Вставьте id пользователя","tg": "Идентификатори корбарро гузоред","en": "Paste a user id"},"no_one_yet": {"ru": "Пока никого. Добавьте хотя бы одного человека.","tg": "Ҳанӯз касе нест. Ақаллан як нафарро илова кунед.","en": "Nobody yet. Add at least one person."},"owner_role": {"ru": "Владелец","tg": "Соҳиб","en": "Owner"},"admin_role": {"ru": "Администратор","tg": "Мудир","en": "Admin"},"leave_chat": {"ru": "Выйти","tg": "Баромадан","en": "Leave"},"left_chat": {"ru": "Вы вышли","tg": "Шумо баромадед","en": "You left"},"undo": {"ru": "Отменить","tg": "Бекор кардан","en": "Undo"},"create": {"ru": "Создать","tg": "Сохтан","en": "Create"},"cancel": {"ru": "Отмена","tg": "Бекор","en": "Cancel"},"retry": {"ru": "Повторить","tg": "Такрор","en": "Try again"},"read_only_channel": {"ru": "Только администраторы могут писать здесь","tg": "Танҳо мудирон метавонанд дар ин ҷо нависанд","en": "Only admins can post here"},"attach": {"ru": "Прикрепить","tg": "Замима кардан","en": "Attach"},"a_photo": {"ru": "Фото","tg": "Сурат","en": "Photo"},"a_video": {"ru": "Видео","tg": "Видео","en": "Video"},"a_file": {"ru": "Файл","tg": "Файл","en": "File"},"attachment": {"ru": "Вложение","tg": "Замима","en": "Attachment"},"from_camera": {"ru": "Камера","tg": "Камера","en": "Camera"},"from_gallery": {"ru": "Галерея","tg": "Галерея","en": "Gallery"},"uploading": {"ru": "Отправка…","tg": "Фиристодан…","en": "Uploading…"},"upload_failed": {"ru": "Не удалось отправить","tg": "Фиристодан нашуд","en": "Couldn't send that"},"file_too_large": {"ru": "Файл слишком большой","tg": "Файл хеле калон аст","en": "That file is too large"},"mobile_data_warning": {"ru": "Большой файл. Отправить по мобильному интернету?","tg": "Файли калон. Тавассути интернети мобилӣ фиристода шавад?","en": "Large file. Send over mobile data?"},"send_anyway": {"ru": "Отправить","tg": "Фиристодан","en": "Send"},"system_event": {"ru": "Событие","tg": "Рӯйдод","en": "Update"},"loading": {"ru": "Загрузка…","tg": "Боркунӣ…","en": "Loading…"},"nothing_here": {"ru": "Пока пусто","tg": "Ҳанӯз холӣ","en": "Nothing here yet"}};
+
+const t = (key) => (S[key] && S[key][state.lang]) || key;
+
+/** A subset of tools/device-matrix/devices.json. */
+const DEVICES = [
+  { id: "s24",   name: "Galaxy S24",        w: 360, h: 780,  top: 32, bottom: 24, vendor: "samsung" },
+  { id: "fold",  name: "Z Fold — outer",    w: 344, h: 882,  top: 32, bottom: 24, vendor: "samsung" },
+  { id: "ip15",  name: "iPhone 15",         w: 393, h: 852,  top: 59, bottom: 34, vendor: "apple" },
+  { id: "ipmax", name: "iPhone 16 Pro Max", w: 440, h: 956,  top: 59, bottom: 34, vendor: "apple" },
+  { id: "foldi", name: "Z Fold — inner",    w: 674, h: 841,  top: 32, bottom: 24, vendor: "samsung" },
+  { id: "ipad",  name: 'iPad Pro 11"',      w: 834, h: 1194, top: 24, bottom: 20, vendor: "none" },
+];
+
+/** apps/mobile/lib/src/layout.dart. */
+const NARROW = 375, COMPACT = 600, READABLE = 720;
+
+function layoutFor(w) {
+  const isNarrow = w < NARROW;
+  const twoPane = w >= COMPACT;
+  const listW = twoPane ? Math.min(Math.max(w * 0.36, 300), 400) : w;
+  const detailW = twoPane ? w - listW : w;
+  return {
+    isNarrow, twoPane, listW, detailW,
+    gutter: isNarrow ? 12 : 16,
+    gap: isNarrow ? 10 : 14,
+    bubbleMax: Math.min((detailW - (isNarrow ? 24 : 32)) * (isNarrow ? 0.86 : 0.78), READABLE * 0.8),
+  };
+}
+
+const state = { device: "ip15", lang: "ru", mode: "night", screen: "chats" };
+
+// ---------------------------------------------------------------------------
+// Icons, drawn rather than imported — one set, one stroke weight.
+// ---------------------------------------------------------------------------
+const ico = {
+  group: '<svg viewBox="0 0 24 24"><path d="M17 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="3.5"/><path d="M22 20v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg>',
+  channel: '<svg viewBox="0 0 24 24"><path d="M3 11v3a1 1 0 0 0 1 1h3l4 4V6L7 10H4a1 1 0 0 0-1 1Z"/><path d="M16 8.5a5 5 0 0 1 0 7"/><path d="M19 5.5a9 9 0 0 1 0 13"/></svg>',
+  person: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>',
+  at: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1"/></svg>',
+  edit: '<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  send: '<svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>',
+  clip: '<svg viewBox="0 0 24 24"><path d="M21.4 11.05 12.25 20.2a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 1 1 5.18 5.18l-9.2 9.19a1.83 1.83 0 1 1-2.59-2.59l8.49-8.48"/></svg>',
+  lang: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg>',
+  out: '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>',
+  info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
+  back: '<svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>',
+  cam: '<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg>',
+  img: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>',
+  vid: '<svg viewBox="0 0 24 24"><path d="m23 7-7 5 7 5V7Z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+  file: '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>',
+  play: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4Z"/></svg>',
+  add: '<svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>',
+  tick: '<svg viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></svg>',
+  clock: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+};
+
+/** The chorkhona, matching ChorkhonaMark — including the tier it sheds below 24. */
+function mark(size) {
+  const tiers = size >= 40
+    ? '<rect x="12" y="12" width="76" height="76" rx="3"/><rect x="26.2" y="26.2" width="47.6" height="47.6" rx="3" transform="rotate(45 50 50)"/><rect x="33" y="33" width="34" height="34" rx="3"/>'
+    : size >= 24
+      ? '<rect x="12" y="12" width="76" height="76" rx="3"/><rect x="26.2" y="26.2" width="47.6" height="47.6" rx="3" transform="rotate(45 50 50)"/>'
+      : '<rect x="12" y="12" width="76" height="76" rx="3"/>';
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true">
+    <g fill="none" stroke="var(--s-accent)" stroke-width="5" stroke-linejoin="round">${tiers}</g>
+    <rect x="42" y="42" width="16" height="16" rx="2" transform="rotate(45 50 50)" fill="var(--s-saffron)"/>
+  </svg>`;
+}
+
+// ---------------------------------------------------------------------------
+// Screens
+// ---------------------------------------------------------------------------
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const PEOPLE = {
+  ru: { fam: "Семья", zar: "Зарина", far: "Фаррух", news: "Новости Душанбе" },
+  tg: { fam: "Оила", zar: "Зарина", far: "Фаррух", news: "Хабарҳои Душанбе" },
+  en: { fam: "Family", zar: "Zarina", far: "Farrukh", news: "Dushanbe news" },
+};
+const p = () => PEOPLE[state.lang];
+
+function appbar({ title, sub, back, actions = "" }) {
+  return `<div class="appbar">
+    ${back ? `<button class="iconbtn" data-go="${back}" aria-label="Back">${ico.back}</button>` : ""}
+    <div style="min-width:0">
+      <div class="title" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(title)}</div>
+      ${sub ? `<div class="sub">${esc(sub)}</div>` : ""}
+    </div>
+    <div class="spacer"></div>${actions}
+  </div>`;
+}
+
+function chatListPane(active) {
+  const rows = [
+    { id: "chat",    kind: "group",   name: p().fam,  prev: t("a_photo"),  badge: 3 },
+    { id: "chat",    kind: "direct",  name: p().zar,  prev: "Салом! 😊".replace("😊",""), badge: 0, initial: p().zar[0] },
+    { id: "channel", kind: "channel", name: p().news, prev: t("a_video"),  badge: 12 },
+    { id: "chat",    kind: "direct",  name: p().far,  prev: t("a_file"),   badge: 0, initial: p().far[0] },
+  ];
+  return `${appbar({
+    title: t("chats"),
+    actions: `<button class="iconbtn" data-go="language" aria-label="${esc(t("language"))}">${ico.lang}</button>
+              <button class="iconbtn" aria-label="${esc(t("sign_out"))}">${ico.out}</button>`,
+  })}
+  <div class="strip">${esc(t("connecting"))}</div>
+  <div class="body">
+    ${rows.map((r, i) => `
+      <button class="row" data-go="${r.id}" ${active === i ? 'aria-current="true"' : ""}>
+        <div class="avatar">${r.kind === "direct" ? esc(r.initial) : (r.kind === "channel" ? ico.channel : ico.group)}</div>
+        <div class="who">
+          <div class="name">${esc(r.name)}</div>
+          <div class="prev">${esc(r.prev)}</div>
+        </div>
+        ${r.badge ? `<span class="badge">${r.badge}</span>` : ""}
+      </button>`).join("")}
+  </div>
+  <button class="fab" data-go="newchat" aria-label="${esc(t("new_chat"))}">${ico.edit}</button>`;
+}
+
+function conversationPane(l) {
+  const bmax = `${Math.round(l.bubbleMax)}px`;
+  return `${appbar({
+    title: p().fam,
+    sub: `12 ${t("members").toLowerCase()}`,
+    back: l.twoPane ? null : "chats",
+    actions: `<button class="iconbtn" data-go="info" aria-label="${esc(t("members"))}">${ico.info}</button>`,
+  })}
+  <div class="body">
+    <div class="log" style="--bubble-max:${bmax}">
+      <div class="sysmsg">${esc(p().fam)}</div>
+      <div class="bubble">Салом! Чӣ хел шумо?<div class="meta">09:41</div></div>
+      <div class="bubble mine">Ҳама чиз хуб, раҳмат<div class="meta">09:42 ${ico.tick}</div></div>
+
+      <div class="bubble has-media" style="padding:8px">
+        <div class="att photo"></div>
+        <div style="margin-top:6px">Дар Помир</div>
+        <div class="meta">09:44</div>
+      </div>
+
+      <div class="bubble has-media" style="padding:8px">
+        <button class="att"><span>${ico.vid}</span><span>8.2 MB</span></button>
+        <div class="meta">09:46</div>
+      </div>
+
+      <div class="bubble mine has-media" style="padding:8px">
+        <button class="att filerow">${ico.file}<span><span class="fname">ҳисобот.pdf</span><br><span style="font-size:11px">1.4 MB</span></span></button>
+        <div class="meta">09:51 ${ico.tick}</div>
+      </div>
+
+      <div class="bubble mine">Ин ҷо?<div class="meta">09:52 ${ico.clock}</div></div>
+    </div>
+  </div>
+  <div class="composer">
+    <button class="iconbtn" data-go="attach" aria-label="${esc(t("attach"))}" style="width:44px;height:44px">${ico.clip}</button>
+    <div class="field">${esc(t("message_hint"))}</div>
+    <button class="sendbtn" aria-label="${esc(t("send"))}">${ico.send}</button>
+  </div>`;
+}
+
+function channelPane(l) {
+  return `${appbar({
+    title: p().news,
+    sub: `4 812 ${t("subscribers").toLowerCase()}`,
+    back: l.twoPane ? null : "chats",
+    actions: `<button class="iconbtn" data-go="info" aria-label="${esc(t("subscribers"))}">${ico.info}</button>`,
+  })}
+  <div class="body">
+    <div class="log" style="--bubble-max:${Math.round(l.bubbleMax)}px">
+      <div class="bubble has-media" style="padding:8px">
+        <div class="att photo" style="height:150px"></div>
+        <div style="margin-top:6px">Имрӯз дар Душанбе</div>
+        <div class="meta">08:00</div>
+      </div>
+      <div class="bubble">Ҳарорат: 24°<div class="meta">08:01</div></div>
+    </div>
+  </div>
+  <div class="readonly">${esc(t("read_only_channel"))}</div>`;
+}
+
+const SCREENS = {
+  signin: () => `<div class="pane-list" style="flex:1">
+    <div class="centered">
+      ${mark(64)}
+      <div>
+        <div style="font-size:26px;font-weight:600">${esc(t("app_name"))}</div>
+        <div style="color:var(--s-muted);font-size:14px;margin-top:6px">${esc(t("sign_in_subtitle"))}</div>
+      </div>
+      <div style="width:100%;max-width:340px;text-align:start">
+        <div class="label">${esc(t("email_title"))}</div>
+        <div class="input placeholder focused">${esc(t("email_hint"))}</div>
+      </div>
+      <div style="width:100%;max-width:340px">
+        <button class="btn" data-go="code">${esc(t("continue"))}</button>
+      </div>
+    </div>
+  </div>`,
+
+  code: () => `<div class="pane-list" style="flex:1">
+    ${appbar({ title: t("code_title"), back: "signin" })}
+    <div class="centered" style="justify-content:flex-start;padding-top:34px">
+      <div>
+        <div style="color:var(--s-muted);font-size:14px">${esc(t("code_sent_to"))}</div>
+        <div style="font-size:17px;font-weight:600;margin-top:3px">nekruz@example.com</div>
+      </div>
+      <div style="width:100%;max-width:340px;text-align:start">
+        <div class="label">${esc(t("code_title"))}</div>
+        <div class="input focused" style="letter-spacing:.5em;font-variant-numeric:tabular-nums">418302</div>
+      </div>
+      <div style="width:100%;max-width:340px">
+        <button class="btn" data-go="chats">${esc(t("continue"))}</button>
+        <div style="text-align:center;margin-top:12px">
+          <button class="iconbtn" data-go="signin" style="width:auto;padding:0 12px;color:var(--s-accent);font-size:14px">${esc(t("change_email"))}</button>
+        </div>
+      </div>
+    </div>
+  </div>`,
+
+  chats: (l) => `<div class="pane-list">${chatListPane(l.twoPane ? 0 : -1)}</div>
+    <div class="pane-detail">${conversationPane(l)}</div>`,
+
+  chat: (l) => l.twoPane
+    ? `<div class="pane-list">${chatListPane(0)}</div><div class="pane-detail">${conversationPane(l)}</div>`
+    : `<div class="pane-list">${conversationPane(l)}</div>`,
+
+  channel: (l) => l.twoPane
+    ? `<div class="pane-list">${chatListPane(2)}</div><div class="pane-detail">${channelPane(l)}</div>`
+    : `<div class="pane-list">${channelPane(l)}</div>`,
+
+  newchat: (l) => `<div class="pane-list">${chatListPane(l.twoPane ? 0 : -1)}</div>
+    ${l.twoPane ? `<div class="pane-detail">${conversationPane(l)}</div>` : ""}
+    <div class="sheet-backdrop" data-go="chats">
+      <div class="sheet" data-stop>
+        <div class="grabber"></div>
+        <button class="row" data-go="chats">${ico.person}<div class="who"><div class="name">${esc(t("new_chat"))}</div></div></button>
+        <button class="row" data-go="creategroup">${ico.group}<div class="who"><div class="name">${esc(t("new_group"))}</div></div></button>
+        <button class="row" data-go="createchannel">${ico.channel}<div class="who"><div class="name">${esc(t("new_channel"))}</div></div></button>
+        <div class="divider"></div>
+        <button class="row" data-go="chats">${ico.at}<div class="who"><div class="name">${esc(t("join_channel"))}</div></div></button>
+      </div>
+    </div>`,
+
+  creategroup: () => `<div class="pane-list" style="flex:1">
+    ${appbar({ title: t("new_group"), back: "chats" })}
+    <div class="body"><div class="form">
+      <div style="display:grid;place-items:center;padding:6px 0">${mark(52)}</div>
+      <div>
+        <div class="label">${esc(t("group_name"))}</div>
+        <div class="input">${esc(t("group_name_hint"))}</div>
+      </div>
+      <div>
+        <div class="label">${esc(t("chat_description"))}</div>
+        <div class="input placeholder">${esc(t("chat_description_hint"))}</div>
+      </div>
+      <div>
+        <div class="label" style="font-size:13px;color:var(--s-text);font-weight:600">${esc(t("members"))}</div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <div class="input placeholder" style="flex:1">${esc(t("add_by_id"))}</div>
+          <button class="iconbtn" style="width:48px;height:48px;background:var(--s-raised);border-radius:12px" aria-label="${esc(t("add_people"))}">${ico.add}</button>
+        </div>
+        <div class="chiprow" style="margin-top:10px">
+          <span class="chip">${esc(p().zar)} ×</span>
+          <span class="chip">${esc(p().far)} ×</span>
+        </div>
+      </div>
+      <button class="btn" data-go="chat">${esc(t("create"))}</button>
+    </div></div>
+  </div>`,
+
+  createchannel: () => `<div class="pane-list" style="flex:1">
+    ${appbar({ title: t("new_channel"), back: "chats" })}
+    <div class="body"><div class="form">
+      <div style="display:grid;place-items:center;padding:6px 0">${mark(52)}</div>
+      <div>
+        <div class="label">${esc(t("channel_name"))}</div>
+        <div class="input">${esc(t("channel_name_hint"))}</div>
+      </div>
+      <div>
+        <div class="label">${esc(t("chat_description"))}</div>
+        <div class="input placeholder">${esc(t("chat_description_hint"))}</div>
+      </div>
+      <div>
+        <div class="label">${esc(t("channel_handle"))}</div>
+        <div class="input focused"><span style="color:var(--s-muted);margin-inline-end:2px">@</span>dushanbe_news</div>
+        <div class="helper">${esc(t("channel_handle_help"))}</div>
+      </div>
+      <button class="btn" data-go="channel">${esc(t("create"))}</button>
+    </div></div>
+  </div>`,
+
+  info: () => `<div class="pane-list" style="flex:1">
+    ${appbar({ title: t("members"), back: "chat" })}
+    <div class="body"><div class="form">
+      <div style="display:grid;place-items:center;gap:8px;padding:6px 0">
+        ${mark(56)}
+        <div style="font-size:20px;font-weight:600">${esc(p().fam)}</div>
+      </div>
+      <div style="font-size:13px;font-weight:600">12 ${esc(t("members").toLowerCase())}</div>
+      <div>
+        ${[
+          { n: "Некруз", r: "owner_role", i: "Н" },
+          { n: p().zar,  r: "admin_role", i: p().zar[0] },
+          { n: p().far,  r: null,         i: p().far[0] },
+        ].map((m) => `
+          <div class="row" style="padding-inline:0">
+            <div class="avatar">${esc(m.i)}</div>
+            <div class="who">
+              <div class="name">${esc(m.n)}</div>
+              ${m.r ? `<div class="rolechip">${esc(t(m.r))}</div>` : ""}
+            </div>
+          </div>`).join("")}
+      </div>
+      <button class="btn ghost">${esc(t("leave_chat"))}</button>
+    </div></div>
+  </div>`,
+
+  language: (l) => `<div class="pane-list">${chatListPane(l.twoPane ? 0 : -1)}</div>
+    ${l.twoPane ? `<div class="pane-detail">${conversationPane(l)}</div>` : ""}
+    <div class="sheet-backdrop" data-go="chats">
+      <div class="sheet" data-stop>
+        <div class="grabber"></div>
+        <div class="sheet-title">${esc(t("language"))}</div>
+        ${[["ru", "Русский"], ["tg", "Тоҷикӣ"], ["en", "English"]].map(([code, label]) =>
+          `<button class="radio" role="radio" aria-checked="${state.lang === code}" data-lang="${code}">
+             <span class="dot"></span><span>${label}</span></button>`).join("")}
+        <button class="radio" role="radio" aria-checked="false" data-lang="ru">
+          <span class="dot"></span><span>${esc(t("language_system"))}</span></button>
+      </div>
+    </div>`,
+
+  attach: (l) => `<div class="pane-list">${l.twoPane ? chatListPane(0) : conversationPane(l)}</div>
+    ${l.twoPane ? `<div class="pane-detail">${conversationPane(l)}</div>` : ""}
+    <div class="sheet-backdrop" data-go="chat">
+      <div class="sheet" data-stop>
+        <div class="grabber"></div>
+        <button class="row" data-go="chat">${ico.cam}<div class="who"><div class="name">${esc(t("from_camera"))}</div></div></button>
+        <button class="row" data-go="chat">${ico.img}<div class="who"><div class="name">${esc(t("from_gallery"))}</div></div></button>
+        <button class="row" data-go="chat">${ico.vid}<div class="who"><div class="name">${esc(t("a_video"))}</div></div></button>
+        <button class="row" data-go="chat">${ico.file}<div class="who"><div class="name">${esc(t("a_file"))}</div></div></button>
+      </div>
+    </div>`,
+};
+
+const SCREEN_LIST = [
+  ["signin",        "Sign in",          "Chorkhona mark, one field"],
+  ["code",          "Verification",     "Back action, shows the address"],
+  ["chats",         "Chat list",        "Direct, group and channel rows"],
+  ["chat",          "Conversation",     "Bubbles, ticks, three attachment states"],
+  ["channel",       "Channel",          "No composer — subscribers cannot post"],
+  ["newchat",       "New chat",         "A list, not a row of cards"],
+  ["creategroup",   "Create group",     "Title, description, members"],
+  ["createchannel", "Create channel",   "Adds a public handle"],
+  ["info",          "Members",          "Roles, and Leave with undo"],
+  ["attach",        "Attach",           "Camera first — it usually just happened"],
+  ["language",      "Language",         "Endonymic: each named in itself"],
+];
+
+// ---------------------------------------------------------------------------
+// Render
+// ---------------------------------------------------------------------------
+const $ = (id) => document.getElementById(id);
+
+function render() {
+  const d = DEVICES.find((x) => x.id === state.device);
+  const l = layoutFor(d.w);
+  const shell = $("shell");
+
+  shell.dataset.mode = state.mode;
+  shell.dataset.vendor = d.vendor;
+  shell.dataset.twopane = String(l.twoPane);
+  shell.dataset.narrow = String(l.isNarrow);
+  shell.style.width = d.w + 20 + "px";
+  shell.style.height = d.h + 20 + "px";
+  shell.style.setProperty("--list-w", Math.round(l.listW) + "px");
+  shell.style.setProperty("--safe-top", d.top - 24 + "px");
+  shell.style.setProperty("--safe-bottom", Math.max(0, d.bottom - 10) + "px");
+
+  document.documentElement.lang = state.lang;
+  $("screen").innerHTML = (SCREENS[state.screen] || SCREENS.chats)(l);
+
+  // Scale to fit the column and a fixed height budget. Scaling against
+  // window.innerHeight made the size depend on how far the page was scrolled,
+  // which is a strange thing for a device mock to do.
+  const avail = $("scaler").parentElement.clientWidth - 16;
+  const budget = Math.max(420, Math.min(680, window.innerHeight - 260));
+  const scale = Math.min(1, avail / (d.w + 20), budget / (d.h + 20));
+  $("scaler").style.transform = `scale(${scale})`;
+  $("scaler").style.height = (d.h + 20) * scale + "px";
+
+  // A conversation opens at the newest message, not at the oldest.
+  for (const body of $("screen").querySelectorAll(".body")) {
+    if (body.querySelector(".log")) body.scrollTop = body.scrollHeight;
+  }
+
+  $("deviceLabel").innerHTML =
+    `<b>${esc(d.name)}</b> · ${d.w}×${d.h} · ${l.twoPane ? "two panes" : "one pane"}${l.isNarrow ? " · narrow" : ""}`;
+
+  $("spec").innerHTML = [
+    ["Logical width", `${d.w}`],
+    ["Window class", l.twoPane ? (d.w >= 840 ? "expanded" : "medium") : "compact"],
+    ["Gutter", `${l.gutter}`],
+    ["Bubble cap", `${Math.round(l.bubbleMax)}`],
+    ["List pane", l.twoPane ? `${Math.round(l.listW)}` : "—"],
+    ["Safe top", `${d.top}`],
+  ].map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join("");
+
+  for (const [id, group, key] of [["devices", DEVICES, "device"], ["langs", null, "lang"], ["modes", null, "mode"]]) {
+    for (const b of $(id).querySelectorAll("button")) {
+      b.setAttribute("aria-pressed", String(b.dataset.value === state[key]));
+    }
+  }
+  for (const b of $("screens").querySelectorAll("button")) {
+    b.setAttribute("aria-pressed", String(b.dataset.value === state.screen));
+  }
+}
+
+function seg(id, items, key) {
+  $(id).innerHTML = items.map(([value, label]) =>
+    `<button data-value="${value}" aria-pressed="false">${label}</button>`).join("");
+  $(id).addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    state[key] = b.dataset.value;
+    render();
+  });
+}
+
+seg("devices", DEVICES.map((d) => [d.id, d.name]), "device");
+seg("langs", [["ru", "Русский"], ["tg", "Тоҷикӣ"], ["en", "English"]], "lang");
+seg("modes", [["night", "Шаб · night"], ["day", "Рӯз · day"]], "mode");
+
+$("screens").innerHTML = SCREEN_LIST.map(([value, label, note]) =>
+  `<button data-value="${value}" aria-pressed="false"><span>${label}</span><span class="note">${note}</span></button>`).join("");
+$("screens").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  state.screen = b.dataset.value;
+  render();
+});
+
+// In-prototype navigation.
+$("screen").addEventListener("click", (e) => {
+  const lang = e.target.closest("[data-lang]");
+  if (lang) { state.lang = lang.dataset.lang; state.screen = "chats"; render(); return; }
+  if (e.target.closest("[data-stop]") && !e.target.closest("[data-go]")) return;
+  const go = e.target.closest("[data-go]");
+  if (!go) return;
+  state.screen = go.dataset.go;
+  render();
+});
+
+window.addEventListener("resize", render);
+
+// Palette swatches, from the same tokens the shell uses.
+$("swatches").innerHTML = [
+  ["Шаб · night", "#0A1220", "the ground"],
+  ["Сурфа · surface", "#18243A", "cards, bubbles"],
+  ["Фирӯза · turquoise", "#35B9AC", "the one accent"],
+  ["Заъфарон · saffron", "#E3AC55", "rare warmth"],
+  ["Анор · pomegranate", "#D25A54", "only for loss"],
+  ["Кӯҳ · mountain", "#8496B3", "secondary text"],
+].map(([name, hex, role]) =>
+  `<div class="sw"><i style="background:${hex}"></i><b>${name}</b><span>${hex} — ${role}</span></div>`).join("");
+
+render();
+</script>

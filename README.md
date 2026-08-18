@@ -30,7 +30,18 @@ pnpm test:devices  # the layout at 31 real device sizes, in a real browser
 pnpm bench       # frame rate and gateway latency, with pass/fail bars
 ```
 
-To actually *see* it — no Flutter SDK, no emulator, no phone:
+### See it without running anything
+
+[`docs/prototype/index.html`](docs/prototype/index.html) — open it in a browser.
+Every screen, at six real device sizes, in all three languages, in both themes.
+It is HTML rendering the same palette, strings and layout rules the Flutter
+client uses, so it is accurate — but it is a prototype, not the app.
+
+![Sakina on a Galaxy Z Fold outer screen, in Tajik](docs/prototype/fold-tajik.png)
+
+### Run the real client
+
+To actually *see it work* — no Flutter SDK, no emulator, no phone:
 
 ```bash
 pnpm dev:client  # http://localhost:4002
