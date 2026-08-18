@@ -35,25 +35,44 @@ configuring to sign in.**
 pnpm test
 ```
 
-Four suites, 66 checks:
+Seven suites, 125 checks:
 
 | Suite | What it proves |
 | --- | --- |
 | `pnpm test:auth` | 15 checks. Every Gmail and Yandex address variant lands on **one** account; non-Gmail dots stay distinct; disposable domains refused; reserved test identities work but stay contained; one device cannot farm accounts. |
 | `pnpm test:bans` | 10 checks. A banned user with a **new email on the same handset** is refused. Also asserts the honest limits — a factory reset gets through. |
 | `pnpm test:messaging` | 24 checks. Two users exchange Tajik text; a retried send whose ack was lost does **not** duplicate; a client that went offline catches up; non-members are refused. |
+| `pnpm test:social` | 48 checks. Groups, channels and attachments. A channel subscriber is refused at **every** entry point, not just shown a hidden composer; a removed member loses history *and* media; a key from one chat cannot be redeemed for another; `text/html` and SVG are refused outright; a full upload round trip returns the same bytes. Needs `STORAGE_PROVIDER=local`. |
+| `pnpm test:l10n` | 7 checks. Every user-facing string exists in all three languages; every key the UI asks for is defined — `t()` returns the key itself on a miss, so a typo ships as a button labelled `chanel_name`; the six Tajik characters appear in real copy. |
+| `pnpm test:dart` | 4 checks. Imports resolve, packages are declared, brackets balance, no Sakina-named symbol is referenced but undefined. Not a compiler — see below. |
 | `pnpm test:push` | 17 checks. A device with the app **closed** gets a notification; a device with it **open** does not; the sender is never notified of their own message; no message text appears in the payload; a dead token is retired rather than retried forever. Needs the worker running with `PUSH_PROVIDER=console`. |
 
 Each prints a tick per check and exits non-zero on failure. Run them after any
 change to auth or the protocol.
 
-**Note on `test:auth`:** it creates many accounts from one address, so it needs
-the per-IP ceiling raised and the resend cooldown off:
+Two more that are not in `pnpm test` because they need a browser:
+
+| | |
+| --- | --- |
+| `pnpm test:devices` | 16 checks. The layout at 31 real device sizes — iPhone 11 through 17, Galaxy S/A/Fold/Flip, tablets — including a real browser at every viewport. See [`DEVICES.md`](DEVICES.md) |
+| `pnpm test:browser` | 13 checks. Two real browser tabs exchanging messages |
+
+**The server configuration the suites expect.** They assert real limits, so the
+server has to be running with the limits they assert. `test:auth` checks that one
+device *cannot* farm accounts, which means `MAX_SIGNUPS_PER_DEVICE` must be at
+its default of 3 — but the same suite creates a dozen accounts from one address,
+so the per-IP ceiling has to be lifted and the resend cooldown turned off:
 
 ```bash
-OTP_RESEND_COOLDOWN_SECONDS=0 MAX_SIGNUPS_PER_IP=1000 \
-TEST_IDENTITIES="qa@sakina.tj:000000" pnpm dev
+MAX_SIGNUPS_PER_DEVICE=3 MAX_SIGNUPS_PER_IP=1000000 \
+OTP_RESEND_COOLDOWN_SECONDS=0 TEST_IDENTITIES="qa@sakina.tj:000000" \
+STORAGE_PROVIDER=local pnpm dev
 ```
+
+Getting this wrong produces two failures that look like regressions and are not:
+a reserved identity that cannot sign in (no `TEST_IDENTITIES`) and an
+anti-abuse limit that never fires (per-device raised). Both are the suite
+correctly reporting that the server is not configured the way it claims.
 
 ---
 

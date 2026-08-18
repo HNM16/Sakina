@@ -26,6 +26,15 @@ dependencies:
   firebase_core: ^3.8.0
   firebase_messaging: ^15.1.5
   flutter_local_notifications: ^18.0.1
+  # Attachments. Four packages, each doing one thing this cannot do without:
+  # choosing a photo or video, choosing a document, playing a video inline, and
+  # finding a directory to cache downloads in. A messenger where you can send a
+  # video but not watch one is not a feature, which is what pays for
+  # video_player's weight.
+  image_picker: ^1.1.2
+  file_picker: ^8.1.6
+  video_player: ^2.9.2
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_lints: ^5.0.0

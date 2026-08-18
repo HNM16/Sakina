@@ -64,9 +64,13 @@ The heuristic that catches the worst bugs.
   on the very first screen a user ever sees. Now there is an explicit back step
   and a "change address" link. This is the single most valuable fix in this
   document.
-- → **Undo, not confirm.** Deleting a message or leaving a group should happen
-  immediately with a few seconds to undo, rather than a confirmation dialog.
-  Confirmation dialogs are trained away within a week; undo is not.
+- **Undo, not confirm.** Leaving a chat happens immediately with a few seconds
+  to take it back (`chat_info_screen.dart`), rather than asking first.
+  Confirmation dialogs are trained away within a week; undo is not. The one
+  place a confirmation survives is sending a large file on mobile data, and only
+  above 5MB — because that one spends the user's money, and it is rare enough
+  not to become reflex.
+  → Deleting a message still needs the same treatment.
 - → Cancel an in-flight upload. Retry a failed send from the bubble itself.
 
 ### 4. Consistency and standards
@@ -89,7 +93,8 @@ Better than good error messages.
   connection cannot produce two messages, because the client reuses `client_id`
   and the server dedups. The class of error is designed out rather than warned
   about.
-- → Warn before sending a large file on mobile data. Data costs real money here.
+- **Large files are confirmed before sending.** Data costs real money here, and
+  a silent 30MB upload is a bill nobody agreed to. See `docs/MEDIA.md`.
 
 ### 6. Recognition rather than recall
 
@@ -147,10 +152,14 @@ Better than good error messages.
 | Sign in — code | Built | Back action, shows target address, invite field when needed |
 | Chat list | Built | Connection strip, unread badges, sorted by recency |
 | Chat | Built | Bubbles, delivery state, typing indicator |
-| New chat | Placeholder | Asks for a user ID — replaced by contact discovery in M1 |
-| Profile / settings | → M1 | Display name, username, avatar, language, devices |
-| Group creation | → M1 | The atomic unit of adoption; see `docs/GROWTH.md` |
-| Media viewer | → M1 | |
+| New chat | Built | A list of actions: direct, group, channel, join by handle |
+| Group creation | Built | Title, description, members; see `docs/GROWTH.md` |
+| Channel creation | Built | Adds a public handle; only admins can post |
+| Chat info / members | Built | Roles, add, remove, and Leave with undo |
+| Media viewer | Built | Full-screen photo and video; see `docs/MEDIA.md` |
+| Language picker | Built | Endonymic — Русский / Тоҷикӣ / English |
+| Direct chat by user ID | Placeholder | Pure recall — replaced by contact discovery in M1 |
+| Profile / settings | → M1 | Display name, username, avatar, devices |
 | Stickers | → M1 | Higher priority than it looks — see the LINE case in the analysis |
 
 ## The rule that outranks all of this

@@ -76,7 +76,7 @@ class ApiClient {
   ///
   /// Email is the identity that works today; the server also accepts
   /// `kind: 'phone'`, which is what launch in Tajikistan will use.
-  Future<String?> requestOtp(String email, {String locale = 'tg'}) async {
+  Future<String?> requestOtp(String email, {String locale = 'ru'}) async {
     final res = await _send('POST', '/v1/auth/otp/request', body: {
       'identity': {'kind': 'email', 'value': email},
       'locale': locale,
@@ -151,6 +151,154 @@ class ApiClient {
     return ChatSummary.fromJson(res);
   }
 
+  Future<ChatSummary> createGroup({
+    required String title,
+    required List<String> memberIds,
+    String? description,
+  }) async {
+    final res = await _send(
+      'POST',
+      '/v1/chats',
+      body: {
+        'kind': 'group',
+        'title': title,
+        'member_ids': memberIds,
+        if (description != null && description.isNotEmpty) 'description': description,
+      },
+      authenticated: true,
+    );
+    return ChatSummary.fromJson(res);
+  }
+
+  /// A channel with no [username] stays private: subscribers are added, not
+  /// found. With one, anybody who has the handle can join.
+  Future<ChatSummary> createChannel({
+    required String title,
+    String? username,
+    String? description,
+    List<String> memberIds = const [],
+  }) async {
+    final res = await _send(
+      'POST',
+      '/v1/chats',
+      body: {
+        'kind': 'channel',
+        'title': title,
+        'member_ids': memberIds,
+        if (username != null && username.isNotEmpty) 'username': username.toLowerCase(),
+        if (description != null && description.isNotEmpty) 'description': description,
+      },
+      authenticated: true,
+    );
+    return ChatSummary.fromJson(res);
+  }
+
+  Future<ChatSummary> joinChannel(String username) async {
+    final res = await _send(
+      'POST',
+      '/v1/chats/join',
+      body: {'username': username.toLowerCase().replaceFirst('@', '')},
+      authenticated: true,
+    );
+    return ChatSummary.fromJson(res);
+  }
+
+  Future<void> addMembers(String chatId, List<String> userIds) async {
+    await _send(
+      'POST',
+      '/v1/chats/$chatId/members',
+      body: {'user_ids': userIds},
+      authenticated: true,
+    );
+  }
+
+  /// Removing someone, or — when [userId] is your own — leaving.
+  Future<void> removeMember(String chatId, String userId) async {
+    await _send('DELETE', '/v1/chats/$chatId/members/$userId', authenticated: true);
+  }
+
+  Future<void> setRole(String chatId, String userId, String role) async {
+    await _send(
+      'POST',
+      '/v1/chats/$chatId/role',
+      body: {'user_id': userId, 'role': role},
+      authenticated: true,
+    );
+  }
+
+  Future<ChatSummary> updateChat(
+    String chatId, {
+    String? title,
+    String? description,
+  }) async {
+    final res = await _send(
+      'PATCH',
+      '/v1/chats/$chatId',
+      body: {
+        if (title != null) 'title': title,
+        if (description != null) 'description': description,
+      },
+      authenticated: true,
+    );
+    return ChatSummary.fromJson(res);
+  }
+
+  Future<({List<ChatMember> members, int total})> listMembers(
+    String chatId, {
+    int limit = 100,
+    int offset = 0,
+  }) async {
+    final res = await _send(
+      'GET',
+      '/v1/chats/$chatId/members?limit=$limit&offset=$offset',
+      authenticated: true,
+    );
+    return (
+      members: (res['members'] as List<dynamic>)
+          .map((m) => ChatMember.fromJson(Map<String, dynamic>.from(m as Map)))
+          .toList(),
+      total: (res['total'] as num).toInt(),
+    );
+  }
+
+  /// Step one of sending an attachment: ask where to put the bytes.
+  ///
+  /// Authorisation happens here, before anything is uploaded — which is also
+  /// why a channel subscriber gets refused at this point rather than after
+  /// spending their data allowance on a video nobody will see.
+  Future<UploadTicket> requestUpload({
+    required String chatId,
+    required String name,
+    required String mime,
+    required int size,
+    bool thumbnail = false,
+  }) async {
+    final res = await _send(
+      'POST',
+      '/v1/media/upload',
+      body: {
+        'chat_id': chatId,
+        'name': name,
+        'mime': mime,
+        'size': size,
+        'thumbnail': thumbnail,
+      },
+      authenticated: true,
+    );
+    return UploadTicket.fromJson(res);
+  }
+
+  /// A short-lived URL for reading an attachment back. Re-authorised every
+  /// time, so leaving a group stops working immediately.
+  Future<String> mediaUrl({required String chatId, required String key}) async {
+    final res = await _send(
+      'GET',
+      '/v1/media/url?chat_id=$chatId&key=${Uri.encodeQueryComponent(key)}',
+      authenticated: true,
+    );
+    return res['url'] as String;
+  }
+
   /// Deep backfill for scroll-back, and for clients too far behind to catch up
   /// on the socket.
   Future<({List<Message> messages, bool hasMore})> history(
@@ -169,4 +317,49 @@ class ApiClient {
       hasMore: res['has_more'] as bool,
     );
   }
+}
+
+/// A ticket to upload one file, plus what the server decided about it.
+///
+/// `kind` comes back from the server rather than being guessed here: the server
+/// classifies by mime type and refuses some outright, and a client that decided
+/// for itself could label an executable as a photo.
+class UploadTicket {
+  const UploadTicket({
+    required this.key,
+    required this.url,
+    required this.method,
+    required this.headers,
+    required this.kind,
+    required this.maxSize,
+  });
+
+  final String key;
+  final String url;
+  final String method;
+  final Map<String, String> headers;
+  final String kind;
+  final int maxSize;
+
+  factory UploadTicket.fromJson(Map<String, dynamic> json) => UploadTicket(
+        key: json['key'] as String,
+        url: json['url'] as String,
+        method: json['method'] as String? ?? 'PUT',
+        headers: Map<String, String>.from(
+          (json['headers'] as Map?) ?? const <String, String>{},
+        ),
+        kind: json['kind'] as String? ?? 'file',
+        maxSize: (json['max_size'] as num?)?.toInt() ?? 0,
+      );
+}
+
+class ChatMember {
+  const ChatMember({required this.user, required this.role});
+  final PublicUser user;
+  final String role;
+
+  factory ChatMember.fromJson(Map<String, dynamic> json) => ChatMember(
+        user: PublicUser.fromJson(json),
+        role: json['role'] as String? ?? 'member',
+      );
 }

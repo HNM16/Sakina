@@ -19,7 +19,25 @@ class LocalStore {
     final path = p.join(await getDatabasesPath(), 'sakina.db');
     final db = await openDatabase(
       path,
-      version: 1,
+      version: 2,
+      // v1 -> v2 adds the group and channel columns. An upgrade rather than a
+      // wipe: the local database IS the UI's source of truth (see the rule at
+      // the end of docs/UX.md), so dropping it on an app update would empty
+      // every conversation until the first successful sync — on a bad
+      // connection, that is a user staring at nothing.
+      onUpgrade: (db, from, to) async {
+        if (from < 2) {
+          for (final column in const [
+            'member_count INTEGER NOT NULL DEFAULT 0',
+            "role TEXT NOT NULL DEFAULT 'member'",
+            'can_post INTEGER NOT NULL DEFAULT 1',
+            'username TEXT',
+            'description TEXT',
+          ]) {
+            await db.execute('ALTER TABLE chats ADD COLUMN $column');
+          }
+        }
+      },
       onCreate: (db, _) async {
         await db.execute('''
           CREATE TABLE chats (
@@ -28,7 +46,12 @@ class LocalStore {
             title TEXT,
             last_seq INTEGER NOT NULL DEFAULT 0,
             read_up_to_seq INTEGER NOT NULL DEFAULT 0,
-            members_json TEXT NOT NULL
+            members_json TEXT NOT NULL,
+            member_count INTEGER NOT NULL DEFAULT 0,
+            role TEXT NOT NULL DEFAULT 'member',
+            can_post INTEGER NOT NULL DEFAULT 1,
+            username TEXT,
+            description TEXT
           )
         ''');
         await db.execute('''
@@ -74,6 +97,19 @@ class LocalStore {
     await batch.commit(noResult: true);
   }
 
+  /// Leaving, or being removed.
+  ///
+  /// The messages go with the chat. Keeping them would mean a "deleted" chat's
+  /// history quietly occupying the phone forever, and being re-added would
+  /// resurrect it from a cache rather than from the server — which is where the
+  /// history the user is actually entitled to now lives.
+  Future<void> removeChat(String chatId) async {
+    final batch = _db.batch();
+    batch.delete('messages', where: 'chat_id = ?', whereArgs: [chatId]);
+    batch.delete('chats', where: 'id = ?', whereArgs: [chatId]);
+    await batch.commit(noResult: true);
+  }
+
   /// One query, not one per chat.
   ///
   /// This used to select the chats and then run a separate "last message" query
@@ -87,6 +123,7 @@ class LocalStore {
   Future<List<ChatSummary>> loadChats() async {
     final rows = await _db.rawQuery(
       'SELECT c.id, c.kind, c.title, c.last_seq, c.read_up_to_seq, c.members_json,'
+      '       c.member_count, c.role, c.can_post, c.username, c.description,'
       '       m.client_id AS m_client_id, m.chat_id AS m_chat_id,'
       '       m.sender_id AS m_sender_id, m.payload_json AS m_payload_json,'
       '       m.created_at AS m_created_at, m.id AS m_id, m.seq AS m_seq,'

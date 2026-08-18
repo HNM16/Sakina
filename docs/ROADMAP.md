@@ -30,9 +30,10 @@ see `apps/mobile/README.md`.
 
 The gap between "it works" and "I would install this."
 
-- **Group chats** — top of M1. Nobody migrates a one-to-one conversation; groups
-  are the atomic unit of adoption (`docs/GROWTH.md`). Admin roles, invite links,
-  member management
+- ~~**Group chats**~~ ✅ Groups and channels both. Owner/admin/member roles,
+  member management, join a channel by public handle, and the write restriction
+  that makes a channel a channel enforced inside the statement that allocates the
+  seq. Still owed: invite links for groups, and ownership transfer
 - **Tajik stickers** — reads as frivolous, is a primary revenue line for LINE and
   the cheapest cultural moat available. An illustrator and a few hundred dollars
 - **Usernames** — WhatsApp added them in 2026; they matter more here, where users
@@ -40,13 +41,20 @@ The gap between "it works" and "I would install this."
 - Contact discovery — phone-book matching, with a privacy design of its own,
   following Signal's private contact discovery (hashed identifiers, never a
   plaintext address-book upload)
-- Media: images and files. Presigned MinIO uploads, resumable, client-side
-  downscaling before upload — the user is paying per megabyte
+- ~~Media: images and files~~ ✅ Photos, videos and documents, presigned so the
+  bytes never touch the API, downscaled client-side before upload. See
+  [`MEDIA.md`](MEDIA.md). Still owed: **thumbnail generation** — the protocol
+  field exists and nothing fills it, so a photo in a list is still the full
+  photo, which is the data cost the field exists to avoid — plus resumable
+  uploads, real progress, and the orphan sweep
 - Push notifications: FCM and APNs, routed per device
 - Profiles: display name, username, avatar
 - Message editing, deletion, reply-to, forwarding — with **undo rather than
   confirm** dialogs (`docs/UX.md`)
-- Proper i18n: ARB files, Tajik and Russian complete
+- ~~Proper i18n~~ ◐ Russian, Tajik and English are complete and machine-checked
+  (`pnpm test:l10n`), with an endonymic picker and Russian as the default. Still
+  owed: the move to ARB files, and Tajik date/time conventions rather than
+  `intl` defaults
 - **A real OTP path.** Direct arrangement with Tcell / Megafon Tajikistan /
   Babilon-M / ZET-Mobile, or a regional aggregator holding one. Plan for flash-call
   verification as the primary route and SMS as fallback: far cheaper per

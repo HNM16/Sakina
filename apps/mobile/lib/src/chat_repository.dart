@@ -158,6 +158,27 @@ class ChatRepository extends ChangeNotifier {
         if (_disposed) return;
         notifyListeners();
 
+      // Someone added you to a group, renamed it, or promoted you.
+      //
+      // Without this frame the chat only appears at the next reconnect, and a
+      // phone stays connected for hours — so being added to a group would look
+      // like nothing happening at all.
+      case 'chat':
+        final chat = ChatSummary.fromJson(Map<String, dynamic>.from(data as Map));
+        await store.upsertChats([chat]);
+        _chats = await store.loadChats();
+        if (_disposed) return;
+        notifyListeners();
+
+      // Removed, or you left from another device.
+      case 'chat_removed':
+        final chatId = (Map<String, dynamic>.from(data as Map))['chat_id'] as String;
+        await store.removeChat(chatId);
+        _messages.remove(chatId);
+        _chats = await store.loadChats();
+        if (_disposed) return;
+        notifyListeners();
+
       case 'message':
         final message = Message.fromJson(Map<String, dynamic>.from(data as Map));
         await store.putMessage(message);
@@ -344,12 +365,25 @@ class ChatRepository extends ChangeNotifier {
   Future<void> sendText(String chatId, String text) async {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
+    await sendPayload(chatId, {'type': 'text', 'text': trimmed});
+  }
 
+  /// Send any message payload — text, an attachment, and eventually a payment.
+  ///
+  /// Everything goes through here so that the optimistic-render-then-ack path
+  /// is written once. Adding a message type must never mean adding a second
+  /// send path, which is the whole premise of the open `type` enum in
+  /// docs/PROTOCOL.md.
+  ///
+  /// For an attachment the bytes are already in storage by the time this is
+  /// called — the payload carries the key, not the file — so a media message
+  /// travels the same size as a text one and retries just as cheaply.
+  Future<void> sendPayload(String chatId, Map<String, dynamic> payload) async {
     final message = Message(
       clientId: _uuid.v4(),
       chatId: chatId,
       senderId: selfId,
-      payload: {'type': 'text', 'text': trimmed},
+      payload: payload,
       createdAt: DateTime.now(),
       state: MessageState.pending,
     );

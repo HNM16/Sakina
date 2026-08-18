@@ -107,6 +107,7 @@ class L10n {
       'en': 'No chats yet',
     },
     'message_hint': {'tg': 'Паём...', 'ru': 'Сообщение...', 'en': 'Message...'},
+    'send': {'ru': 'Отправить', 'tg': 'Фиристодан', 'en': 'Send'},
     'connecting': {'tg': 'Пайвастшавӣ...', 'ru': 'Подключение...', 'en': 'Connecting...'},
     'offline': {'tg': 'Офлайн', 'ru': 'Не в сети', 'en': 'Offline'},
     'typing': {'tg': 'менависад...', 'ru': 'печатает...', 'en': 'typing...'},
@@ -132,6 +133,124 @@ class L10n {
       'ru': 'Произошла ошибка',
       'en': 'Something went wrong',
     },
+
+    // ---------------------------------------------------------------------
+    // Groups, channels, attachments and the language picker.
+    //
+    // Written in all three, not machine-translated. Where Tajik and Russian
+    // differ in length the Tajik is the one to size buttons against — it is
+    // reliably the longest, which is why CLAUDE.md says to check layouts
+    // against it.
+    // ---------------------------------------------------------------------
+    'language': {'ru': 'Язык', 'tg': 'Забон', 'en': 'Language'},
+    'language_system': {
+      'ru': 'Как на телефоне',
+      'tg': 'Мисли телефон',
+      'en': 'Match my phone',
+    },
+    'saved_messages': {
+      'ru': 'Избранное',
+      'tg': 'Захирашуда',
+      'en': 'Saved messages',
+    },
+
+    'new_chat': {'ru': 'Новый чат', 'tg': 'Сӯҳбати нав', 'en': 'New chat'},
+    'new_group': {'ru': 'Новая группа', 'tg': 'Гурӯҳи нав', 'en': 'New group'},
+    'new_channel': {'ru': 'Новый канал', 'tg': 'Шабакаи нав', 'en': 'New channel'},
+    'join_channel': {
+      'ru': 'Подписаться на канал',
+      'tg': 'Обуна ба шабака',
+      'en': 'Join a channel',
+    },
+
+    'group_name': {'ru': 'Название группы', 'tg': 'Номи гурӯҳ', 'en': 'Group name'},
+    'group_name_hint': {'ru': 'Наша семья', 'tg': 'Оилаи мо', 'en': 'Our family'},
+    'channel_name': {'ru': 'Название канала', 'tg': 'Номи шабака', 'en': 'Channel name'},
+    'channel_name_hint': {
+      'ru': 'Новости Душанбе',
+      'tg': 'Хабарҳои Душанбе',
+      'en': 'Dushanbe news',
+    },
+    'chat_description': {'ru': 'Описание', 'tg': 'Тавсиф', 'en': 'Description'},
+    'chat_description_hint': {
+      'ru': 'Необязательно',
+      'tg': 'Ихтиёрӣ',
+      'en': 'Optional',
+    },
+    'channel_handle': {'ru': 'Публичная ссылка', 'tg': 'Пайванди оммавӣ', 'en': 'Public link'},
+    'channel_handle_help': {
+      'ru': 'Латиница, цифры и _. Так канал найдут по ссылке.',
+      'tg': 'Ҳарфҳои лотинӣ, рақамҳо ва _. Бо ин пайванд шабакаро меёбанд.',
+      'en': 'Latin letters, digits and _. This is how people find the channel.',
+    },
+    'channel_handle_invalid': {
+      'ru': 'От 5 до 32 символов: a-z, 0-9 и _',
+      'tg': 'Аз 5 то 32 аломат: a-z, 0-9 ва _',
+      'en': '5 to 32 characters: a-z, 0-9 and _',
+    },
+    'channel_private_note': {
+      'ru': 'Без ссылки канал будет закрытым — подписчиков добавляете вы.',
+      'tg': 'Бе пайванд шабака пӯшида мешавад — обуначиёнро шумо илова мекунед.',
+      'en': 'Without a link the channel stays private and you add subscribers yourself.',
+    },
+
+    'members': {'ru': 'Участники', 'tg': 'Аъзоён', 'en': 'Members'},
+    'subscribers': {'ru': 'Подписчики', 'tg': 'Обуначиён', 'en': 'Subscribers'},
+    'add_people': {'ru': 'Добавить людей', 'tg': 'Илова кардани одамон', 'en': 'Add people'},
+    'add_by_id': {
+      'ru': 'Вставьте id пользователя',
+      'tg': 'Идентификатори корбарро гузоред',
+      'en': 'Paste a user id',
+    },
+    'no_one_yet': {
+      'ru': 'Пока никого. Добавьте хотя бы одного человека.',
+      'tg': 'Ҳанӯз касе нест. Ақаллан як нафарро илова кунед.',
+      'en': 'Nobody yet. Add at least one person.',
+    },
+    'owner_role': {'ru': 'Владелец', 'tg': 'Соҳиб', 'en': 'Owner'},
+    'admin_role': {'ru': 'Администратор', 'tg': 'Мудир', 'en': 'Admin'},
+    'leave_chat': {'ru': 'Выйти', 'tg': 'Баромадан', 'en': 'Leave'},
+    'left_chat': {'ru': 'Вы вышли', 'tg': 'Шумо баромадед', 'en': 'You left'},
+    'undo': {'ru': 'Отменить', 'tg': 'Бекор кардан', 'en': 'Undo'},
+
+    'create': {'ru': 'Создать', 'tg': 'Сохтан', 'en': 'Create'},
+    'cancel': {'ru': 'Отмена', 'tg': 'Бекор', 'en': 'Cancel'},
+    'retry': {'ru': 'Повторить', 'tg': 'Такрор', 'en': 'Try again'},
+
+    'read_only_channel': {
+      'ru': 'Только администраторы могут писать здесь',
+      'tg': 'Танҳо мудирон метавонанд дар ин ҷо нависанд',
+      'en': 'Only admins can post here',
+    },
+
+    'attach': {'ru': 'Прикрепить', 'tg': 'Замима кардан', 'en': 'Attach'},
+    'a_photo': {'ru': 'Фото', 'tg': 'Сурат', 'en': 'Photo'},
+    'a_video': {'ru': 'Видео', 'tg': 'Видео', 'en': 'Video'},
+    'a_file': {'ru': 'Файл', 'tg': 'Файл', 'en': 'File'},
+    'attachment': {'ru': 'Вложение', 'tg': 'Замима', 'en': 'Attachment'},
+    'from_camera': {'ru': 'Камера', 'tg': 'Камера', 'en': 'Camera'},
+    'from_gallery': {'ru': 'Галерея', 'tg': 'Галерея', 'en': 'Gallery'},
+    'uploading': {'ru': 'Отправка…', 'tg': 'Фиристодан…', 'en': 'Uploading…'},
+    'upload_failed': {
+      'ru': 'Не удалось отправить',
+      'tg': 'Фиристодан нашуд',
+      'en': "Couldn't send that",
+    },
+    'file_too_large': {
+      'ru': 'Файл слишком большой',
+      'tg': 'Файл хеле калон аст',
+      'en': 'That file is too large',
+    },
+    'mobile_data_warning': {
+      'ru': 'Большой файл. Отправить по мобильному интернету?',
+      'tg': 'Файли калон. Тавассути интернети мобилӣ фиристода шавад?',
+      'en': 'Large file. Send over mobile data?',
+    },
+    'send_anyway': {'ru': 'Отправить', 'tg': 'Фиристодан', 'en': 'Send'},
+    'system_event': {'ru': 'Событие', 'tg': 'Рӯйдод', 'en': 'Update'},
+
+    'loading': {'ru': 'Загрузка…', 'tg': 'Боркунӣ…', 'en': 'Loading…'},
+    'nothing_here': {'ru': 'Пока пусто', 'tg': 'Ҳанӯз холӣ', 'en': 'Nothing here yet'},
   };
 
   String t(String key) {

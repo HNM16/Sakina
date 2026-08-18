@@ -8,6 +8,7 @@ import 'src/api_client.dart';
 import 'src/chat_repository.dart';
 import 'src/l10n.dart';
 import 'src/local_store.dart';
+import 'src/media_service.dart';
 import 'src/push_service.dart';
 import 'src/session.dart';
 import 'src/socket_client.dart';
@@ -60,6 +61,7 @@ class SakinaApp extends StatefulWidget {
 
 class _SakinaAppState extends State<SakinaApp> {
   late final ApiClient _api = ApiClient(baseUrl: apiUrl);
+  late final MediaService _media = MediaService(_api);
   SocketClient? _socket;
   ChatRepository? _repository;
   PushService? _push;
@@ -179,6 +181,7 @@ class _SakinaAppState extends State<SakinaApp> {
             )
           : ChatListScreen(
               repository: repository,
+              media: _media,
               onSignOut: _signOut,
               language: widget.session.language,
               onLanguageChanged: _setLanguage,

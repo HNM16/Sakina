@@ -38,6 +38,21 @@ Two things that look like tells and are not:
 | `tools/dev-client` | internal tool | Category D only |
 | `docs/brand/` | editorial | full pass |
 
+## Before changing layout or strings
+
+- **Layout constants live in `apps/mobile/lib/src/layout.dart` and are checked
+  against `tools/device-matrix/devices.json`.** Change one and `pnpm test:devices`
+  fails until you change the other. Nothing branches on a device name; the matrix
+  exists to establish the 320–834 range, not to special-case phones.
+- **Every user-facing string goes through `L10n.t`.** `pnpm test:l10n` fails if a
+  key is missing a language or if the UI asks for a key that does not exist —
+  `t()` returns the key itself on a miss, so the failure mode is a button
+  labelled `chanel_name` rather than a crash.
+- **`pnpm test:dart` is not a compiler.** There is no Flutter SDK in this
+  environment and none of `apps/mobile` has ever been compiled. The script checks
+  imports, declared packages, bracket balance and undefined Sakina-named symbols.
+  Say so when reporting Flutter work.
+
 ## Language
 
 **Russian first, then Tajik, then English.** The order is a product decision,

@@ -24,7 +24,9 @@ pnpm dev               # api :4000, gateway :4001, worker :4003
 Verify the whole thing works:
 
 ```bash
-pnpm test        # 66 checks: auth, ban evasion, messaging, push
+pnpm test        # 125 checks: auth, ban evasion, messaging, push, groups,
+                 # channels, media, localisation, Dart sanity
+pnpm test:devices  # the layout at 31 real device sizes, in a real browser
 pnpm bench       # frame rate and gateway latency, with pass/fail bars
 ```
 
@@ -93,6 +95,10 @@ Read them in this order:
 - [`docs/BRAND.md`](docs/BRAND.md) — the visual identity: the chorkhona mark,
   firuza on night, and the six glyphs that decide the font
 - [`docs/UX.md`](docs/UX.md) — Telegram-shaped, checked against Nielsen's heuristics
+- [`docs/DEVICES.md`](docs/DEVICES.md) — running on everything from a Galaxy A15
+  to an iPhone 17 Pro Max, and how that is verified without the phones
+- [`docs/MEDIA.md`](docs/MEDIA.md) — photos, videos and files, and why the bytes
+  never touch the API
 - [`docs/DELIVERY.md`](docs/DELIVERY.md) — how a message actually reaches the
   other person, and the one gap that matters
 - [`docs/PUSH.md`](docs/PUSH.md) — notifications when the app is closed, and the

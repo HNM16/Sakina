@@ -3,16 +3,28 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../api_client.dart';
 import '../chat_repository.dart';
 import '../l10n.dart';
+import '../layout.dart';
+import '../media_service.dart';
 import '../models.dart';
 import '../theme.dart';
+import 'chat_info_screen.dart';
+import 'media_bubble.dart';
+import 'sheets.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key, required this.repository, required this.chatId});
+  const ChatScreen({
+    super.key,
+    required this.repository,
+    required this.chatId,
+    required this.media,
+  });
 
   final ChatRepository repository;
   final String chatId;
+  final MediaService media;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -21,6 +33,12 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
+
+  /// Set while an attachment is on its way up. The composer is disabled for the
+  /// duration: two uploads racing from one chat is a rare need and a common
+  /// source of half-sent messages.
+  bool _uploading = false;
+  String? _uploadError;
 
   @override
   void initState() {
@@ -58,18 +76,66 @@ class _ChatScreenState extends State<ChatScreen> {
     _controller.clear();
     await widget.repository.sendText(widget.chatId, text);
 
-    if (_scrollController.hasClients) {
-      await _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent + 120,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
+    await _scrollToEnd();
+  }
+
+  /// Guardrail G2: motion needs a path that removes it rather than one that
+  /// shortens it. [SakinaLayout.motion] returns Duration.zero when the platform
+  /// asks for reduced motion, and animateTo with a zero duration jumps.
+  Future<void> _scrollToEnd() async {
+    if (!_scrollController.hasClients) return;
+    if (!mounted) return;
+    await _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent + 120,
+      duration: SakinaLayout.of(context).motion(),
+      curve: SakinaTheme.motionCurve,
+    );
+  }
+
+  Future<void> _attach() async {
+    final choice = await showAttachSheet(context);
+    if (choice == null || !mounted) return;
+
+    setState(() => _uploadError = null);
+
+    try {
+      final picked = switch (choice) {
+        AttachChoice.camera => await widget.media.pickImage(fromCamera: true),
+        AttachChoice.photo => await widget.media.pickImage(fromCamera: false),
+        AttachChoice.video => await widget.media.pickVideo(fromCamera: false),
+        AttachChoice.file => await widget.media.pickFile(),
+      };
+      if (picked == null || !mounted) return;
+
+      // Only above the threshold. Asking about every 200KB photo trains the
+      // dialog away inside a week, which is how confirmation dialogs die.
+      if (picked.isLarge) {
+        final proceed = await confirmLargeUpload(context, humanSize: picked.humanSize);
+        if (!proceed || !mounted) return;
+      }
+
+      setState(() => _uploading = true);
+      final caption = _controller.text.trim();
+      final payload = await widget.media.upload(
+        chatId: widget.chatId,
+        media: picked,
+        caption: caption,
       );
+      _controller.clear();
+      await widget.repository.sendPayload(widget.chatId, payload);
+      await _scrollToEnd();
+    } on ApiException catch (err) {
+      if (mounted) setState(() => _uploadError = err.message);
+    } finally {
+      if (mounted) setState(() => _uploading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = L10n.of(context);
+    final layout = SakinaLayout.of(context);
+    final palette = SakinaPalette.of(context);
     final selfId = widget.repository.selfId;
 
     return AnimatedBuilder(
@@ -86,11 +152,41 @@ class _ChatScreenState extends State<ChatScreen> {
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(chat?.displayTitle(selfId) ?? ''),
+                Text(
+                  chat?.displayTitle(selfId, savedLabel: l10n.t('saved_messages')) ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 if (typing)
-                  Text(l10n.t('typing'), style: Theme.of(context).textTheme.bodySmall),
+                  Text(l10n.t('typing'), style: Theme.of(context).textTheme.bodySmall)
+                else if (chat != null && !chat.isDirect)
+                  Text(
+                    '${chat.memberCount} '
+                    '${l10n.t(chat.isChannel ? 'subscribers' : 'members').toLowerCase()}',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: palette.muted),
+                  ),
               ],
             ),
+            actions: [
+              // A direct chat has no membership to manage; offering the screen
+              // and then showing two names would be a dead end.
+              if (chat != null && !chat.isDirect)
+                IconButton(
+                  icon: const Icon(Icons.info_outline),
+                  tooltip: l10n.t(chat.isChannel ? 'subscribers' : 'members'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => ChatInfoScreen(
+                        repository: widget.repository,
+                        chatId: widget.chatId,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           body: Column(
             children: [
@@ -113,38 +209,115 @@ class _ChatScreenState extends State<ChatScreen> {
                       key: ValueKey(message.clientId),
                       message: message,
                       isMine: message.senderId == selfId,
+                      media: widget.media,
                     );
                   },
                 ),
               ),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _controller,
-                          textInputAction: TextInputAction.send,
-                          onChanged: (_) => widget.repository.notifyTyping(widget.chatId),
-                          onSubmitted: (_) => _send(),
-                          decoration: InputDecoration(
-                            hintText: l10n.t('message_hint'),
-                            border: const OutlineInputBorder(),
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              // A channel subscriber gets no composer at all, rather than one
+              // that rejects them. The server is still the enforcement — see
+              // insertMessage — so this being wrong costs a confusing error,
+              // not a leak.
+              if (chat != null && !chat.canPost)
+                SafeArea(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: layout.gutter,
+                      vertical: layout.gap,
+                    ),
+                    child: Text(
+                      l10n.t('read_only_channel'),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: palette.muted),
+                    ),
+                  ),
+                )
+              else
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_uploadError != null)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: layout.gap / 2),
+                            child: Row(
+                              children: [
+                                Icon(Icons.error_outline, size: 16, color: palette.anor),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    _uploadError!,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(color: palette.anor),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: _uploading ? null : _attach,
+                              tooltip: l10n.t('attach'),
+                              constraints: const BoxConstraints(
+                                minWidth: SakinaLayout.tapTarget,
+                                minHeight: SakinaLayout.tapTarget,
+                              ),
+                              icon: const Icon(Icons.attach_file),
+                            ),
+                            Expanded(
+                              child: TextField(
+                                controller: _controller,
+                                enabled: !_uploading,
+                                textInputAction: TextInputAction.send,
+                                // Long messages are normal; a single line that
+                                // scrolls sideways is not.
+                                minLines: 1,
+                                maxLines: 4,
+                                onChanged: (_) =>
+                                    widget.repository.notifyTyping(widget.chatId),
+                                onSubmitted: (_) => _send(),
+                                decoration: InputDecoration(
+                                  hintText: _uploading
+                                      ? l10n.t('uploading')
+                                      : l10n.t('message_hint'),
+                                  border: const OutlineInputBorder(),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton.filled(
+                              onPressed: _uploading ? null : _send,
+                              tooltip: l10n.t('send'),
+                              constraints: const BoxConstraints(
+                                minWidth: SakinaLayout.tapTarget,
+                                minHeight: SakinaLayout.tapTarget,
+                              ),
+                              icon: _uploading
+                                  ? const SizedBox(
+                                      height: 18,
+                                      width: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.send),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton.filled(
-                        onPressed: _send,
-                        icon: const Icon(Icons.send),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         );
@@ -158,22 +331,48 @@ class _ChatScreenState extends State<ChatScreen> {
 final _timeFormat = DateFormat.Hm();
 
 class _Bubble extends StatelessWidget {
-  const _Bubble({super.key, required this.message, required this.isMine});
+  const _Bubble({
+    super.key,
+    required this.message,
+    required this.isMine,
+    required this.media,
+  });
 
   final Message message;
   final bool isMine;
+  final MediaService media;
 
   @override
   Widget build(BuildContext context) {
     final palette = SakinaPalette.of(context);
+    final layout = SakinaLayout.of(context);
+
+    // A service message is about the chat, not from a person. Centred, quiet,
+    // and never in a bubble — it is not somebody talking.
+    if (message.type == 'system') {
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: layout.gutter, vertical: layout.gap / 2),
+        child: Text(
+          _systemText(context, message),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: palette.muted),
+        ),
+      );
+    }
+
+    final caption = message.caption;
 
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+        margin: EdgeInsets.symmetric(horizontal: layout.gutter, vertical: 3),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.78,
+          // The fraction goes up on a narrow screen — see the note on
+          // SakinaLayout.bubbleMaxWidth. Measured against the pane, not the
+          // window, so a tablet's two-pane layout does not get phone-sized
+          // bubbles in a 600-unit column.
+          maxWidth: layout.bubbleMaxWidth(layout.detailPaneWidth - layout.gutter * 2),
         ),
         decoration: BoxDecoration(
           // Named roles rather than Material containers: reading bubble colours
@@ -186,7 +385,20 @@ class _Bubble extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(message.text),
+            if (message.isMedia) ...[
+              MediaAttachment(message: message, media: media),
+              if (caption != null && caption.isNotEmpty) ...[
+                SizedBox(height: layout.gap / 2),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(caption),
+                ),
+              ],
+            ] else
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(message.text),
+              ),
             const SizedBox(height: 2),
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -220,4 +432,20 @@ class _Bubble extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Service messages, rendered from their event rather than from server-authored
+/// prose — so they arrive in the reader's language, not the sender's.
+String _systemText(BuildContext context, Message message) {
+  final l10n = L10n.of(context);
+  final event = message.payload['event'] as String?;
+  return switch (event) {
+    'chat_created' => (message.payload['meta'] as Map?)?['title'] as String? ??
+        l10n.t('system_event'),
+    'member_added' => l10n.t('add_people'),
+    'member_removed' => l10n.t('left_chat'),
+    'title_changed' => (message.payload['meta'] as Map?)?['title'] as String? ??
+        l10n.t('system_event'),
+    _ => l10n.t('system_event'),
+  };
 }

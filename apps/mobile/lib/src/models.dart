@@ -70,6 +70,35 @@ class Message {
   String get type => payload['type'] as String? ?? 'text';
   String get text => payload['text'] as String? ?? '';
 
+  bool get isMedia => type == 'media';
+
+  /// image | video | file, decided by the SERVER from the mime type. A client
+  /// that trusted its own guess here would render an executable as a photo.
+  String get mediaKind => payload['kind'] as String? ?? 'file';
+  String? get mediaKey => payload['key'] as String?;
+  String? get thumbKey => payload['thumb_key'] as String?;
+  String? get mediaName => payload['name'] as String?;
+  String? get caption => payload['caption'] as String?;
+  int get mediaSize => (payload['size'] as num?)?.toInt() ?? 0;
+  int? get durationMs => (payload['duration_ms'] as num?)?.toInt();
+  double? get mediaWidth => (payload['width'] as num?)?.toDouble();
+  double? get mediaHeight => (payload['height'] as num?)?.toDouble();
+
+  /// What a chat list row shows instead of the message body. A photo has no
+  /// text, and "" in the list looks like a bug rather than an attachment.
+  String previewText(String Function(String) t) {
+    if (type == 'text') return text;
+    if (type == 'system') return t('system_event');
+    if (!isMedia) return t('attachment');
+    final caption = this.caption;
+    if (caption != null && caption.isNotEmpty) return caption;
+    return switch (mediaKind) {
+      'image' => t('a_photo'),
+      'video' => t('a_video'),
+      _ => mediaName ?? t('a_file'),
+    };
+  }
+
   factory Message.fromJson(Map<String, dynamic> json) => Message(
         clientId: json['client_id'] as String,
         chatId: json['chat_id'] as String,
@@ -126,6 +155,11 @@ class ChatSummary {
     required this.lastSeq,
     required this.readUpToSeq,
     required this.members,
+    this.memberCount = 0,
+    this.role = 'member',
+    this.canPost = true,
+    this.username,
+    this.description,
     this.title,
     this.lastMessage,
   });
@@ -134,9 +168,31 @@ class ChatSummary {
   final String kind;
   final int lastSeq;
   final int readUpToSeq;
+
+  /// A sample, not the whole list — a channel's subscribers are not shipped in
+  /// the chat list. [memberCount] is the real number.
   final List<PublicUser> members;
+  final int memberCount;
+
+  /// owner | admin | member, for the signed-in user.
+  final String role;
+
+  /// Whether this user may post here. False for a channel subscriber.
+  ///
+  /// The server sends it so the composer can be hidden rather than shown and
+  /// then rejected. It is never the enforcement — the server re-checks on every
+  /// send, and this field being wrong costs a confusing error, not a leak.
+  final bool canPost;
+
+  final String? username;
+  final String? description;
   final String? title;
   final Message? lastMessage;
+
+  bool get isDirect => kind == 'direct';
+  bool get isGroup => kind == 'group';
+  bool get isChannel => kind == 'channel';
+  bool get isAdmin => role == 'owner' || role == 'admin';
 
   factory ChatSummary.fromJson(Map<String, dynamic> json) => ChatSummary(
         id: json['id'] as String,
@@ -146,6 +202,11 @@ class ChatSummary {
         members: (json['members'] as List<dynamic>)
             .map((m) => PublicUser.fromJson(Map<String, dynamic>.from(m as Map)))
             .toList(),
+        memberCount: (json['member_count'] as num?)?.toInt() ?? 0,
+        role: json['role'] as String? ?? 'member',
+        canPost: json['can_post'] as bool? ?? true,
+        username: json['username'] as String?,
+        description: json['description'] as String?,
         title: json['title'] as String?,
         lastMessage: json['last_message'] == null
             ? null
@@ -153,10 +214,13 @@ class ChatSummary {
       );
 
   /// Direct chats have no stored title — they are named after the other person.
-  String displayTitle(String selfId) {
+  ///
+  /// [savedLabel] is passed in rather than hardcoded because this is
+  /// user-visible text and every string in this app comes from L10n.
+  String displayTitle(String selfId, {String savedLabel = ''}) {
     if (title != null && title!.isNotEmpty) return title!;
     final others = members.where((m) => m.id != selfId).toList();
-    if (others.isEmpty) return 'Saved messages';
+    if (others.isEmpty) return savedLabel;
     return others.map((m) => m.displayName).join(', ');
   }
 
@@ -169,6 +233,12 @@ class ChatSummary {
         'last_seq': lastSeq,
         'read_up_to_seq': readUpToSeq,
         'members_json': jsonEncode(members.map((m) => m.toJson()).toList()),
+        'member_count': memberCount,
+        'role': role,
+        // SQLite has no boolean; 1/0 and back.
+        'can_post': canPost ? 1 : 0,
+        'username': username,
+        'description': description,
       };
 
   factory ChatSummary.fromRow(Map<String, dynamic> row, {Message? lastMessage}) => ChatSummary(
@@ -179,6 +249,11 @@ class ChatSummary {
         members: (jsonDecode(row['members_json'] as String) as List<dynamic>)
             .map((m) => PublicUser.fromJson(Map<String, dynamic>.from(m as Map)))
             .toList(),
+        memberCount: (row['member_count'] as int?) ?? 0,
+        role: row['role'] as String? ?? 'member',
+        canPost: (row['can_post'] as int?) != 0,
+        username: row['username'] as String?,
+        description: row['description'] as String?,
         title: row['title'] as String?,
         lastMessage: lastMessage,
       );
