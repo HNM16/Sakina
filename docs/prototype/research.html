@@ -1,0 +1,1210 @@
+<title>Sakina Feature Research</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================================
+   Tokens. The accent family is Sakina's own — firuza, saffron, pomegranate —
+   because this is a document about that product and its colours already carry
+   meaning: saffron marks the rare/warm, pomegranate marks loss. The section
+   that argues against building things is pomegranate for that reason, not for
+   decoration.
+   =========================================================================== */
+:root {
+  color-scheme: light dark;
+
+  --bg:        #F2F5F9;
+  --panel:     #FFFFFF;
+  --panel-2:   #E9EEF5;
+  --line:      #D3DDEA;
+  --line-soft: #E4EBF3;
+  --ink:       #101B2B;
+  --ink-2:     #46566E;
+  --muted:     #6B7C97;
+
+  --firuza:    #0F7A71;
+  --saffron:   #9A6A15;
+  --anor:      #A63630;
+
+  --tint-firuza:  #E3F2F0;
+  --tint-saffron: #F7EEDC;
+  --tint-anor:    #F8E7E5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #080E19;
+    --panel:     #0F1A29;
+    --panel-2:   #16223512;
+    --panel-2:   #162235;
+    --line:      #22314B;
+    --line-soft: #1A2740;
+    --ink:       #E7EDF7;
+    --ink-2:     #B4C2D8;
+    --muted:     #8496B3;
+
+    --firuza:    #35B9AC;
+    --saffron:   #E3AC55;
+    --anor:      #D25A54;
+
+    --tint-firuza:  #0F2C2C;
+    --tint-saffron: #2C2417;
+    --tint-anor:    #2C1A1A;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg:        #080E19;
+  --panel:     #0F1A29;
+  --panel-2:   #162235;
+  --line:      #22314B;
+  --line-soft: #1A2740;
+  --ink:       #E7EDF7;
+  --ink-2:     #B4C2D8;
+  --muted:     #8496B3;
+  --firuza:    #35B9AC;
+  --saffron:   #E3AC55;
+  --anor:      #D25A54;
+  --tint-firuza:  #0F2C2C;
+  --tint-saffron: #2C2417;
+  --tint-anor:    #2C1A1A;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Noto Sans", system-ui, -apple-system, sans-serif;
+  font-size: 15.5px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 44px;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 36px) 96px;
+}
+@media (max-width: 940px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  nav.toc { position: static !important; padding-top: 8px !important; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
+}
+
+/* --------------------------------------------------------------- nav */
+nav.toc {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  padding-top: 40px;
+  padding-bottom: 24px;
+  font-size: 13.5px;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+nav.toc h4 {
+  margin: 20px 0 7px;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+}
+nav.toc h4:first-child { margin-top: 0; }
+nav.toc a {
+  display: block;
+  padding: 4px 9px;
+  margin-left: -9px;
+  color: var(--ink-2);
+  text-decoration: none;
+  border-radius: 4px;
+  border-left: 2px solid transparent;
+}
+nav.toc a:hover { color: var(--ink); background: var(--panel); }
+nav.toc a:focus-visible { outline: 2px solid var(--firuza); outline-offset: 1px; }
+nav.toc a.on { color: var(--firuza); border-left-color: var(--firuza); font-weight: 600; }
+
+/* --------------------------------------------------------------- head */
+header.top { padding: clamp(40px, 7vw, 76px) 0 0; }
+
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+h1 {
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: clamp(34px, 6vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.022em;
+  margin: 0 0 20px;
+  text-wrap: balance;
+  font-weight: 700;
+}
+
+.standfirst {
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: clamp(17px, 2.4vw, 21px);
+  line-height: 1.62;
+  color: var(--ink-2);
+  max-width: 60ch;
+  margin: 0 0 34px;
+}
+.standfirst em { color: var(--ink); font-style: italic; }
+
+.statbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.statbar div {
+  flex: 1 1 140px;
+  padding: 14px 18px;
+  border-right: 1px solid var(--line-soft);
+}
+.statbar div:last-child { border-right: 0; }
+.statbar b { display: block; font-size: 25px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.statbar span { font-size: 12.5px; color: var(--muted); }
+
+/* --------------------------------------------------------------- sections */
+section { padding-top: 56px; scroll-margin-top: 20px; }
+
+h2 {
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: clamp(25px, 3.6vw, 34px);
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+  text-wrap: balance;
+}
+h3 {
+  font-size: 18px;
+  margin: 34px 0 8px;
+  letter-spacing: -0.01em;
+}
+h4.sub {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+  margin: 30px 0 10px;
+}
+
+p { max-width: 68ch; margin: 0 0 15px; }
+.lede { color: var(--ink-2); max-width: 66ch; }
+ul, ol { max-width: 68ch; padding-left: 22px; }
+li { margin-bottom: 7px; }
+strong { font-weight: 600; }
+a { color: var(--firuza); }
+
+hr.rule { border: 0; border-top: 1px solid var(--line); margin: 44px 0 0; }
+
+/* --------------------------------------------------------------- tables */
+.tablewrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  margin: 16px 0 8px;
+}
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 640px; }
+th {
+  text-align: start;
+  padding: 10px 14px;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-2);
+  position: sticky; top: 0;
+}
+td { padding: 11px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+tr.hide { display: none; }
+td.id { font-variant-numeric: tabular-nums; color: var(--muted); font-weight: 600; white-space: nowrap; width: 1%; }
+td.what { font-weight: 600; width: 27%; }
+td.why { color: var(--ink-2); }
+td.eff { width: 1%; }
+
+.eff-badge {
+  display: inline-block;
+  min-width: 30px;
+  text-align: center;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border: 1px solid;
+}
+.eff-S  { color: var(--firuza);  border-color: var(--firuza);  background: var(--tint-firuza); }
+.eff-M  { color: var(--saffron); border-color: var(--saffron); background: var(--tint-saffron); }
+.eff-L  { color: var(--anor);    border-color: var(--anor);    background: var(--tint-anor); }
+.eff-XL { color: var(--anor);    border-color: var(--anor);    background: var(--tint-anor); font-style: italic; }
+
+/* --------------------------------------------------------------- filter */
+.filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+  margin: 22px 0 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.filter span.lbl { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); font-weight: 700; margin-right: 4px; }
+.filter button {
+  min-height: 34px;
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.filter button:hover { border-color: var(--firuza); }
+.filter button:focus-visible { outline: 2px solid var(--firuza); outline-offset: 1px; }
+.filter button[aria-pressed="true"] { background: var(--firuza); border-color: var(--firuza); color: var(--bg); font-weight: 600; }
+.filter .count { margin-left: auto; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* --------------------------------------------------------------- callouts */
+.callout {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--firuza);
+  border-radius: 4px;
+  background: var(--panel);
+  padding: 16px 18px;
+  margin: 22px 0;
+}
+.callout.warn { border-left-color: var(--saffron); }
+.callout.stop { border-left-color: var(--anor); }
+.callout p:last-child { margin-bottom: 0; }
+.callout .tag {
+  font-size: 10.5px; letter-spacing: 0.11em; text-transform: uppercase;
+  font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px;
+}
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 0 4px 22px;
+  border-left: 3px solid var(--saffron);
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: 18px;
+  line-height: 1.58;
+  color: var(--ink);
+  max-width: 60ch;
+}
+
+/* --------------------------------------------------------------- idea cards */
+.idea {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  padding: 22px 24px;
+  margin: 20px 0;
+}
+.idea > header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.idea .num {
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--firuza);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.idea h3 { margin: 0; font-size: 21px; letter-spacing: -0.012em; }
+.idea .native { color: var(--muted); font-size: 15px; font-weight: 400; }
+.idea .role { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
+.idea p { font-size: 15px; }
+.idea .head {
+  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  font-weight: 700; color: var(--muted); margin: 16px 0 5px;
+}
+.idea .against { color: var(--ink-2); }
+
+.scores { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+.score {
+  font-size: 11.5px;
+  padding: 3px 9px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+}
+.score.pass { color: var(--firuza); border-color: var(--firuza); background: var(--tint-firuza); font-weight: 600; }
+.score.mid  { color: var(--muted); }
+
+/* --------------------------------------------------------------- tests grid */
+.tests { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 20px 0; }
+.test {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  padding: 14px 16px;
+}
+.test b { display: block; font-size: 14.5px; margin-bottom: 3px; }
+.test span { font-size: 13px; color: var(--ink-2); }
+.test .n {
+  font-family: "Noto Serif", Georgia, serif;
+  color: var(--firuza); font-weight: 700; font-size: 13px; margin-right: 6px;
+}
+.test.key { border-color: var(--saffron); background: var(--tint-saffron); }
+.test.key .n { color: var(--saffron); }
+
+/* --------------------------------------------------------------- ranked list */
+ol.ranked { list-style: none; padding: 0; counter-reset: r; max-width: none; }
+ol.ranked li {
+  counter-increment: r;
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line-soft);
+  margin: 0;
+}
+ol.ranked li::before {
+  content: counter(r);
+  font-family: "Noto Serif", Georgia, serif;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--firuza);
+  min-width: 22px;
+  font-variant-numeric: tabular-nums;
+}
+ol.ranked b { font-weight: 600; }
+ol.ranked span { color: var(--ink-2); }
+
+/* --------------------------------------------------------------- reject list */
+.reject { border-top: 1px solid var(--line); }
+.reject > div {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) 2.1fr;
+  gap: 18px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+@media (max-width: 620px) { .reject > div { grid-template-columns: 1fr; gap: 4px; } }
+.reject b { color: var(--anor); font-weight: 600; }
+.reject span { color: var(--ink-2); font-size: 14.5px; }
+
+footer.end {
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+html { scroll-behavior: smooth; }
+</style>
+
+<div class="shell">
+
+<nav class="toc" aria-label="Contents">
+  <h4>Part one — complete</h4>
+  <a href="#backlog">The backlog</a>
+  <a href="#motion">Motion and feel</a>
+  <a href="#states">Loading and empty</a>
+  <a href="#profile">Profile and settings</a>
+  <a href="#chat">Chat interactions</a>
+  <a href="#nav">List and navigation</a>
+  <a href="#media">Media</a>
+  <a href="#notif">Notifications</a>
+  <a href="#calls">Voice and calls</a>
+  <a href="#safety">Trust and safety</a>
+  <a href="#platform">Platform</a>
+  <a href="#a11y">Accessibility</a>
+  <a href="#market">The market</a>
+  <a href="#ten">If I pick ten</a>
+
+  <h4>Part two — chosen</h4>
+  <a href="#pigeon">The pigeon question</a>
+  <a href="#tests">Six tests</a>
+  <a href="#tier1">Tier 1</a>
+  <a href="#tier2">Tier 2</a>
+  <a href="#never">What not to build</a>
+  <a href="#next">What to do next</a>
+</nav>
+
+<main>
+
+<header class="top">
+  <div class="eyebrow">Sakina · engineering research</div>
+  <h1>What is missing, and what would make it ours</h1>
+  <p class="standfirst">
+    Two questions with different answers. The first — what makes the app
+    <em>complete</em> — has a known solution that every messenger has already
+    found. The second — what makes it <em>chosen</em> — does not, and that is
+    where the interesting argument is.
+  </p>
+  <div class="statbar">
+    <div><b id="statItems">—</b><span>items catalogued</span></div>
+    <div><b id="statSections">—</b><span>sections</span></div>
+    <div><b>9</b><span>distinctive candidates</span></div>
+    <div><b>8</b><span>rejected, with reasons</span></div>
+  </div>
+  <p style="font-size:13px;color:var(--muted);max-width:68ch">
+    Research only. Nothing here is built. Effort is rough: <b>S</b> a day or
+    less, <b>M</b> a few days, <b>L</b> a week or more, <b>XL</b> a project with
+    its own design.
+  </p>
+</header>
+
+<hr class="rule">
+
+<!-- ================================================================= -->
+<section id="backlog">
+  <h2>Part one — what makes it complete</h2>
+  <p class="lede">
+    Everything here exists in messengers this audience already uses. Their
+    absence is what makes Sakina feel like a demo rather than a product. Use the
+    filter to see only what fits the time you have.
+  </p>
+
+  <div class="filter" role="group" aria-label="Filter by effort">
+    <span class="lbl">Effort</span>
+    <button data-eff="all" aria-pressed="true">Everything</button>
+    <button data-eff="S" aria-pressed="false">S — a day</button>
+    <button data-eff="M" aria-pressed="false">M — days</button>
+    <button data-eff="L" aria-pressed="false">L — a week+</button>
+    <button data-eff="XL" aria-pressed="false">XL — a project</button>
+    <span class="count" id="count"></span>
+  </div>
+</section>
+
+<section id="motion">
+  <h3>A · Motion and feel</h3>
+  <p class="lede">
+    The app has almost no motion today. That is absence, not restraint — the
+    brand says motion should <em>settle</em>, and there is currently nothing to
+    settle. Everything here routes through the reduce-motion path that already
+    exists and is not yet used.
+  </p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Feature</th><th>Why it matters</th><th>Effort</th></tr></thead>
+    <tbody data-rows>
+      <tr data-eff="M"><td class="id">A1</td><td class="what">Hero transition into a chat</td><td class="why">The avatar and title fly from the row into the app bar. The highest-value animation in any messenger — it answers "where did I come from" without a thought, and it is most of what makes Telegram feel expensive.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">A2</td><td class="what">Send animation</td><td class="why">The bubble lifts out of the composer instead of appearing. The most repeated interaction in the product — ten thousand times a day per user, currently a hard cut.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">A3</td><td class="what">Staggered list entry</td><td class="why">Rows arrive over ~200ms on first load. Without it an empty list becoming a full one just pops, and popping reads as a bug.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">A4</td><td class="what">Pull-to-refresh with the chorkhona drawing itself</td><td class="why">A brand moment in a gesture people already make. Cheap — the mark is already a CustomPainter, so animating its stroke is a few lines.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">A5</td><td class="what">Animated typing dots</td><td class="why">Currently plain text, which reads as a status bar rather than as a person at the other end.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">A6</td><td class="what">Badge count-down on read</td><td class="why">Clearing a chat deserves feedback. Counting to zero is more satisfying than a badge blinking out.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">A7</td><td class="what">Swipe-to-reply, spring-back, haptic at threshold</td><td class="why">The most-used gesture in modern messengers, and a textbook expert shortcut that costs beginners nothing.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">A8</td><td class="what">Long-press menu with scale-and-blur</td><td class="why">Where reply, forward, copy, delete and react all live. Without it every action needs its own permanent button.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">A9</td><td class="what">Reduced-motion enforced by test</td><td class="why">We built the zero-duration path and nothing checks that animations use it. A guardrail nobody verifies decays within a month.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">A10</td><td class="what">A haptics vocabulary</td><td class="why">Light on send, heavier on error, none on scroll. Haptics are the cheapest way to feel expensive and the easiest to overdo; writing the rules down is what stops it.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">A11</td><td class="what">Skeleton shimmer that respects reduce-motion</td><td class="why">The shimmer is the part that usually gets the accessibility path wrong.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">A12</td><td class="what">Directional page transitions</td><td class="why">Forward and back currently use the same builder. Direction is how people build a spatial model of an app.</td><td class="eff"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="states">
+  <h3>B · Loading, empty and error states</h3>
+  <p class="lede">
+    Not aesthetics — completeness. This is the category that reveals a screen
+    nobody used with slow, absent or broken data.
+  </p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Feature</th><th>Why it matters</th><th>Effort</th></tr></thead>
+    <tbody data-rows>
+      <tr data-eff="S"><td class="id">B1</td><td class="what">Skeleton chat list on cold start</td><td class="why">Currently an empty screen while SQLite opens — 300–600ms of looking broken on a cheap Android, on every single launch.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">B2</td><td class="what">Skeleton message list</td><td class="why">Worse than the list: an empty conversation looks like lost history, which is the single scariest thing a messenger can show.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">B3</td><td class="what">Retry on a failed bubble</td><td class="why">Already flagged as owed in the UX doc. A failed message you cannot retry is a dead end with your words in it.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">B4</td><td class="what">Real upload progress</td><td class="why">We report 0 then 1. On a 40MB video over a slow uplink that is two minutes of nothing happening. Needs a streaming PUT.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">B5</td><td class="what">Cancel an in-flight upload</td><td class="why">Sending the wrong 40MB video and being unable to stop it costs real money on metered data.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">B6</td><td class="what">Distinguish no-network from server-unreachable</td><td class="why">Two different user actions — turn on wifi, or wait. Conflating them wastes the user's time and trust.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">B7</td><td class="what">Empty states with a next action</td><td class="why">No members, no results, no media. Each needs something to do, not a shrug.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">B8</td><td class="what">First-run experience</td><td class="why">A new account currently sees an empty list and a button. There is no moment that explains what this app is or why it exists.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">B9</td><td class="what">Error taxonomy in three languages</td><td class="why">Server-side messages are human; some client paths still surface raw strings, in one language.</td><td class="eff"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="profile">
+  <h3>C · Profile and settings</h3>
+  <p class="lede">
+    The biggest structural hole. There is no profile screen and no settings
+    screen at all — language is a sheet hanging off the app bar and sign-out is
+    an icon next to it. Telegram's settings tree is the reference because it is
+    the one this audience already has in their heads.
+  </p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Feature</th><th>Why it matters</th><th>Effort</th></tr></thead>
+    <tbody data-rows>
+      <tr data-eff="M"><td class="id">C1</td><td class="what">Avatar — set, crop, remove</td><td class="why">The column exists and nothing writes it. A messenger where everyone is a grey circle reads as unfinished.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">C2</td><td class="what">Display name and bio</td><td class="why">Name exists; bio does not.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">C3</td><td class="what">Username / @handle</td><td class="why">Column exists, unused. Critical here — a user switching between a Tajik and a Russian SIM keeps one identity, and it is the only way to be reachable without handing out a phone number.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">C4</td><td class="what">Manage identities (second email, phone)</td><td class="why">The model already supports several per user; there is no UI. A migrant with two SIMs needs both attached to one account.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">C5</td><td class="what">Profile QR code and scanner</td><td class="why">Solves "paste a user id" today, without waiting for contact discovery's privacy work. Two people in a room connect in five seconds.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">C6</td><td class="what">Another person's profile</td><td class="why">There is currently nowhere in the app to see who someone is.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">C7</td><td class="what">Block, unblock, report</td><td class="why">Safety floor. Today there is no way for a user to stop someone contacting them.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">C8</td><td class="what">Shared media grid per chat</td><td class="why">The universal "where was that photo" affordance.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">C9</td><td class="what">A settings screen at all</td><td class="why">Two settings currently live as app-bar icons. That does not survive a third.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">C10</td><td class="what">Per-chat mute (1h / 8h / forever)</td><td class="why">muted_until exists in the schema and nothing ever sets it.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">C11</td><td class="what">Data and storage, top-level</td><td class="why">For this audience arguably the most important settings page in the app, not a footnote inside Advanced.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">C12</td><td class="what">Privacy controls</td><td class="why">Last seen, read receipts, who can add me to groups. Read receipts especially: in a family, "seen and not replied" starts arguments.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">C13</td><td class="what">Theme, text size, wallpaper</td><td class="why">Theme mode is hardcoded to dark — a user who wants day mode currently cannot reach it at all.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">C14</td><td class="what">Active sessions, with revoke</td><td class="why">Sessions are per-device in the schema with no way to see or kill one. A security floor, not a nicety.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">C15</td><td class="what">Cache size, clear, auto-delete old media</td><td class="why">The media cache currently grows forever on a 16GB phone.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">C16</td><td class="what">Export chat history</td><td class="why">A trust device, and the honest answer to "what happens if I stop using this".</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">C17</td><td class="what">About / FAQ</td><td class="why">Who runs Sakina, where the data lives, does it work from Russia. The growth doc predicts these questions; not answering them is a trust problem, not a docs gap.</td><td class="eff"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="chat">
+  <h3>D · Chat interactions</h3>
+  <p class="lede">Table stakes. Every one of these exists in the apps this audience uses daily.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Feature</th><th>Why it matters</th><th>Effort</th></tr></thead>
+    <tbody data-rows>
+      <tr data-eff="M"><td class="id">D1</td><td class="what">Reply, with quote and jump-back</td><td class="why">The most-used feature in group chat anywhere. Without it a twelve-person family group is genuinely unreadable.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">D2</td><td class="what">Forward</td><td class="why">The main vector by which a messenger spreads — and by which misinformation does. Needs a "forwarded" label from the first version, not retrofitted after.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">D3</td><td class="what">Edit, with an edited marker</td><td class="why">edited_at exists in the schema and nothing writes it.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">D4</td><td class="what">Delete — for me / for everyone, with undo</td><td class="why">deleted_at exists and nothing writes it. Undo rather than confirm, per the UX doc.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">D5</td><td class="what">Reactions</td><td class="why">Cheap emotional bandwidth. In a group of twelve it is the difference between forty "ok" messages and none. Needs its own table and a compact wire form.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">D6</td><td class="what">Copy, multi-select, share out</td><td class="why">Basic, and entirely missing.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">D7</td><td class="what">Per-chat drafts</td><td class="why">Type half a message, switch chats, come back. Losing it is a small betrayal people remember about an app.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">D8</td><td class="what">Link previews</td><td class="why">Must be fetched server-side — fetching from the client leaks the reader's IP to whoever owns the link.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">D9</td><td class="what">Mentions, and mention-only notifications</td><td class="why">The single thing that makes a 200-person group survivable.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">D10</td><td class="what">Pinned messages</td><td class="why">Where a group puts its rules, or an address everyone needs.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">D11</td><td class="what">Scroll-to-bottom, jump to first unread</td><td class="why">Opening a busy group at the top with no way down is a common and legitimate complaint.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">D12</td><td class="what">Date separators and an unread divider</td><td class="why">Messages currently run together with no temporal structure at all.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">D13</td><td class="what">Voice messages</td><td class="why">The payload has been in the protocol since the first commit and nothing records one. In a partly oral culture with a hard keyboard this is not a convenience — for many users it is the primary input method.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">D14</td><td class="what">Emoji picker with recents and Cyrillic search</td><td class="why">The system picker is fine on iOS and poor on cheap Android, which is most of the fleet.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">D15</td><td class="what">Stickers</td><td class="why">A primary revenue line for LINE and the cheapest cultural moat available. Tajik-specific packs are exactly the thing people screenshot and pass on.</td><td class="eff"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="nav">
+  <h3>E · Chat list and navigation</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Feature</th><th>Why it matters</th><th>Effort</th></tr></thead>
+    <tbody data-rows>
+      <tr data-eff="L"><td class="id">E1</td><td class="what">Search — messages, chats, people</td><td class="why">The most-missed feature past about fifty chats. Message search needs a local FTS index and a tokenizer that understands Tajik, which SQLite will not do for us.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">E2</td><td class="what">Pin a chat</td><td class="why">The family group should not fall below a news channel.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">E3</td><td class="what">Archive</td><td class="why">The escape valve that stops a chat list becoming unusable.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">E4</td><td class="what">Mark read / unread</td><td class="why">Small and universally expected.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">E5</td><td class="what">Swipe actions on a row</td><td class="why">Expert speed at no cost to beginners.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">E6</td><td class="what">Chat folders</td><td class="why">Telegram's answer to list overload. Deferrable until people have enough chats to need it.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">E7</td><td class="what">Bottom navigation</td><td class="why">There is one destination today, so a bottom bar would be a lie. The moment Settings and Contacts exist it becomes necessary.</td><td class="eff"></td></tr>
+      <tr data-eff="XL"><td class="id">E8</td><td class="what">Contacts and phone-book matching</td><td class="why">The last piece that removes "paste a user id". Needs the Signal-style privacy design — hashed identifiers, never a plaintext address-book upload.</td><td class="eff"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="media">
+  <h3>F · Media, beyond what exists</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Feature</th><th>Why it matters</th><th>Effort</th></tr></thead>
+    <tbody data-rows>
+      <tr data-eff="M"><td class="id">F1</td><td class="what">Thumbnail generation</td><td class="why">The protocol field exists and nothing fills it, so a photo in a list is the full photo. The highest-value gap in the media stack, and a data-cost problem rather than a polish one.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">F2</td><td class="what">BlurHash-style 20-byte preview</td><td class="why">An instant, zero-fetch placeholder. Almost purpose-built for this network.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">F3</td><td class="what">Resumable uploads</td><td class="why">A 40MB video on Tajik mobile data will be interrupted. Without resume it starts from zero, which means it never finishes.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">F4</td><td class="what">Multi-select send as an album</td><td class="why">Twelve photos as twelve messages is what makes a family group unusable the day after a wedding.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">F5</td><td class="what">Image editor</td><td class="why">Crop, rotate, draw, caption. Table stakes, and later the natural home for a Tajik sticker overlay.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">F6</td><td class="what">Document preview</td><td class="why">Currently a filename and a size, which is barely more than nothing.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">F7</td><td class="what">GIF search</td><td class="why">Deferrable — needs a third-party provider, which is both a data and a privacy decision.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">F8</td><td class="what">Orphan sweep</td><td class="why">Uploads ticketed and never sent leave bytes nothing points at. The remove() call exists; the job that calls it does not.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">F9</td><td class="what">Auto-download rules</td><td class="why">Never / wifi only / always, per type. The default for video must be wifi-only or we are spending our users' money for them.</td><td class="eff"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="notif">
+  <h3>G · Notifications</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Feature</th><th>Why it matters</th><th>Effort</th></tr></thead>
+    <tbody data-rows>
+      <tr data-eff="M"><td class="id">G1</td><td class="what">Per-chat mute</td><td class="why">Schema support exists; nothing uses it.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">G2</td><td class="what">Grouping and summary</td><td class="why">Every message is currently its own notification. A busy group is a phone that will not stop buzzing, and the fix users reach for is uninstalling.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">G3</td><td class="what">Reply from the notification</td><td class="why">The single biggest reduction in time-to-reply available anywhere in the product.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">G4</td><td class="what">Quiet hours</td><td class="why">A generic version exists everywhere. There is a better one — see Tier 2, item 6.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">G5</td><td class="what">In-app banner</td><td class="why">A message arriving for a chat you are not looking at currently produces nothing at all.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">G6</td><td class="what">App icon badge</td><td class="why">Expected, absent.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">G7</td><td class="what">Preview control</td><td class="why">Show sender / show text / show nothing. A privacy setting that matters when a phone is shared, which in this market it often is.</td><td class="eff"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="calls">
+  <h3>H · Voice and calls</h3>
+  <p class="lede">
+    The design exists in the calls doc; none of it is built. This is the largest
+    single chunk of work remaining, and for many users the reason to install a
+    messenger at all.
+  </p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Feature</th><th>Why it matters</th><th>Effort</th></tr></thead>
+    <tbody data-rows>
+      <tr data-eff="XL"><td class="id">H1</td><td class="what">One-to-one voice calls</td><td class="why">WebRTC, with the TURN relay already provisioned. Calling home is the reason a large share of this audience installs anything.</td><td class="eff"></td></tr>
+      <tr data-eff="XL"><td class="id">H2</td><td class="what">Video calls</td><td class="why">Grandparents seeing grandchildren is the entire emotional case for the product, and it is the one thing a text message cannot substitute for.</td><td class="eff"></td></tr>
+      <tr data-eff="XL"><td class="id">H3</td><td class="what">Group calls</td><td class="why">Deferrable — one-to-one carries the value first.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">H4</td><td class="what">Call history as a message type</td><td class="why">Fits the existing open message-type design rather than needing a parallel store.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">H5</td><td class="what">Low-bandwidth codec and automatic audio-only fallback</td><td class="why">On a Tajik mobile network a call that degrades gracefully beats a call that drops. Nearly every user is behind carrier-grade NAT, so most calls will relay rather than go peer-to-peer — the cost model depends on this.</td><td class="eff"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="platform">
+  <h3>L · Platform and infrastructure</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Feature</th><th>Why it matters</th><th>Effort</th></tr></thead>
+    <tbody data-rows>
+      <tr data-eff="XL"><td class="id">L1</td><td class="what">Desktop and web client</td><td class="why">Shared computers and internet cafés are still normal here, and the web app is currently a placeholder.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">L2</td><td class="what">Multi-device sync of read state and drafts</td><td class="why">Sessions are already per-device; the state that should follow the person is not shared between them.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">L3</td><td class="what">Cloud backup and restore</td><td class="why">The number one reason people fear switching messengers is losing history.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">L4</td><td class="what">Push without Google</td><td class="why">Huawei devices and de-Googled Androids are common in this market. FCM is not the universal assumption here that it is in Europe.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">L5</td><td class="what">App size budget, enforced in CI</td><td class="why">Every megabyte is a barrier on a metered connection and a 16GB phone. Should be a tracked number, not a hope.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">L6</td><td class="what">Crash and ANR reporting</td><td class="why">We have no idea what breaks on real devices and no way to get one.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">L7</td><td class="what">Feature flags</td><td class="why">Needed before any staged rollout, and painful to retrofit.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">L8</td><td class="what">Self-hosted funnel analytics</td><td class="why">You cannot fix a signup funnel you cannot see. Must be self-hosted, or it contradicts the trust story we are selling.</td><td class="eff"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="safety">
+  <h3>I · Trust, safety and privacy</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Feature</th><th>Why it matters</th><th>Effort</th></tr></thead>
+    <tbody data-rows>
+      <tr data-eff="M"><td class="id">I1</td><td class="what">Block and report</td><td class="why">Absent. This is the floor, not a feature — and a store-review requirement.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">I2</td><td class="what">Report a channel, with a moderation queue</td><td class="why">A channel product without a report path becomes a liability the day it grows.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">I3</td><td class="what">Rate limits on channel creation and joins</td><td class="why">The anti-abuse work covers signup and not content.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">I4</td><td class="what">Two-step verification</td><td class="why">Email OTP alone means an email compromise is an account compromise.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">I5</td><td class="what">Login alerts</td><td class="why">Cheap, and the thing that actually catches an account takeover.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">I7</td><td class="what">Disappearing messages</td><td class="why">Expected by anyone who has used Telegram or Signal. Build it — but see the argument against making it the headline.</td><td class="eff"></td></tr>
+      <tr data-eff="XL"><td class="id">I8</td><td class="what">The encryption decision</td><td class="why">The architecture doc flags a real tension between end-to-end encryption and a regulated payments layer. It needs deciding rather than defaulting, and the answer shapes disappearing messages, cloud backup and search.</td><td class="eff"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="a11y">
+  <h3>J · Accessibility</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Feature</th><th>Why it matters</th><th>Effort</th></tr></thead>
+    <tbody data-rows>
+      <tr data-eff="M"><td class="id">J1</td><td class="what">Screen-reader labels, in three languages</td><td class="why">Some icons have tooltips and nothing else does. A blind user cannot use this app today, in any language.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">J2</td><td class="what">Semantic order in the message list</td><td class="why">A bubble should read as "from X, at 09:41, delivered" rather than as three unrelated fragments.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">J3</td><td class="what">Contrast audit at 1.6× text scale</td><td class="why">We check that layout survives the scale; we never check that contrast does.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">J4</td><td class="what">Keyboard navigation for two-pane</td><td class="why">The tablet layout exists and nothing in it can be driven from a keyboard.</td><td class="eff"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="market">
+  <h3>K · The market — Tajikistan and the migrant corridor</h3>
+  <p class="lede">
+    Not polish. These are reasons to choose this over Telegram, and several
+    graduate into strategy in part two.
+  </p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Feature</th><th>Why it matters</th><th>Effort</th></tr></thead>
+    <tbody data-rows>
+      <tr data-eff="M"><td class="id">K1</td><td class="what">A visible data budget</td><td class="why">Not a buried toggle — a number the user can see. For people paying by the megabyte, data is money, and no incumbent surfaces it because their users do not care.</td><td class="eff"></td></tr>
+      <tr data-eff="S"><td class="id">K2</td><td class="what">Text-only mode</td><td class="why">The switch someone flips for the last week of the month.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">K3</td><td class="what">Compression profiles per network type</td><td class="why">A 300KB photo instead of a 4MB one is the difference between sending it and not sending it.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">K4</td><td class="what">2G tuning — timeouts, backoff, payload sizes</td><td class="why">Much of the country is not on 4G. The protocol is already retry-safe; the constants have never been tuned for a network this slow.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">K5</td><td class="what">Elder mode</td><td class="why">A large share of the people being called are grandparents in villages. Every messenger fails them, and the grandchild who installs the app picks whichever one their grandmother can use. A growth feature wearing accessibility clothes.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">K6</td><td class="what">Tajik keyboard help</td><td class="why">ғ ӣ қ ӯ ҳ ҷ are missing from most default Cyrillic keyboards, so people substitute Russian letters and their own language degrades on screen. A daily physical friction no international product will ever fix.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">K7</td><td class="what">Transliteration search</td><td class="why">Typing "salom" should find "салом". Many users type Latin out of keyboard habit; without this, search silently fails for them.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">K8</td><td class="what">Remittance receipt message type</td><td class="why">payment is already reserved in the enum. Tajikistan is among the most remittance-dependent economies on earth, and "I sent it" is one of the most-sent messages in this corridor.</td><td class="eff"></td></tr>
+      <tr data-eff="L"><td class="id">K9</td><td class="what">Russia-reachability engineering</td><td class="why">WhatsApp is blocked there. Assuming Sakina never will be is optimism, not a plan — and this is architecture, which is cheap now and very expensive later.</td><td class="eff"></td></tr>
+      <tr data-eff="M"><td class="id">K10</td><td class="what">Prayer times and Ramadan awareness</td><td class="why">See Tier 2.</td><td class="eff"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="ten">
+  <h2>If I had to pick ten</h2>
+  <p class="lede">
+    First stop the app feeling broken. Then stop it feeling empty. Only then
+    make it worth switching to.
+  </p>
+  <ol class="ranked">
+    <li><b>Reply</b> <span>— group chat is unreadable without it</span></li>
+    <li><b>Settings, theme and device list</b> <span>— the app has nowhere to be configured</span></li>
+    <li><b>Thumbnails</b> <span>— the largest unnecessary data cost in the product</span></li>
+    <li><b>Voice messages</b> <span>— the primary input method for a large share of the audience</span></li>
+    <li><b>Hero and send animations</b> <span>— the two motions that make it feel built rather than assembled</span></li>
+    <li><b>Skeleton screens</b> <span>— 600ms of looking broken on every cold start</span></li>
+    <li><b>Notification grouping</b> <span>— the current behaviour is an uninstall trigger</span></li>
+    <li><b>Usernames and profile QR</b> <span>— kills "paste a user id" without waiting for contact discovery</span></li>
+    <li><b>Block and report</b> <span>— safety floor, and a store-review requirement</span></li>
+    <li><b>The data budget</b> <span>— the cheapest thing that makes us visibly different</span></li>
+  </ol>
+  <div class="callout">
+    <span class="tag">The ordering argument</span>
+    <p>
+      Everything in part two comes <strong>after</strong> these, deliberately. A
+      distinctive feature sitting on top of an app that cannot reply to a
+      message is a distinctive broken app.
+    </p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ================================================================= -->
+<section id="pigeon">
+  <h2>Part two — what makes it chosen</h2>
+
+  <h3>The pigeon question</h3>
+  <p>
+    There is a genre of messaging app built on artificial delay. The serious one
+    is <strong>Slowly</strong>, where a letter travels at a simulated speed based
+    on the real geographic distance between two people — Dushanbe to Moscow takes
+    hours. There are novelty versions where a cartoon pigeon carries the message
+    and occasionally dies, losing it.
+  </p>
+  <p>
+    These work, and it is worth being precise about <em>why</em>, because copying
+    the surface would be a mistake.
+  </p>
+  <p>
+    <strong>The mechanic is manufactured scarcity.</strong> Instant messaging made
+    a message cost nothing to send, and things that cost nothing to send stop
+    being worth much to receive. A pen-pal app puts the cost back: you wait, so
+    you write something worth waiting for. The delay is not the feature — the
+    <em>care the delay forces</em> is the feature. The pigeon dying is the same
+    trick amplified: a message that might not arrive is a message you choose your
+    words for.
+  </p>
+
+  <div class="callout warn">
+    <span class="tag">The thing that changes everything</span>
+    <p>
+      <strong>Sakina's users do not need scarcity manufactured for them. They
+      already have it.</strong> A construction worker in Yekaterinburg with 200MB
+      left in the month and a two-hour gap to his daughter in Kulob is living
+      inside the exact constraint Slowly simulates. Selling him simulated distance
+      would be, at best, tone-deaf.
+    </p>
+  </div>
+
+  <p>So the move is not to copy the gimmick. It is to invert it:</p>
+
+  <blockquote>
+    Instant messengers treat distance as a problem to erase. Our users cannot
+    erase it. The opportunity is to make real distance <em>felt as connection</em>
+    rather than as absence — to design for the separation instead of pretending
+    it away.
+  </blockquote>
+
+  <p>
+    That reframe is defensible in a way a pigeon is not, because it comes from
+    the audience rather than from a mood board. Every Tier 1 idea below falls out
+    of it.
+  </p>
+</section>
+
+<section id="tests">
+  <h3>Six tests for a candidate</h3>
+  <p class="lede">
+    An idea failing 4, 5 or 6 should be cut regardless of how good it sounds in
+    a pitch.
+  </p>
+  <div class="tests">
+    <div class="test"><b><span class="n">1</span>Survives 2G and a 16GB phone?</b><span>If it needs bandwidth we do not have, it is a feature for a different market.</span></div>
+    <div class="test"><b><span class="n">2</span>Would someone describe it?</b><span>At 5–10k users word of mouth is the only channel. A feature nobody can explain in one sentence never gets explained.</span></div>
+    <div class="test"><b><span class="n">3</span>Better with a whole family?</b><span>Group value beats solo value. The unit of adoption is a household, not a person.</span></div>
+    <div class="test"><b><span class="n">4</span>How fast could Telegram copy it?</b><span>If a sprint, it is not a moat — though still worth building for the users we get first.</span></div>
+    <div class="test"><b><span class="n">5</span>Is it quiet?</b><span>The chrome stays still so the content can be loud. A feature that shouts is off-brief however clever.</span></div>
+    <div class="test key"><b><span class="n">6</span>Is it honest?</b><span>Does it solve a problem the user has, or manufacture one so we have something to solve? <strong>This is the pigeon test</strong>, and it is the one most novelty features fail.</span></div>
+  </div>
+</section>
+
+<section id="tier1">
+  <h3>Tier 1 — distinctive and load-bearing</h3>
+
+  <div class="idea">
+    <header><span class="num">1</span><h3>Нома <span class="native">— the letter</span></h3></header>
+    <div class="role">A second message mode, built on removing signals rather than adding them</div>
+    <p>
+      You compose a long message over hours or days, kept as a local draft, and
+      send it once. It arrives as a letter — its own view, its own typography, an
+      opening ritual. Deliberately <em>missing</em>: typing indicators, read
+      receipts, last-seen, and any pressure to reply quickly. A letter is answered
+      with a letter, days later, and that is the expected rhythm rather than a
+      failure state.
+    </p>
+    <div class="head">Why</div>
+    <p>
+      This is Slowly's real insight applied to people who actually live it. A
+      migrant worker gets twenty minutes on a Sunday. Chat's rhythm punishes
+      that — he opens the app to forty unanswered messages and a week of
+      accumulated guilt. Nothing in a chat interface ever says <em>it is fine
+      that you were away</em>. A letter's rhythm says exactly that: nobody feels
+      bad about taking three days to answer a letter.
+    </p>
+    <p>
+      <strong>We would be removing the pressure instant messaging created, for
+      the people it hurts most.</strong> And it inverts the pigeon precisely —
+      no artificial delay, no bird. The delay is the one already in these
+      people's lives, and the app stops treating it as a fault.
+    </p>
+    <p>Cheap, too: a message type, a different renderer, and suppressing signals we already send.</p>
+    <div class="head">Against it</div>
+    <p class="against">
+      Two modes is a concept to teach, and concepts are expensive. It risks being
+      used once and forgotten. Mitigation: do not launch it as a mode — launch it
+      as what happens when someone writes past a few hundred characters, and let
+      the app offer it.
+    </p>
+    <div class="scores">
+      <span class="score pass">1 · bytes are tiny</span>
+      <span class="score pass">2 · one sentence</span>
+      <span class="score pass">3 · family</span>
+      <span class="score pass">4 · hard to copy</span>
+      <span class="score pass">5 · the quietest idea here</span>
+      <span class="score pass">6 · honest</span>
+    </div>
+  </div>
+
+  <div class="idea">
+    <header><span class="num">2</span><h3>Ҳастам <span class="native">— the presence beacon</span></h3></header>
+    <div class="role">Roughly fifty bytes, sent by one tap</div>
+    <p>
+      A signal, not a message: <em>I'm home. I'm fine. I've arrived. Good
+      night.</em> It shows as a state against your name, to the handful of people
+      who care. No text, no thread, no reply expected.
+    </p>
+    <div class="head">Why</div>
+    <p>
+      The deepest anxiety in a split family is not a shortage of conversation. It
+      is not <em>knowing</em>. Did he get there. Is she alright. Is the bus in. A
+      call to ask costs money, and a message asking "are you okay?" carries an
+      implication nobody wants to make explicit.
+    </p>
+    <p>
+      WhatsApp's "last seen" accidentally serves this need — which is why people
+      watch it obsessively and why it feels like surveillance. It is information
+      <em>leaked</em> rather than offered. <strong>The same information, offered
+      deliberately and mutually, stops being surveillance and becomes care.</strong>
+      That reframing is the whole idea.
+    </p>
+    <p>
+      It is also the cheapest thing anyone can send on a metered connection,
+      which matters strategically: a reason to prefer us that is created by the
+      very constraint our competitors ignore.
+    </p>
+    <div class="head">Against it</div>
+    <p class="against">
+      Presence becomes obligation — "you didn't beacon me" is a real failure
+      mode, and in a controlling relationship it is considerably worse than that.
+      It must be per-person, silently revocable, and must never show a history.
+      Design this one with someone who understands coercive control before
+      writing any code.
+    </p>
+    <div class="scores">
+      <span class="score pass">1 · bytes</span>
+      <span class="score pass">2 · explains itself</span>
+      <span class="score pass">3 · family</span>
+      <span class="score mid">4 · easy to copy, nobody has</span>
+      <span class="score pass">5 · silent</span>
+      <span class="score pass">6 · honest</span>
+    </div>
+  </div>
+
+  <div class="idea">
+    <header><span class="num">3</span><h3>The data budget, on the surface</h3></header>
+    <div class="role">A number, not a toggle</div>
+    <p>
+      <em>34 of 200 MB this month.</em> Per-chat breakdown. A projection of what
+      the video you are about to send will cost. One tap for "text only until
+      payday."
+    </p>
+    <div class="head">Why</div>
+    <p>
+      For this audience data is money and the anxiety is constant and specific.
+      No major messenger surfaces it, because their users genuinely do not
+      care — which is exactly why it is available to us. It converts our hardest
+      constraint into our most visible advantage, and it is explainable in one
+      sentence, which at this size is the whole game.
+    </p>
+    <p>
+      A second-order effect worth naming: a user who can see the cost of media
+      sends less of it, which lowers our storage and egress bill. The interests
+      line up, which is rare enough to be worth noticing.
+    </p>
+    <div class="head">Against it</div>
+    <p class="against">
+      Accurate per-chat attribution is fiddly, and an approximate number that is
+      visibly wrong is worse than no number at all.
+    </p>
+    <div class="scores">
+      <span class="score pass">1 · about bytes</span>
+      <span class="score pass">2 · one sentence</span>
+      <span class="score mid">3 · solo value</span>
+      <span class="score mid">4 · a sprint to copy</span>
+      <span class="score pass">5 · quiet</span>
+      <span class="score pass">6 · honest</span>
+    </div>
+  </div>
+
+  <div class="idea">
+    <header><span class="num">4</span><h3>Пайк <span class="native">— carry a message for a stranger</span></h3></header>
+    <div class="role">Store-and-forward over Bluetooth. A research spike, not a feature</div>
+    <p>
+      Your phone holds an encrypted, sealed message for someone else and hands it
+      on when it meets a phone with signal. Prior art: Briar, Bridgefy, FireChat.
+    </p>
+    <div class="head">Why</div>
+    <p>
+      There are places in this country where this is the <em>only</em> thing that
+      works — Pamir valleys, the Anzob tunnel, the border queue at Oybek where
+      thousands of people wait for hours with no signal and one thing on their
+      minds, which is telling someone at home where they are.
+    </p>
+    <p>
+      And it is a story. "The app that works in the mountains" is the kind of
+      sentence that gets repeated — test 2 in its strongest form. The Pamirs are
+      also exactly where the chorkhona in our own logo comes from, which is a
+      coherence you cannot buy.
+    </p>
+    <div class="head">Against it</div>
+    <p class="against">
+      The hardest thing on this page by a wide margin. Battery cost, an entirely
+      separate trust and encryption model — you are asking phones to carry
+      strangers' data — abuse potential, and platform restrictions on background
+      Bluetooth that tighten with every OS release. Scope it as a spike, and
+      probably as a separate optional capability rather than something in the
+      main path.
+    </p>
+    <div class="scores">
+      <span class="score pass">1 · works with no network at all</span>
+      <span class="score pass">2 · the best story here</span>
+      <span class="score pass">3 · community</span>
+      <span class="score pass">4 · very hard to copy</span>
+      <span class="score pass">5 · invisible</span>
+      <span class="score pass">6 · honest</span>
+    </div>
+  </div>
+</section>
+
+<section id="tier2">
+  <h3>Tier 2 — culturally specific, low cost, high affinity</h3>
+  <p class="lede">
+    None of these carries the product alone. Each one signals <em>this was built
+    for you, by someone who knows</em> — and here that signal is worth more than
+    a feature comparison.
+  </p>
+
+  <h4 class="sub">5 · Namoz-aware quiet</h4>
+  <p>
+    Prayer times computed on-device from location — no network call, no location
+    leaving the phone. Notifications hold during the window and deliver after.
+    Optionally a shared quiet state, so a family knows why someone is not
+    replying.
+  </p>
+  <p>
+    Millions of people in this audience pray five times a day and every messenger
+    they use is oblivious to it. It is also literally what the app's name means:
+    <em>sakina</em> is tranquility, and holding the phone still during prayer is
+    that name taken seriously. Must be opt-in, and the calculation method must be
+    right — there are several conventions, and a wrong time is worse than no
+    feature.
+  </p>
+
+  <h4 class="sub">6 · Time-zone-aware sending</h4>
+  <p>
+    Sakina knows the recipient's local time. Sending at 02:00 their time offers:
+    deliver now, or at 07:00? Dushanbe–Moscow is two hours; Dushanbe–Vladivostok
+    is five the other way. Waking a parent at 2am is a real and frequent harm and
+    every messenger makes it effortless. The cheapest idea on this page, and one
+    of the kindest.
+  </p>
+
+  <h4 class="sub">7 · Navruz and Eid time capsules</h4>
+  <p>
+    Write now, delivered on the day. Navruz is <em>the</em> moment of the year in
+    this culture and when the diaspora most wants to reach home. A message
+    written in a quiet February evening and delivered on 21 March is a better
+    message than one typed in a rush on the morning. This is the pigeon's
+    anticipation mechanic, honestly earned — the delay is chosen by the sender,
+    for a reason, rather than imposed by a cartoon bird.
+  </p>
+
+  <h4 class="sub">8 · Elder mode</h4>
+  <p>
+    A whole-app switch: larger targets, voice-first composition, three things on
+    screen instead of thirty, no swipe gestures. A very large share of the people
+    being <em>called</em> are grandparents in villages, often on a first
+    smartphone. Every messenger fails them, and the person who installs the app
+    is usually a grandchild who will choose whichever one their grandmother can
+    actually use.
+  </p>
+
+  <h4 class="sub">9 · Тоҷикӣ keyboard help</h4>
+  <p>
+    The six characters ғ ӣ қ ӯ ҳ ҷ are absent from most default Cyrillic
+    keyboards, so people substitute Russian letters and their own language
+    degrades on screen. Even a long-press row above the composer would be
+    notable. It costs almost nothing, and it is upstream of a commitment we have
+    already made — our fonts are chosen on those six characters, so rendering
+    them beautifully while leaving people unable to type them would be strange.
+  </p>
+
+  <h4 class="sub">Tier 3 — worth exploring, unproven</h4>
+  <ul>
+    <li><strong>On-device voice transcription.</strong> Send text instead of audio when bandwidth is bad; make voice notes searchable. Russian ASR is good enough today; <strong>Tajik is not, and pretending otherwise would be dishonest</strong> — treat Tajik as research, not a feature.</li>
+    <li><strong>Remittance receipts.</strong> The obvious payments on-ramp, and the message type is already reserved. Needs a licensed partner and years of regulatory work.</li>
+    <li><strong>Village and mahalla channels.</strong> Strong community fit, serious moderation liability. Do not ship without the report queue.</li>
+    <li><strong>Shared family album.</strong> A group's photos as an album rather than a scroll. Competes with the message list for attention, so it must not become a feed.</li>
+  </ul>
+</section>
+
+<section id="never">
+  <h2>What we should not build</h2>
+  <p class="lede">
+    Being explicit about rejections is most of the value of a document like this.
+  </p>
+  <div class="reject">
+    <div><b>A literal pigeon</b><span>Cute once, uninstalled twice. Fails test 6 outright — it manufactures a problem for people who have the real version. Also the loudest possible chrome, so it fails test 5 as well.</span></div>
+    <div><b>Messages that can be lost on purpose</b><span>The pigeon's death mechanic. Our entire protocol — gapless sequence numbers, idempotent retries, offline catch-up — exists to make delivery trustworthy on a network that is already unreliable. Deliberately losing a message would be undoing our best engineering as a joke, in a market where "did it arrive?" is a daily anxiety.</span></div>
+    <div><b>Stories or a feed</b><span>Telegram and WhatsApp both have them and we lose that race on content volume. It also directly contradicts a quiet app so the conversation can be loud.</span></div>
+    <div><b>An AI assistant in the chat list</b><span>Every messenger is doing it, it costs real money per user, it needs a network round trip this audience cannot afford, and it answers no question anyone here is asking. On-device transcription is different — that is a tool, not a personality.</span></div>
+    <div><b>Crypto, tokens, NFTs</b><span>The payments story here is remittances and utility bills through a licensed partner. Anything else is regulatory suicide in a country whose National Bank is not relaxed about this.</span></div>
+    <div><b>Privacy as the headline</b><span>Build disappearing messages — they are expected. But positioning on privacy invites a comparison with Signal that we lose, and a conversation with a government we would rather have later than sooner.</span></div>
+    <div><b>Gamification — streaks, points, badges</b><span>Duolingo's mechanics applied to a family conversation would be grotesque. A streak turns talking to your mother into a chore with a score attached.</span></div>
+    <div><b>A crowded super-app grid on day one</b><span>The super-app is the destination, and the mini-app grid is what it looks like after people already open the app daily. Shipping the grid first is how you get an app that does eleven things badly.</span></div>
+  </div>
+</section>
+
+<section id="next">
+  <h2>The one-sentence version</h2>
+  <p>
+    If Sakina is going to be described by one person to another, the sentence
+    should be something like:
+  </p>
+  <blockquote>
+    It's the one that works when you have no signal and no data left, and it
+    doesn't make you feel bad for not replying.
+  </blockquote>
+  <p>Which is Tier 1, items 1 through 4. Everything else is support.</p>
+
+  <h3>What to do with this now</h3>
+  <p>
+    None of it, yet. The ten items above come first. But two things are worth
+    doing immediately, because they are cheap and they inform everything else:
+  </p>
+  <ol>
+    <li>
+      <strong>Talk to twenty people in the corridor</strong> — ten in Russia, ten
+      at home. Ask what they do when they run out of data, and what they do when
+      they cannot reach someone. Do not ask what features they want; nobody can
+      answer that. Ideas 1, 2 and 3 are hypotheses drawn from published market
+      facts and they need contact with real people before anyone writes code.
+    </li>
+    <li>
+      <strong>Reserve the protocol space.</strong> Adding <code>letter</code> and
+      <code>beacon</code> to the message-type enum costs nothing today and is
+      awkward to retrofit later — the same reasoning that already put
+      <code>payment</code> and <code>service_card</code> in there before a line of
+      payments code existed.
+    </li>
+  </ol>
+</section>
+
+<footer class="end">
+  Sakina engineering research · <span id="statFooter">—</span> backlog items,
+  9 differentiation candidates, 8 explicit rejections. Nothing here is implemented. Market claims about
+  remittance dependence, WhatsApp's status in Russia, and keyboard coverage are
+  drawn from the competitive analysis in the repository and should be re-checked
+  against primary sources before they appear in anything external.
+</footer>
+
+</main>
+</div>
+
+<script type="module">
+// Effort filter. Rows carry data-eff; the badge is rendered from it so the
+// table markup and the filter cannot disagree.
+for (const cell of document.querySelectorAll("td.eff")) {
+  const eff = cell.closest("tr").dataset.eff;
+  cell.innerHTML = `<span class="eff-badge eff-${eff}">${eff}</span>`;
+}
+
+const rows = [...document.querySelectorAll("tbody[data-rows] tr")];
+const buttons = [...document.querySelectorAll(".filter button")];
+const count = document.getElementById("count");
+
+function applyFilter(eff) {
+  let shown = 0;
+  for (const row of rows) {
+    const match = eff === "all" || row.dataset.eff === eff;
+    row.classList.toggle("hide", !match);
+    if (match) shown += 1;
+  }
+  // A section whose rows are all filtered out should not leave a bare heading
+  // above an empty box.
+  for (const table of document.querySelectorAll(".tablewrap")) {
+    const any = [...table.querySelectorAll("tbody tr")].some((r) => !r.classList.contains("hide"));
+    table.closest("section").style.display = any ? "" : "none";
+  }
+  count.textContent = `${shown} of ${rows.length} items`;
+  for (const b of buttons) b.setAttribute("aria-pressed", String(b.dataset.eff === eff));
+}
+
+for (const b of buttons) b.addEventListener("click", () => applyFilter(b.dataset.eff));
+applyFilter("all");
+
+// Counted rather than written down. A hand-maintained total is wrong within
+// two edits, and a headline number that contradicts the table below it costs
+// more credibility than it buys.
+document.getElementById("statItems").textContent = rows.length;
+document.getElementById("statSections").textContent =
+  document.querySelectorAll("tbody[data-rows]").length;
+document.getElementById("statFooter").textContent = rows.length;
+
+// Highlight the section currently in view.
+const links = [...document.querySelectorAll("nav.toc a")];
+const byId = new Map(links.map((a) => [a.getAttribute("href").slice(1), a]));
+const observer = new IntersectionObserver(
+  (entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      for (const a of links) a.classList.remove("on");
+      byId.get(entry.target.id)?.classList.add("on");
+    }
+  },
+  { rootMargin: "-10% 0px -80% 0px" },
+);
+for (const id of byId.keys()) {
+  const el = document.getElementById(id);
+  if (el) observer.observe(el);
+}
+</script>

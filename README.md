@@ -103,6 +103,10 @@ Read them in this order:
   messengers, what to take from each, and three market findings that change the
   plan
 - [`docs/GROWTH.md`](docs/GROWTH.md) — the plan to 10,000 users
+- [`docs/BACKLOG.md`](docs/BACKLOG.md) — 111 things missing, from skeleton
+  screens to voice calls, with an argument for the order
+- [`docs/DIFFERENTIATION.md`](docs/DIFFERENTIATION.md) — what would make it
+  chosen rather than merely complete, and eight things we should not build
 - [`docs/BRAND.md`](docs/BRAND.md) — the visual identity: the chorkhona mark,
   firuza on night, and the six glyphs that decide the font
 - [`docs/UX.md`](docs/UX.md) — Telegram-shaped, checked against Nielsen's heuristics
