@@ -159,7 +159,8 @@
     </p>
     <div class="controls">
       <button id="motion" type="button" aria-pressed="true">Motion is on</button>
-      <span id="motion-note">Turn it off to see every reduced-motion fallback.</span>
+      <button id="soft" type="button" aria-pressed="false">Highlight: saffron step</button>
+      <span id="motion-note">Turn motion off to see every reduced-motion fallback.</span>
     </div>
   </header>
 
@@ -167,7 +168,7 @@
     <h2>The loop</h2>
     <p>
       НАВБАТ, БОФТ and ЧАРХ, running at the same time rather than in turn. The
-      light takes 0.7&nbsp;s per bar and 2.8&nbsp;s to go round.
+      step takes 0.52&nbsp;s and the light goes round in 2.08&nbsp;s.
     </p>
     <p>
       The first attempt at this cut the cycle into three windows and faded one
@@ -178,11 +179,12 @@
     <p>
       So there are no windows here. There is one quantity — the light's position
       around the weave, which only ever increases — and the other two behaviours
-      are read off it. A bar is lit by how near the light is. A bar is short by
-      how near the light is: the weave is unmade just ahead of it and remade
-      underneath, so the light is visibly the thing redrawing the bar. And the
-      mark turns a quarter for every lap the light completes. Nothing starts,
-      nothing stops, and there is one cause instead of three.
+      are read off it. A bar is saffron when the light is on it. A bar is short
+      by how far the light still has to travel to reach it: each bar pulls back
+      and re-lays itself over the step before, finishing exactly as the light
+      lands, so the highlight always arrives on something just completed. And the
+      mark turns a quarter for every lap. Nothing starts, nothing stops, and
+      there is one cause instead of three.
     </p>
     <div class="loop-stage">
       <div class="plate big"><canvas data-variant="loop" data-size="168"></canvas></div>
@@ -197,34 +199,39 @@
     </div>
     <canvas id="timeline" aria-hidden="true"></canvas>
     <p class="timeline-note">
-      How busy each behaviour is across one lap: how lit the top bar is, how far
-      it has been pulled back, and how fast the mark is turning. They overlap
-      almost everywhere, which is the whole difference from the version that
-      switched between them.
+      How busy each behaviour is across one lap: whether the top bar is lit, how
+      far it has been pulled back, and how fast the mark is turning. НАВБАТ is a
+      square wave because it is a step — that is the point of it. The other two
+      run underneath it continuously, which is what the step needed.
     </p>
   </section>
 
   <section>
     <h2>Why it read as a game</h2>
     <p>
-      Two things, and the colour was only one of them.
+      Not the step. The step was never the problem.
     </p>
     <p>
-      A whole bar switching from teal to orange is a large jump made instantly,
-      which is the grammar of a puzzle game telling you a piece is now active. It
-      also spends saffron, and saffron is supposed to be rare. Neither problem is
-      the bar-by-bar idea itself, so that is kept: the light now arrives and
-      leaves gradually — at a handover both neighbours sit around 65&nbsp;% — and
-      it is a tint of the same teal rather than a second colour.
+      An earlier pass here blamed the instant switch and softened it into a wide
+      travelling light. That was wrong: it made a different animation, and lost
+      the one thing worth keeping. What actually made the original read as a
+      board game is that the step was the <em>only</em> thing happening. Four
+      states and nothing else is a game piece lighting up. The same four states
+      over a weave that is re-laying itself and a mark that is turning is a beat
+      over a phrase — same notes, and it stops sounding like a toy.
+    </p>
+    <p>
+      Both plates below run the identical highlight, at the identical speed. The
+      only difference is what is underneath it.
     </p>
     <div class="compare">
       <figure>
-        <canvas data-variant="game" data-size="104"></canvas>
-        <figcaption><b>Before</b>Whole bar, saffron, instant. Four states, no travel.</figcaption>
+        <canvas data-variant="navbat" data-size="104"></canvas>
+        <figcaption><b>On its own</b>Four states and nothing else. This is the part that reads as a board game.</figcaption>
       </figure>
       <figure>
-        <canvas data-variant="navbat" data-size="104"></canvas>
-        <figcaption><b>After</b>The same animation. The light arrives and leaves instead of switching, and it is a tint rather than a jump.</figcaption>
+        <canvas data-variant="loop" data-size="104"></canvas>
+        <figcaption><b>In the loop</b>The identical step, over a weave that is re-laying and a mark that is turning.</figcaption>
       </figure>
     </div>
   </section>
@@ -336,6 +343,9 @@
   const rgba = (hex, a) => { const [r, g, b] = rgb(hex); return `rgba(${r},${g},${b},${a})`; };
 
   const litHex = () => mix(baseHex, theme.toward, theme.amount);
+  // The step is saffron, as it always was. The tint is only there so the two
+  // can be put side by side on the page.
+  const highlightHex = () => (SOFT ? litHex() : theme.saffron);
 
   /* ---- the bond ---------------------------------------------------------- */
   // Unchanged from marks.html. Each bar carries the direction it runs in, which
@@ -385,8 +395,10 @@
   // Nothing starts. Nothing stops. The light travelling is the single cause and
   // the other two are its consequences, which is what makes it read as one
   // behaviour rather than three.
-  const STEP = 0.70;              // seconds the light spends per bar
-  const LAP = STEP * 4;           // 2.8s — one trip round the weave
+  // 0.52s a bar, close to the original animation's rhythm. Slower than this and
+  // the step plods; faster and the weaving underneath has no room to finish.
+  const STEP = 0.52;
+  const LAP = STEP * 4;           // 2.08s — one trip round the weave
 
   // Signed distance from the light to bar i, in bar-units, wrapped to [-2, 2).
   // Positive means the light has not reached it yet.
@@ -397,38 +409,52 @@
     return u;
   }
 
-  // Wider than one bar on purpose: at a handover both neighbours sit around 65%,
-  // so the light flows from one to the next instead of jumping. The instant
-  // switch is the single thing that made the original read as a puzzle game.
-  const LIGHT_WIDTH = 1.25;
+  // The original animation, unchanged: one whole bar at a time, saffron, and it
+  // switches rather than slides.
+  //
+  // Softening this into a wide travelling light was a mistake — it made a
+  // different animation. What made the original read as a puzzle game was never
+  // the step; it was that the step was the *only* thing happening. Four states
+  // and nothing else is a board game. The same step over a weave that is
+  // re-laying itself and a mark that is turning is a beat over a phrase.
+  //
+  // SOFT is kept only so the two can be compared on the page. It is off.
+  let SOFT = false;
+  const SOFT_WIDTH = 1.25;
   function litness(u) {
+    if (!SOFT) return Math.abs(u) < 0.5 ? 1 : 0;
     const d = Math.abs(u);
-    if (d >= LIGHT_WIDTH) return 0;
-    return smoothstep(0, 1, 1 - d / LIGHT_WIDTH);
+    return d >= SOFT_WIDTH ? 0 : smoothstep(0, 1, 1 - d / SOFT_WIDTH);
   }
 
-  // The weave is unmade just ahead of the light and remade under it, so the
-  // light is visibly what redraws the bar.
+  // Retimed so a bar finishes re-laying itself at the exact moment the saffron
+  // arrives — the step lights at u = 0.5, so the weave completes there and not
+  // at u = 0. Finishing at 0 meant the bar lit while still half its length, and
+  // a half-length saffron bar reads as an error rather than as a beat.
   //
-  // How far back it pulls is the single value that decides whether this reads
-  // as work or as damage. At 0.16 the bar became a stub and the mark spent
-  // every frame looking like a broken letter C. At 0.45 the pull is still plain
-  // to see and the weave still reads as a weave, which is the point: the mark
-  // should look busy, never broken. The span is 1.4 bar-units so only one bar
-  // is meaningfully short at a time.
-  const MIN_EXTENT = 0.45;
+  // This is what ties the two channels together: the weaving is not happening
+  // near the highlight, it is happening ahead of it, and the highlight lands on
+  // what it just finished. Same beat, one cause.
+  //
+  // How far back it pulls decides whether this reads as work or as damage. At
+  // 0.16 the bar became a stub and the mark spent every frame looking like a
+  // broken letter C. 0.38 is as deep as it goes while the weave still reads as
+  // a weave.
+  const MIN_EXTENT = 0.38;
   function extentOf(u) {
-    if (u > 1.0 || u < -0.4) return 1;
-    return u > 0.3
-      ? 1 - (1 - MIN_EXTENT) * ease((1.0 - u) / 0.7)
-      : MIN_EXTENT + (1 - MIN_EXTENT) * ease((0.3 - u) / 0.7);
+    if (u > 1.8 || u < 0.5) return 1;
+    return u > 1.0
+      ? 1 - (1 - MIN_EXTENT) * ease((1.8 - u) / 0.8)
+      : MIN_EXTENT + (1 - MIN_EXTENT) * ease((1.0 - u) / 0.5);
   }
 
   // A quarter turn per lap, eased across most of it rather than fired between
   // laps. Because a quarter turn maps this pinwheel onto itself, the mark keeps
   // arriving back at its own silhouette — so it reads as settling repeatedly
   // rather than as a spinner, and there is no seam to hide.
-  const TURN_IN = 0.18, TURN_OUT = 0.88;
+  // Widened to nearly the whole lap so the turn is never the thing you notice
+  // starting. It runs under the four steps rather than between them.
+  const TURN_IN = 0.10, TURN_OUT = 0.94;
   function turnProgress(w) {
     return w <= TURN_IN ? 0
       : w >= TURN_OUT ? 1
@@ -477,17 +503,6 @@
   const BAND = 62;   // how much of the loop the travelling light covers
 
   const VARIANTS = {
-    // The one being replaced. Kept so the difference is visible rather than
-    // asserted.
-    game(g, px, t, still) {
-      const u = px / 100;
-      const step = still ? 0 : Math.floor(t / 0.46) % 4;
-      BARS.forEach((b, i) => {
-        barPath(g, u, b);
-        g.fillStyle = (!still && i === step) ? theme.saffron : baseHex;
-        g.fill();
-      });
-    },
 
     guzar(g, px, t, still) {
       const u = px / 100;
@@ -624,7 +639,7 @@
     navbat(g, px, t, still) {
       const u = px / 100;
       const pos = t / STEP;
-      const lit = litHex();
+      const lit = highlightHex();
       BARS.forEach((b, i) => {
         const l = still ? 0 : litness(offsetOf(i, pos));
         barPath(g, u, b);
@@ -643,7 +658,7 @@
         return;
       }
       const pos = t / STEP;
-      const lit = litHex();
+      const lit = highlightHex();
 
       g.save();
       g.translate(px / 2, px / 2);
@@ -668,9 +683,9 @@
 
   const SHOWN = [
     { id: "navbat", name: "НАВБАТ", gloss: "navbat — taking turns", role: "In the loop",
-      note: "The original bar-by-bar animation with the instant switch taken out. One bar at a time is lit, but the light arrives and leaves rather than jumping." },
+      note: "The original animation, unchanged: one whole bar saffron at a time, switching rather than sliding. The button at the top swaps it for the softened version so the two can be compared." },
     { id: "boft", name: "БОФТ", gloss: "boft — the weaving", role: "In the loop",
-      note: "The bars lay themselves down along the direction they run. Inside the loop this is caused by the light passing rather than by a clock of its own." },
+      note: "The bars lay themselves down along the direction they run. Inside the loop each one re-lays over the step before the light reaches it, and is whole again exactly as the light lands." },
     { id: "charkh", name: "ЧАРХ", gloss: "charkh — the turn", role: "In the loop",
       note: "A quarter turn per lap. The pinwheel lands on its own silhouette every time, so the mark keeps settling rather than spinning." },
     { id: "guzar", name: "ГУЗАР", gloss: "guzar — the pass", role: "Alternative",
@@ -953,6 +968,15 @@
     }
   }
   toggle.addEventListener("click", () => { motion = !motion; applyMotion(); });
+
+  const softToggle = document.getElementById("soft");
+  softToggle.addEventListener("click", () => {
+    SOFT = !SOFT;
+    softToggle.textContent = SOFT ? "Highlight: teal tint" : "Highlight: saffron step";
+    softToggle.setAttribute("aria-pressed", String(SOFT));
+    bands = null;
+    if (!motion) repaintAll();
+  });
 
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
     readTheme(); bands = null; repaintSwatches(); if (!motion) repaintAll();

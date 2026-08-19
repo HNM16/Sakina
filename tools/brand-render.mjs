@@ -190,8 +190,8 @@ console.log('  docs/brand/mark-check.png');
 // of a running loop catches one arbitrary frame and tells you nothing, so
 // samani.html exposes its own painter and this asks it for specific times.
 const STRIP = [
-  ['ЛООП', 'loop', [0, 0.31, 0.62, 0.93, 1.24, 1.55, 1.86, 2.17]],
-  ['НАВБАТ', 'navbat', [0, 0.31, 0.62, 0.93, 1.24, 1.55, 1.86, 2.17]],
+  ['ЛООП', 'loop', [0, 0.26, 0.52, 0.78, 1.04, 1.30, 1.56, 1.82]],
+  ['НАВБАТ', 'navbat', [0, 0.26, 0.52, 0.78, 1.04, 1.30, 1.56, 1.82]],
   ['ГУЗАР', 'guzar', [0, 0.28, 0.55, 0.83, 1.1, 1.38, 1.65, 1.93]],
   ['МАВҶ', 'mavj', [0, 0.18, 0.35, 0.53, 0.7, 0.88, 1.05, 1.23]],
   ['БОФТ', 'boft', [0.05, 0.22, 0.4, 0.58, 0.76, 0.95, 1.3, 1.8]],
