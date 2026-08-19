@@ -190,7 +190,11 @@ console.log('  docs/brand/mark-check.png');
 // of a running loop catches one arbitrary frame and tells you nothing, so
 // samani.html exposes its own painter and this asks it for specific times.
 const STRIP = [
-  ['ЛООП', 'loop', [0, 0.26, 0.52, 0.78, 1.04, 1.30, 1.56, 1.82]],
+  // The loop at three of its six mixes, each sampled across one of its own
+  // laps, so the range the presets cover is visible in the still as well.
+  ['ОРОМ', 'loop', [0, 0.36, 0.72, 1.08, 1.44, 1.80, 2.16, 2.52], 'orom'],
+  ['КОР', 'loop', [0, 0.26, 0.52, 0.78, 1.04, 1.30, 1.56, 1.82], 'kor'],
+  ['ЗАРБ', 'loop', [0, 0.23, 0.46, 0.69, 0.92, 1.15, 1.38, 1.61], 'zarb'],
   ['НАВБАТ', 'navbat', [0, 0.26, 0.52, 0.78, 1.04, 1.30, 1.56, 1.82]],
   ['ГУЗАР', 'guzar', [0, 0.28, 0.55, 0.83, 1.1, 1.38, 1.65, 1.93]],
   ['МАВҶ', 'mavj', [0, 0.18, 0.35, 0.53, 0.7, 0.88, 1.05, 1.23]],
@@ -218,7 +222,7 @@ await strip.evaluate((rows) => {
   title.textContent = 'САМАНӢ — every variant, sampled across one cycle';
   title.style.cssText = 'color:#E8EEF7;font-size:16px;font-weight:700;margin-bottom:2px';
   board.appendChild(title);
-  for (const [label, id, times] of rows) {
+  for (const [label, id, times, presetId] of rows) {
     const line = document.createElement('div');
     line.style.cssText = 'display:flex;align-items:center;gap:16px';
     const name = document.createElement('div');
@@ -227,7 +231,7 @@ await strip.evaluate((rows) => {
     line.appendChild(name);
     for (const t of times) {
       const cv = document.createElement('canvas');
-      window.SakinaSamani.paint(cv, id, 56, t);
+      window.SakinaSamani.paint(cv, id, 56, t, presetId);
       line.appendChild(cv);
     }
     board.appendChild(line);

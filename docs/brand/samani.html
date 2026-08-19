@@ -128,6 +128,27 @@
   .variant p { margin: .35rem 0 0; font-size: var(--step--1); color: var(--muted); max-width: none; }
   .variant .small { margin-left: auto; opacity: .95; }
 
+  .mixes { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1.25rem; margin-top: 1.75rem; }
+  .mix {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--hair); border-radius: 16px;
+    padding: 1.25rem; color: var(--text);
+    font: 400 var(--step--1)/1.5 "Noto Sans", system-ui, sans-serif;
+  }
+  .mix[aria-checked="true"] { border-color: var(--firuza-css); border-width: 2px; padding: calc(1.25rem - 1px); }
+  .mix-head { display: flex; align-items: center; gap: .9rem; }
+  .mix-head h3 { margin: 0; font-size: var(--step-1); font-weight: 700; letter-spacing: -.01em; }
+  .mix-head h3 small { display: block; font-size: .6875rem; font-weight: 400; color: var(--muted); letter-spacing: .04em; }
+  .mix-head .tiny { margin-left: auto; }
+  .mix-diagram { width: 100%; height: 46px; margin-top: 1rem; }
+  .mix dl {
+    display: grid; grid-template-columns: auto auto; gap: .15rem 1rem;
+    margin: .85rem 0 0; font-size: .6875rem;
+  }
+  .mix dt { color: var(--muted); }
+  .mix dd { margin: 0; font-variant-numeric: tabular-nums; }
+  .mix .note { margin: .85rem 0 0; color: var(--muted); }
+
   .hues { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.75rem; }
   .hue {
     background: var(--surface); border: 1px solid var(--hair); border-radius: 16px;
@@ -154,8 +175,8 @@
     <h1>САМАНӢ, and how it moves.</h1>
     <p class="lede">
       The bond is settled. How it behaves while you wait is the question. The
-      loop below is the answer; the behaviours under it are the parts, shown one
-      at a time. Everything runs live.
+      loop below is the answer, mixed six ways underneath it, and under those
+      are the single behaviours it is built from. Everything runs live.
     </p>
     <div class="controls">
       <button id="motion" type="button" aria-pressed="true">Motion is on</button>
@@ -167,8 +188,10 @@
   <section id="loop-section">
     <h2>The loop</h2>
     <p>
-      НАВБАТ, БОФТ and ЧАРХ, running at the same time rather than in turn. The
-      step takes 0.52&nbsp;s and the light goes round in 2.08&nbsp;s.
+      НАВБАТ, БОФТ and ЧАРХ, running at the same time rather than in turn.
+      Showing <b id="which">КОР</b>: the step takes <span id="step-s">0.52</span>&nbsp;s
+      and the light goes round in <span id="lap-s">2.08</span>&nbsp;s. Pick a
+      different mix below and this follows it.
     </p>
     <p>
       The first attempt at this cut the cycle into three windows and faded one
@@ -204,6 +227,21 @@
       square wave because it is a step — that is the point of it. The other two
       run underneath it continuously, which is what the step needed.
     </p>
+  </section>
+
+  <section id="mixes">
+    <h2>Six mixes</h2>
+    <p>
+      The same three behaviours every time. What changes is the speed of the
+      step, how deep and how early the weave pulls back, and how much of the
+      cycle the turn is spread across.
+    </p>
+    <p>
+      Each card carries its own timing diagram, drawn to the same scale as the
+      big one, so the shapes can be compared directly. Click one to send it to
+      the top.
+    </p>
+    <div class="mixes" id="mix-grid" role="radiogroup" aria-label="Mix"></div>
   </section>
 
   <section>
@@ -273,10 +311,18 @@
     <h2>What I would pick</h2>
     <div class="verdict">
       <p>
-        <b>The loop for loading. НАФАС for waiting. ТОБ for arrival. ГИРЕҲ for
+        <b>КОР for loading. НАФАС for waiting. ТОБ for arrival. ГИРЕҲ for
         pull-to-refresh.</b> Four states, one rule keeping them apart: the mark
         is one colour, and saffron only ever means <em>arrived</em>. Nothing in a
-        loop is allowed to spend it.
+        loop is allowed to spend it — the step inside the loop is the exception
+        the rule was written around, and it is worth being uncomfortable about.
+      </p>
+      <p>
+        КОР over the other five because nothing in it dominates. ОРОМ is the one
+        I would swap to if this ends up on screen for minutes rather than
+        seconds, and ЗАРБ is the honest fallback if the weave and the turn turn
+        out to be invisible at 24&nbsp;px on a real handset — which is exactly
+        the kind of thing that cannot be settled here.
       </p>
       <p>
         НАФАС stays outside the loop because a pending message is not loading. It
@@ -395,10 +441,65 @@
   // Nothing starts. Nothing stops. The light travelling is the single cause and
   // the other two are its consequences, which is what makes it read as one
   // behaviour rather than three.
-  // 0.52s a bar, close to the original animation's rhythm. Slower than this and
-  // the step plods; faster and the weaving underneath has no room to finish.
-  const STEP = 0.52;
-  const LAP = STEP * 4;           // 2.08s — one trip round the weave
+  // Everything that can be tuned lives in a preset, so the same three
+  // behaviours can be mixed several ways and compared rather than argued about.
+  //
+  //   step        seconds the saffron spends on one bar
+  //   weave.depth how short a bar gets, as a fraction of its length
+  //   weave.start where ahead of the light it begins pulling back, in bar-units
+  //   weave.mid   where it is at its shortest
+  //   weave.end   where it is whole again — 0.5 in every preset, because that is
+  //               the instant the saffron lands, and a bar lighting up while
+  //               still half-grown reads as an error rather than as a beat
+  //   turn.laps   laps the mark takes to complete one quarter turn
+  //   turn.in/out the span of that cycle the turn is eased across
+  const PRESETS = [
+    {
+      id: "orom", name: "ОРОМ", gloss: "orom — calm",
+      step: 0.72,
+      weave: { depth: 0.58, start: 1.95, mid: 1.15, end: 0.5 },
+      turn: { laps: 1, in: 0.02, out: 0.98 },
+      note: "Everything slowed and softened. The weave barely dips and the turn never stops, so nothing in it asks for attention. The one to pick if this will sit on screen for a long time.",
+    },
+    {
+      id: "kor", name: "КОР", gloss: "kor — work",
+      step: 0.52,
+      weave: { depth: 0.38, start: 1.8, mid: 1.0, end: 0.5 },
+      turn: { laps: 1, in: 0.10, out: 0.94 },
+      note: "The balance we arrived at: the step reads clearly, the weave is plainly visible, the turn is continuous. Nothing dominates.",
+    },
+    {
+      id: "tez", name: "ТЕЗ", gloss: "tez — quick",
+      step: 0.34,
+      weave: { depth: 0.45, start: 1.5, mid: 0.9, end: 0.5 },
+      turn: { laps: 1, in: 0.10, out: 0.90 },
+      note: "The same mix at pace. A lap in 1.4 s makes it feel like something is being worked on hard, which is right for a short wait and wearing for a long one.",
+    },
+    {
+      id: "zarb", name: "ЗАРБ", gloss: "zarb — the beat",
+      step: 0.46,
+      weave: { depth: 0.72, start: 1.3, mid: 0.85, end: 0.5 },
+      turn: { laps: 2, in: 0.25, out: 0.85 },
+      note: "The step carries it and the other two are texture: a shallow weave and a turn slow enough to notice only if you watch for it. Closest to the original animation, without being only the original animation.",
+    },
+    {
+      id: "bofanda", name: "БОФАНДА", gloss: "bofanda — the weaver",
+      step: 0.62,
+      weave: { depth: 0.22, start: 1.95, mid: 1.25, end: 0.5 },
+      turn: { laps: 2, in: 0.05, out: 0.95 },
+      note: "The weaving leads. Bars pull most of the way back and take almost two steps to return, so the mark is visibly being rebuilt and the saffron is what confirms each bar is done.",
+    },
+    {
+      id: "charkhish", name: "ЧАРХИШ", gloss: "charkhish — turning",
+      step: 0.58,
+      weave: { depth: 0.62, start: 1.5, mid: 0.95, end: 0.5 },
+      turn: { laps: 1, in: 0.34, out: 0.76 },
+      note: "The turn concentrated into a sweep in the middle of each lap instead of spread across it. It is the only preset where the rotation is an event you can point at, which is either the interesting one or the restless one.",
+    },
+  ];
+
+  let preset = PRESETS[1];        // КОР
+  const lapOf = (pr) => pr.step * 4;
 
   // Signed distance from the light to bar i, in bar-units, wrapped to [-2, 2).
   // Positive means the light has not reached it yet.
@@ -438,45 +539,47 @@
   //
   // How far back it pulls decides whether this reads as work or as damage. At
   // 0.16 the bar became a stub and the mark spent every frame looking like a
-  // broken letter C. 0.38 is as deep as it goes while the weave still reads as
-  // a weave.
-  const MIN_EXTENT = 0.38;
-  function extentOf(u) {
-    if (u > 1.8 || u < 0.5) return 1;
-    return u > 1.0
-      ? 1 - (1 - MIN_EXTENT) * ease((1.8 - u) / 0.8)
-      : MIN_EXTENT + (1 - MIN_EXTENT) * ease((1.0 - u) / 0.5);
+  // broken letter C, which is why no preset goes below 0.22.
+  function extentOf(u, pr) {
+    const w = pr.weave;
+    if (u > w.start || u < w.end) return 1;
+    return u > w.mid
+      ? 1 - (1 - w.depth) * ease((w.start - u) / (w.start - w.mid))
+      : w.depth + (1 - w.depth) * ease((w.mid - u) / (w.mid - w.end));
   }
 
   // A quarter turn per lap, eased across most of it rather than fired between
   // laps. Because a quarter turn maps this pinwheel onto itself, the mark keeps
   // arriving back at its own silhouette — so it reads as settling repeatedly
   // rather than as a spinner, and there is no seam to hide.
-  // Widened to nearly the whole lap so the turn is never the thing you notice
-  // starting. It runs under the four steps rather than between them.
-  const TURN_IN = 0.10, TURN_OUT = 0.94;
-  function turnProgress(w) {
-    return w <= TURN_IN ? 0
-      : w >= TURN_OUT ? 1
-      : smoothstep(0, 1, (w - TURN_IN) / (TURN_OUT - TURN_IN));
+  // Spreading it across nearly the whole cycle means the turn is never the thing
+  // you notice starting; narrowing it makes the turn an event in its own right.
+  // Both are offered.
+  function turnProgress(w, pr) {
+    const { in: a, out: b } = pr.turn;
+    return w <= a ? 0 : w >= b ? 1 : smoothstep(0, 1, (w - a) / (b - a));
   }
-  function turnAngle(pos) {
-    const laps = pos / 4;
-    const n = Math.floor(laps);
-    return (n + turnProgress(laps - n)) * (Math.PI / 2);
+  function turnAngle(pos, pr) {
+    const cycles = pos / (4 * pr.turn.laps);
+    const n = Math.floor(cycles);
+    return (n + turnProgress(cycles - n, pr)) * (Math.PI / 2);
   }
 
-  // Clip to a bar's grown length, measured along the direction it runs.
-  function clipExtent(g, u, b, extent) {
+  // A bar at a fraction of its length, measured from the end it grows out of.
+  //
+  // This used to clip a full-length bar to a shorter rectangle, which is both
+  // slower and worse: clip() forces a fresh layer per call, and with the mix
+  // cards on screen that was four clips across thirty-odd canvases every frame
+  // — enough to drop the page from 60 fps to 11. Building the short bar
+  // directly costs one path, and it keeps its rounded end instead of showing a
+  // sliced one.
+  function barPathExtent(g, u, b, extent) {
+    const w = b.dx ? b.w * extent : b.w;
+    const h = b.dy ? b.h * extent : b.h;
+    const x = b.dx < 0 ? b.x + b.w - w : b.x;
+    const y = b.dy < 0 ? b.y + b.h - h : b.y;
     g.beginPath();
-    if (b.dx) {
-      const len = b.w * extent;
-      g.rect((b.dx > 0 ? b.x : b.x + b.w - len) * u, b.y * u, len * u, b.h * u);
-    } else {
-      const len = b.h * extent;
-      g.rect(b.x * u, (b.dy > 0 ? b.y : b.y + b.h - len) * u, b.w * u, len * u);
-    }
-    g.clip();
+    g.roundRect(x * u, y * u, w * u, h * u, 6 * u);
   }
 
   // The travelling band, as a five-stop gradient along a bar's own axis. Two
@@ -543,22 +646,9 @@
         const start = i * 0.13;
         const grow = still ? 1 : Math.max(0, Math.min(1, (p - start) / 0.22));
         if (grow <= 0) return;
-        const e = ease(grow);
-        g.save();
-        // Clip to the growing length, measured along the bar's own direction.
-        g.beginPath();
-        if (b.dx) {
-          const len = b.w * e;
-          g.rect((b.dx > 0 ? b.x : b.x + b.w - len) * u, b.y * u, len * u, b.h * u);
-        } else {
-          const len = b.h * e;
-          g.rect(b.x * u, (b.dy > 0 ? b.y : b.y + b.h - len) * u, b.w * u, len * u);
-        }
-        g.clip();
-        barPath(g, u, b);
+        barPathExtent(g, u, b, ease(grow));
         g.fillStyle = baseHex;
         g.fill();
-        g.restore();
       });
     },
 
@@ -636,9 +726,9 @@
     // The original bar-by-bar animation with the instant switch taken out: the
     // light arrives and leaves gradually, so it flows from bar to bar rather
     // than snapping.
-    navbat(g, px, t, still) {
+    navbat(g, px, t, still, pr) {
       const u = px / 100;
-      const pos = t / STEP;
+      const pos = t / pr.step;
       const lit = highlightHex();
       BARS.forEach((b, i) => {
         const l = still ? 0 : litness(offsetOf(i, pos));
@@ -651,30 +741,28 @@
     // НАВБАТ, БОФТ and ЧАРХ as one behaviour rather than three in sequence.
     // See the channel notes above: no phases, just one advancing light and the
     // two things that follow from where it is.
-    loop(g, px, t, still) {
+    loop(g, px, t, still, pr) {
       const u = px / 100;
       if (still) {
         for (const b of BARS) { barPath(g, u, b); g.fillStyle = baseHex; g.fill(); }
         return;
       }
-      const pos = t / STEP;
+      const pos = t / pr.step;
       const lit = highlightHex();
 
       g.save();
       g.translate(px / 2, px / 2);
-      g.rotate(turnAngle(pos));
+      g.rotate(turnAngle(pos, pr));
       g.translate(-px / 2, -px / 2);
 
       BARS.forEach((b, i) => {
         const off = offsetOf(i, pos);
-        const extent = extentOf(off);
+        const extent = extentOf(off, pr);
         const l = litness(off);
-        g.save();
-        if (extent < 1) clipExtent(g, u, b, extent);
-        barPath(g, u, b);
+        if (extent < 1) barPathExtent(g, u, b, extent);
+        else barPath(g, u, b);
         g.fillStyle = l > 0.004 ? mix(baseHex, lit, l) : baseHex;
         g.fill();
-        g.restore();
       });
 
       g.restore();
@@ -715,7 +803,7 @@
     const g = entry.cv.getContext("2d");
     g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
     g.clearRect(0, 0, entry.cv.width, entry.cv.height); g.restore();
-    VARIANTS[entry.id](g, entry.px, t, !motion);
+    VARIANTS[entry.id](g, entry.px, t, !motion, entry.preset || preset);
   }
 
   /* ---- the channel timeline ----------------------------------------------- */
@@ -727,17 +815,21 @@
   // one being "on" any more, so this plots activity: how lit bar 0 is, how far
   // it has been pulled back, and how fast the mark is turning. They overlap
   // almost everywhere, which is the difference from the version that switched.
-  function activity(x) {
-    const pos = x * 4;
-    const off = offsetOf(0, pos);
+  function activity(x, pr) {
+    const off = offsetOf(0, x * 4);
     const dx = 0.004;
-    const rate = (turnProgress(Math.min(1, x + dx)) - turnProgress(Math.max(0, x - dx))) / (2 * dx);
+    // One lap of the light is turn.laps-th of a turn cycle, so the turn's
+    // progress has to be sampled on its own clock rather than on the lap's.
+    const c = (x / pr.turn.laps) % 1;
+    const rate =
+      (turnProgress(Math.min(1, c + dx), pr) - turnProgress(Math.max(0, c - dx), pr)) /
+      (2 * dx * pr.turn.laps);
+    // Normalised against the peak rate of a smoothstep across the turn window.
+    const peak = 1.5 / ((pr.turn.out - pr.turn.in) * pr.turn.laps);
     return {
       "НАВБАТ": litness(off),
-      "БОФТ": 1 - extentOf(off),
-      // Normalised against the peak rate of a smoothstep over the turn window,
-      // which is 1.5 / (TURN_OUT - TURN_IN).
-      "ЧАРХ": Math.min(1, rate / (1.5 / (TURN_OUT - TURN_IN))),
+      "БОФТ": 1 - extentOf(off, pr),
+      "ЧАРХ": Math.min(1, rate / peak),
     };
   }
   // 3 rows of ROW_H with ROW_GAP between them, plus 6 above and room for the
@@ -766,13 +858,25 @@
       g.fillText(label, 0, y + ROW_H / 2);
       g.fillStyle = theme.hair;
       g.fillRect(GUTTER, y + ROW_H, trackW, 1);
-      for (let x = 0; x < trackW; x++) {
-        const weight = activity(x / trackW)[label];
-        if (weight <= 0.002) continue;
-        g.fillStyle = rgba(baseHex, 0.28 + 0.62 * weight);
-        g.fillRect(GUTTER + x, y + ROW_H - weight * ROW_H, 1, weight * ROW_H);
-      }
+      curve(g, GUTTER, y, trackW, ROW_H, label, preset);
     });
+  }
+
+  // One filled path per row rather than a column of one-pixel rectangles.
+  // The rectangles built an rgba string per column — about two thousand of them
+  // per rebuild — and since a rebuild happens on every preset click that showed
+  // up as a 150 ms stall exactly when someone was comparing mixes.
+  function curve(g, x0, y, width, height, label, pr) {
+    g.beginPath();
+    g.moveTo(x0, y + height);
+    for (let x = 0; x <= width; x += 2) {
+      const weight = activity(x / width, pr)[label];
+      g.lineTo(x0 + x, y + height - weight * height);
+    }
+    g.lineTo(x0 + width, y + height);
+    g.closePath();
+    g.fillStyle = rgba(baseHex, 0.72);
+    g.fill();
   }
 
   function drawTimeline(p) {
@@ -804,7 +908,7 @@
   function sampleFps(now) {
     if (fpsPrev) { fpsElapsed += now - fpsPrev; fpsFrames++; }
     fpsPrev = now;
-    if (fpsElapsed >= 500) {
+    if (fpsElapsed >= 1000) {
       fpsEl.textContent = Math.round(1000 / (fpsElapsed / fpsFrames)) + " fps";
       fpsElapsed = 0; fpsFrames = 0;
     }
@@ -815,7 +919,7 @@
     if ((tickCount++ & 31) === 0) readTheme();
     const t = now / 1000;
     for (const entry of live) paint(entry, t);
-    drawTimeline((t / LAP) % 1);
+    drawTimeline((t / lapOf(preset)) % 1);
     sampleFps(now);
     if (motion) rafId = requestAnimationFrame(frame);
   }
@@ -824,7 +928,7 @@
     readTheme();
     const t = performance.now() / 1000;
     for (const entry of live) paint(entry, t);
-    drawTimeline(motion ? (t / LAP) % 1 : 0);
+    drawTimeline(motion ? (t / lapOf(preset)) % 1 : 0);
   }
 
   function register(cv, id, px) {
@@ -891,6 +995,98 @@
     variantHost.appendChild(card);
   }
 
+  /* ---- the mixes ---------------------------------------------------------- */
+
+  const mixGrid = document.getElementById("mix-grid");
+  const whichEl = document.getElementById("which");
+  const stepEl = document.getElementById("step-s");
+  const lapEl = document.getElementById("lap-s");
+  const miniPainters = [];
+
+  // Same three rows as the big diagram, at a third the height, so the shapes
+  // can be read against each other rather than one at a time.
+  function drawMini(cv, pr) {
+    const width = cv.clientWidth || 240, height = 46;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(width * dpr); cv.height = Math.round(height * dpr);
+    const g = cv.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, width, height);
+    const rowH = 12, gap = 5, track = Math.max(1, Math.round(width - 46));
+    ROWS.forEach((label, r) => {
+      const y = r * (rowH + gap);
+      g.font = '600 8px "Noto Sans", system-ui, sans-serif';
+      g.textBaseline = "middle";
+      g.fillStyle = theme.muted;
+      g.fillText(label, 0, y + rowH / 2);
+      g.fillStyle = theme.hair;
+      g.fillRect(46, y + rowH, track, 1);
+      curve(g, 46, y, track, rowH, label, pr);
+    });
+  }
+
+  function applyPreset(pr) {
+    preset = pr;
+    whichEl.textContent = pr.name;
+    stepEl.textContent = pr.step.toFixed(2);
+    lapEl.textContent = lapOf(pr).toFixed(2);
+    for (const el of mixGrid.children) {
+      el.setAttribute("aria-checked", String(el.dataset.preset === pr.id));
+    }
+    bands = null;
+    if (!motion) repaintAll();
+  }
+
+  for (const pr of PRESETS) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "mix";
+    card.setAttribute("role", "radio");
+    card.dataset.preset = pr.id;
+
+    const head = document.createElement("div");
+    head.className = "mix-head";
+    const big = document.createElement("canvas");
+    register(big, "loop", 62).preset = pr;
+    const heading = document.createElement("h3");
+    heading.innerHTML = pr.name + "<small>" + pr.gloss + "</small>";
+    const tiny = document.createElement("canvas");
+    tiny.className = "tiny";
+    register(tiny, "loop", 24).preset = pr;
+    head.append(big, heading, tiny);
+
+    const diagram = document.createElement("canvas");
+    diagram.className = "mix-diagram";
+    miniPainters.push(() => drawMini(diagram, pr));
+
+    const dl = document.createElement("dl");
+    const turn = pr.turn.laps === 1
+      ? "90° a lap"
+      : "90° every " + pr.turn.laps + " laps";
+    const spread = Math.round((pr.turn.out - pr.turn.in) * 100) + "% of it";
+    for (const [term, value] of [
+      ["Step", pr.step.toFixed(2) + " s"],
+      ["Lap", lapOf(pr).toFixed(2) + " s"],
+      ["Weave", "back to " + Math.round(pr.weave.depth * 100) + "%, over " +
+        (pr.weave.start - pr.weave.end).toFixed(2) + " bars"],
+      ["Turn", turn + ", eased over " + spread],
+    ]) {
+      const dt = document.createElement("dt"); dt.textContent = term;
+      const dd = document.createElement("dd"); dd.textContent = value;
+      dl.append(dt, dd);
+    }
+
+    const note = document.createElement("p");
+    note.className = "note";
+    note.textContent = pr.note;
+
+    card.append(head, diagram, dl, note);
+    card.addEventListener("click", () => applyPreset(pr));
+    mixGrid.appendChild(card);
+  }
+
+  const repaintMinis = () => { for (const paint of miniPainters) paint(); };
+
   /* ---- hue picker --------------------------------------------------------- */
 
   const hueHost = document.getElementById("hues");
@@ -904,6 +1100,7 @@
     document.documentElement.style.setProperty(
       "--accent-text", onLight ? mix(hex, "#0A1220", 0.42) : hex);
     bands = null;   // the curves are drawn in the accent, so they follow it
+    repaintMinis();
     for (const el of hueHost.children) {
       el.setAttribute("aria-checked", String(el.dataset.hex === hex));
     }
@@ -979,18 +1176,24 @@
   });
 
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-    readTheme(); bands = null; repaintSwatches(); if (!motion) repaintAll();
+    readTheme(); bands = null; repaintSwatches(); repaintMinis();
+    if (!motion) repaintAll();
   });
 
   let resizeTimer = 0;
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => { bands = null; if (!motion) repaintAll(); }, 120);
+    resizeTimer = setTimeout(() => {
+      bands = null; repaintMinis();
+      if (!motion) repaintAll();
+    }, 120);
   });
 
   readTheme();
   applyHue(baseHex);
+  applyPreset(preset);
   repaintSwatches();
+  repaintMinis();
   applyMotion();
 
   // Exposed so a variant can be painted at a chosen moment rather than caught
@@ -999,12 +1202,14 @@
   // loop: a screenshot of a running animation shows one arbitrary frame.
   window.SakinaSamani = {
     variants: Object.keys(VARIANTS),
-    paint(canvas, id, px, seconds) {
+    presets: PRESETS.map((pr) => pr.id),
+    paint(canvas, id, px, seconds, presetId) {
       fit(canvas, px);
       const g = canvas.getContext("2d");
       g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
       g.clearRect(0, 0, canvas.width, canvas.height); g.restore();
-      VARIANTS[id](g, px, seconds, false);
+      const pr = PRESETS.find((x) => x.id === presetId) || preset;
+      VARIANTS[id](g, px, seconds, false, pr);
     },
   };
 })();
