@@ -104,7 +104,7 @@
   .sizes figcaption { font-size: .6875rem; color: var(--muted); margin-top: .5rem; font-variant-numeric: tabular-nums; }
   .fps { margin: 0; font-size: var(--step--1); color: var(--muted); }
   .fps b { color: var(--text); font-variant-numeric: tabular-nums; }
-  #timeline { width: 100%; height: 76px; margin-top: 1.75rem; }
+  #timeline { width: 100%; height: 88px; margin-top: 1.75rem; }
   .timeline-note { margin: .75rem 0 0; font-size: var(--step--1); color: var(--muted); }
 
   .compare { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 1.75rem; }
@@ -154,8 +154,8 @@
     <h1>САМАНӢ, and how it moves.</h1>
     <p class="lede">
       The bond is settled. How it behaves while you wait is the question. The
-      loop below is the answer; the seven variants under it are the parts it is
-      made from. Everything runs live.
+      loop below is the answer; the behaviours under it are the parts, shown one
+      at a time. Everything runs live.
     </p>
     <div class="controls">
       <button id="motion" type="button" aria-pressed="true">Motion is on</button>
@@ -166,15 +166,23 @@
   <section id="loop-section">
     <h2>The loop</h2>
     <p>
-      ГУЗАР, ЧАРХ and БОФТ on one clock, handing over to each other and starting
-      again. One cycle is 5.4 seconds.
+      НАВБАТ, БОФТ and ЧАРХ, running at the same time rather than in turn. The
+      light takes 0.7&nbsp;s per bar and 2.8&nbsp;s to go round.
     </p>
     <p>
-      They mix rather than crossfade, because they are not the same kind of
-      thing: ГУЗАР is a colour travelling, ЧАРХ is a rotation, БОФТ is an extent.
-      Three separate channels over one clock means that at a handover the mark
-      really is doing two things at once, instead of one picture dissolving into
-      another.
+      The first attempt at this cut the cycle into three windows and faded one
+      behaviour out as the next came in. It did not flow: windowing gives each
+      behaviour a beginning and an end, and however soft the crossfade, the eye
+      still reads three animations taking turns.
+    </p>
+    <p>
+      So there are no windows here. There is one quantity — the light's position
+      around the weave, which only ever increases — and the other two behaviours
+      are read off it. A bar is lit by how near the light is. A bar is short by
+      how near the light is: the weave is unmade just ahead of it and remade
+      underneath, so the light is visibly the thing redrawing the bar. And the
+      mark turns a quarter for every lap the light completes. Nothing starts,
+      nothing stops, and there is one cause instead of three.
     </p>
     <div class="loop-stage">
       <div class="plate big"><canvas data-variant="loop" data-size="168"></canvas></div>
@@ -189,8 +197,10 @@
     </div>
     <canvas id="timeline" aria-hidden="true"></canvas>
     <p class="timeline-note">
-      Which channel is carrying, across one cycle. The overlaps are the
-      handovers — the only places two channels are both above zero.
+      How busy each behaviour is across one lap: how lit the top bar is, how far
+      it has been pulled back, and how fast the mark is turning. They overlap
+      almost everywhere, which is the whole difference from the version that
+      switched between them.
     </p>
   </section>
 
@@ -202,10 +212,10 @@
     <p>
       A whole bar switching from teal to orange is a large jump made instantly,
       which is the grammar of a puzzle game telling you a piece is now active. It
-      also spends saffron, and saffron is supposed to be rare. Replacing the jump
-      with a lighter tint of the same teal, and letting the light travel along
-      the bars instead of switching them, changes the reading completely without
-      changing the mark at all.
+      also spends saffron, and saffron is supposed to be rare. Neither problem is
+      the bar-by-bar idea itself, so that is kept: the light now arrives and
+      leaves gradually — at a handover both neighbours sit around 65&nbsp;% — and
+      it is a tint of the same teal rather than a second colour.
     </p>
     <div class="compare">
       <figure>
@@ -213,8 +223,8 @@
         <figcaption><b>Before</b>Whole bar, saffron, instant. Four states, no travel.</figcaption>
       </figure>
       <figure>
-        <canvas data-variant="guzar" data-size="104"></canvas>
-        <figcaption><b>After</b>A tint of the same teal, travelling. One continuous journey.</figcaption>
+        <canvas data-variant="navbat" data-size="104"></canvas>
+        <figcaption><b>After</b>The same animation. The light arrives and leaves instead of switching, and it is a tint rather than a jump.</figcaption>
       </figure>
     </div>
   </section>
@@ -222,9 +232,10 @@
   <section>
     <h2>The parts</h2>
     <p>
-      The seven behaviours the loop is assembled from, each on its own. Shown at
-      display size and at 28&nbsp;px, which is roughly where a loading mark
-      actually sits in an app bar.
+      Each behaviour on its own. The first three are what the loop is made of;
+      the rest are alternatives and near neighbours. Shown at display size and at
+      28&nbsp;px, which is roughly where a loading mark actually sits in an app
+      bar.
     </p>
     <div class="variants" id="variants"></div>
   </section>
@@ -261,17 +272,17 @@
         loop is allowed to spend it.
       </p>
       <p>
-        The loop is for the long waits, where a single repeating gesture becomes
-        wallpaper after ten seconds and three taking turns does not. НАФАС stays
-        separate because a pending message is not loading — it is one object in
-        doubt, and it should say so itself rather than summon an indicator.
+        НАФАС stays outside the loop because a pending message is not loading. It
+        is one object in doubt, and it should say so itself rather than summon an
+        indicator to say it on its behalf.
       </p>
       <p>
-        МАВҶ and БОФТ are not dropped, they are absorbed: БОФТ is the third
-        channel of the loop, and МАВҶ is what ГУЗАР becomes if the travelling
-        light ever turns out to be too much on a cheap screen. ГИРЕҲ is the most
-        characterful of the seven and the only one held back, because a short
-        physical gesture wants a short physical answer rather than a cycle.
+        ГУЗАР and МАВҶ are the two alternatives worth keeping on file. ГУЗАР
+        moves light <em>within</em> the bars rather than between them, which is
+        the softer reading if НАВБАТ turns out too punctuated on a real screen;
+        МАВҶ is softer still and has no direction at all. ГИРЕҲ is the most
+        characterful of them and the only one deliberately held back, because a
+        short physical gesture wants a short physical answer rather than a cycle.
       </p>
     </div>
   </section>
@@ -355,61 +366,78 @@
   const breath = (t) => 0.55 + 0.45 * (0.5 - Math.cos(t * Math.PI * 2) / 2);
   const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
   const smoothstep = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
-  // A plateau with eased shoulders — 0 outside, 1 inside, no corners.
-  const windowAt = (p, start, end, ramp) =>
-    smoothstep(start - ramp, start + ramp, p) * (1 - smoothstep(end - ramp, end + ramp, p));
 
   /* ---- the composite ------------------------------------------------------ */
-  // The three do not need crossfading, because they are not the same kind of
-  // thing. ГУЗАР is a colour travelling, ЧАРХ is a rotation, БОФТ is an extent.
-  // Three independent channels over one clock, each with its own window, so at
-  // a handover the mark really is doing two things at once rather than one
-  // picture dissolving into another.
-  const CYCLE = 5.4;
-  const SEG = { guzar: [0.00, 0.40], charkh: [0.44, 0.68], boft: [0.72, 1.00] };
-  const RAMP = 0.035;
+  //
+  // The first attempt at this cut the cycle into three windows and faded one
+  // channel out as the next came in. It did not flow. Windowing means each
+  // behaviour has a beginning and an end, and however soft the crossfade is,
+  // the eye still reads three animations taking turns.
+  //
+  // So there are no windows here. There is one quantity — `pos`, the light's
+  // position around the weave, which only ever increases — and all three
+  // behaviours are functions of it:
+  //
+  //   НАВБАТ  a bar is lit by how near the light is to it
+  //   БОФТ    a bar is short by how near the light is to it
+  //   ЧАРХ    the mark has turned by how many laps the light has made
+  //
+  // Nothing starts. Nothing stops. The light travelling is the single cause and
+  // the other two are its consequences, which is what makes it read as one
+  // behaviour rather than three.
+  const STEP = 0.70;              // seconds the light spends per bar
+  const LAP = STEP * 4;           // 2.8s — one trip round the weave
 
-  const weights = (p) => ({
-    guzar: windowAt(p, SEG.guzar[0], SEG.guzar[1], RAMP),
-    charkh: windowAt(p, SEG.charkh[0], SEG.charkh[1], RAMP),
-    boft: windowAt(p, SEG.boft[0], SEG.boft[1], RAMP),
-  });
-
-  // Two quarter turns, each eased then held. The phase ends at exactly π, and π
-  // maps this pinwheel onto itself, so the wrap back to 0 at the top of the next
-  // cycle is invisible. That is the whole reason ЧАРХ can sit in a loop at all.
-  function turnAngle(p) {
-    const [s, e] = SEG.charkh;
-    if (p <= s) return 0;
-    if (p >= e) return Math.PI;
-    const q = (p - s) / (e - s);
-    const index = Math.floor(q * 2);
-    const within = (q * 2) % 1;
-    const TURN = 0.55;
-    const k = within < TURN ? ease(within / TURN) : 1;
-    return (index + k) * (Math.PI / 2);
+  // Signed distance from the light to bar i, in bar-units, wrapped to [-2, 2).
+  // Positive means the light has not reached it yet.
+  function offsetOf(i, pos) {
+    let u = (i - pos) % 4;
+    if (u < -2) u += 4;
+    if (u >= 2) u -= 4;
+    return u;
   }
 
-  // Each bar pulls back to its own start and grows out again, staggered, so the
-  // weave is redone rather than erased.
-  //
-  // The stagger and the span are tied together: four bars, so 3·STAGGER + SPAN
-  // must be exactly 1 for the last bar to finish as the phase does. Their
-  // difference is what decides how many bars are in flight at once, and that is
-  // the whole ballgame — at 0.18 and 0.46 three were short simultaneously and
-  // the mark collapsed to two bars. A loading mark that empties itself reads as
-  // a failure, so these are set to leave at most one bar meaningfully short.
-  const BOFT_STAGGER = 0.2333, BOFT_SPAN = 0.30;
+  // Wider than one bar on purpose: at a handover both neighbours sit around 65%,
+  // so the light flows from one to the next instead of jumping. The instant
+  // switch is the single thing that made the original read as a puzzle game.
+  const LIGHT_WIDTH = 1.25;
+  function litness(u) {
+    const d = Math.abs(u);
+    if (d >= LIGHT_WIDTH) return 0;
+    return smoothstep(0, 1, 1 - d / LIGHT_WIDTH);
+  }
 
-  function boftExtent(p, i) {
-    const [s, e] = SEG.boft;
-    if (p < s || p > e) return 1;
-    const q = (p - s) / (e - s);
-    const local = (q - i * BOFT_STAGGER) / BOFT_SPAN;
-    if (local <= 0 || local >= 1) return 1;
-    return local < 0.4
-      ? 1 - ease(local / 0.4)
-      : ease((local - 0.4) / 0.6);
+  // The weave is unmade just ahead of the light and remade under it, so the
+  // light is visibly what redraws the bar.
+  //
+  // How far back it pulls is the single value that decides whether this reads
+  // as work or as damage. At 0.16 the bar became a stub and the mark spent
+  // every frame looking like a broken letter C. At 0.45 the pull is still plain
+  // to see and the weave still reads as a weave, which is the point: the mark
+  // should look busy, never broken. The span is 1.4 bar-units so only one bar
+  // is meaningfully short at a time.
+  const MIN_EXTENT = 0.45;
+  function extentOf(u) {
+    if (u > 1.0 || u < -0.4) return 1;
+    return u > 0.3
+      ? 1 - (1 - MIN_EXTENT) * ease((1.0 - u) / 0.7)
+      : MIN_EXTENT + (1 - MIN_EXTENT) * ease((0.3 - u) / 0.7);
+  }
+
+  // A quarter turn per lap, eased across most of it rather than fired between
+  // laps. Because a quarter turn maps this pinwheel onto itself, the mark keeps
+  // arriving back at its own silhouette — so it reads as settling repeatedly
+  // rather than as a spinner, and there is no seam to hide.
+  const TURN_IN = 0.18, TURN_OUT = 0.88;
+  function turnProgress(w) {
+    return w <= TURN_IN ? 0
+      : w >= TURN_OUT ? 1
+      : smoothstep(0, 1, (w - TURN_IN) / (TURN_OUT - TURN_IN));
+  }
+  function turnAngle(pos) {
+    const laps = pos / 4;
+    const n = Math.floor(laps);
+    return (n + turnProgress(laps - n)) * (Math.PI / 2);
   }
 
   // Clip to a bar's grown length, measured along the direction it runs.
@@ -590,41 +618,47 @@
       g.restore();
     },
 
-    // ГУЗАР, ЧАРХ and БОФТ on one clock. See the channel notes above.
+    // The original bar-by-bar animation with the instant switch taken out: the
+    // light arrives and leaves gradually, so it flows from bar to bar rather
+    // than snapping.
+    navbat(g, px, t, still) {
+      const u = px / 100;
+      const pos = t / STEP;
+      const lit = litHex();
+      BARS.forEach((b, i) => {
+        const l = still ? 0 : litness(offsetOf(i, pos));
+        barPath(g, u, b);
+        g.fillStyle = l > 0.004 ? mix(baseHex, lit, l) : baseHex;
+        g.fill();
+      });
+    },
+
+    // НАВБАТ, БОФТ and ЧАРХ as one behaviour rather than three in sequence.
+    // See the channel notes above: no phases, just one advancing light and the
+    // two things that follow from where it is.
     loop(g, px, t, still) {
       const u = px / 100;
       if (still) {
         for (const b of BARS) { barPath(g, u, b); g.fillStyle = baseHex; g.fill(); }
         return;
       }
-      const p = (t / CYCLE) % 1;
-      const w = weights(p);
+      const pos = t / STEP;
       const lit = litHex();
-      // The band keeps advancing through every phase and is only gated by the
-      // ГУЗАР window, so when the light returns it has not lost its place.
-      const centre = ((t / 2.2) % 1) * LOOP;
 
       g.save();
       g.translate(px / 2, px / 2);
-      g.rotate(turnAngle(p));
+      g.rotate(turnAngle(pos));
       g.translate(-px / 2, -px / 2);
 
       BARS.forEach((b, i) => {
-        const extent = w.boft > 0.002 ? boftExtent(p, i) : 1;
-        if (extent <= 0) return;
+        const off = offsetOf(i, pos);
+        const extent = extentOf(off);
+        const l = litness(off);
         g.save();
         if (extent < 1) clipExtent(g, u, b, extent);
         barPath(g, u, b);
-        g.fillStyle = baseHex;
+        g.fillStyle = l > 0.004 ? mix(baseHex, lit, l) : baseHex;
         g.fill();
-        if (w.guzar > 0.002) {
-          g.save();
-          barPath(g, u, b);
-          g.clip();
-          g.fillStyle = travelGradient(g, u, b, i, centre, w.guzar, lit);
-          g.fillRect(0, 0, px, px);
-          g.restore();
-        }
         g.restore();
       });
 
@@ -633,16 +667,18 @@
   };
 
   const SHOWN = [
-    { id: "guzar", name: "ГУЗАР", gloss: "guzar — the pass", role: "Loading",
+    { id: "navbat", name: "НАВБАТ", gloss: "navbat — taking turns", role: "In the loop",
+      note: "The original bar-by-bar animation with the instant switch taken out. One bar at a time is lit, but the light arrives and leaves rather than jumping." },
+    { id: "boft", name: "БОФТ", gloss: "boft — the weaving", role: "In the loop",
+      note: "The bars lay themselves down along the direction they run. Inside the loop this is caused by the light passing rather than by a clock of its own." },
+    { id: "charkh", name: "ЧАРХ", gloss: "charkh — the turn", role: "In the loop",
+      note: "A quarter turn per lap. The pinwheel lands on its own silhouette every time, so the mark keeps settling rather than spinning." },
+    { id: "guzar", name: "ГУЗАР", gloss: "guzar — the pass", role: "Alternative",
       note: "One light travels the whole weave, entering each bar where the last one left. Nothing switches; something moves." },
     { id: "mavj", name: "МАВҶ", gloss: "mavj — the wave", role: "Loading",
       note: "The same journey with no edge at all: each bar breathes a quarter-cycle behind the one before it, so the swell goes round on its own." },
-    { id: "boft", name: "БОФТ", gloss: "boft — the weaving", role: "Cold start",
-      note: "The bars lay themselves down in order and stay. It only makes sense the first time, which is exactly what a cold start is." },
     { id: "nafas", name: "НАФАС", gloss: "nafas — the breath", role: "Waiting",
       note: "The whole bond breathes as one. The quietest of the six, and the only one that costs a single opacity value." },
-    { id: "charkh", name: "ЧАРХ", gloss: "charkh — the turn", role: "Refreshing",
-      note: "A quarter turn, then a hold. The pinwheel lands on its own silhouette every step, so it reads as deliberate rather than as a spinner." },
     { id: "gireh", name: "ГИРЕҲ", gloss: "gireh — the knot", role: "Pull to refresh",
       note: "Each bar slides along its own run, closing all four gaps at once and opening them again. The knot tightening." },
   ];
@@ -670,8 +706,28 @@
   /* ---- the channel timeline ----------------------------------------------- */
 
   const timeline = document.getElementById("timeline");
-  const ROWS = [["ГУЗАР", "guzar"], ["ЧАРХ", "charkh"], ["БОФТ", "boft"]];
-  const GUTTER = 66, ROW_H = 18, ROW_GAP = 8, TL_H = 76;
+  const ROWS = ["НАВБАТ", "БОФТ", "ЧАРХ"];
+
+  // How busy each channel is at a given point in the lap. There is no notion of
+  // one being "on" any more, so this plots activity: how lit bar 0 is, how far
+  // it has been pulled back, and how fast the mark is turning. They overlap
+  // almost everywhere, which is the difference from the version that switched.
+  function activity(x) {
+    const pos = x * 4;
+    const off = offsetOf(0, pos);
+    const dx = 0.004;
+    const rate = (turnProgress(Math.min(1, x + dx)) - turnProgress(Math.max(0, x - dx))) / (2 * dx);
+    return {
+      "НАВБАТ": litness(off),
+      "БОФТ": 1 - extentOf(off),
+      // Normalised against the peak rate of a smoothstep over the turn window,
+      // which is 1.5 / (TURN_OUT - TURN_IN).
+      "ЧАРХ": Math.min(1, rate / (1.5 / (TURN_OUT - TURN_IN))),
+    };
+  }
+  // 3 rows of ROW_H with ROW_GAP between them, plus 6 above and room for the
+  // playhead below. At 76 the last row was clipped off the bottom.
+  const GUTTER = 66, ROW_H = 18, ROW_GAP = 8, TL_H = 88;
   let bands = null, trackW = 0;
 
   // The three curves never change shape, so they are drawn once into an
@@ -689,14 +745,14 @@
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.font = '600 11px "Noto Sans", system-ui, sans-serif';
     g.textBaseline = "middle";
-    ROWS.forEach(([label, key], r) => {
+    ROWS.forEach((label, r) => {
       const y = r * (ROW_H + ROW_GAP) + 6;
       g.fillStyle = theme.muted;
       g.fillText(label, 0, y + ROW_H / 2);
       g.fillStyle = theme.hair;
       g.fillRect(GUTTER, y + ROW_H, trackW, 1);
       for (let x = 0; x < trackW; x++) {
-        const weight = weights(x / trackW)[key];
+        const weight = activity(x / trackW)[label];
         if (weight <= 0.002) continue;
         g.fillStyle = rgba(baseHex, 0.28 + 0.62 * weight);
         g.fillRect(GUTTER + x, y + ROW_H - weight * ROW_H, 1, weight * ROW_H);
@@ -744,7 +800,7 @@
     if ((tickCount++ & 31) === 0) readTheme();
     const t = now / 1000;
     for (const entry of live) paint(entry, t);
-    drawTimeline((t / CYCLE) % 1);
+    drawTimeline((t / LAP) % 1);
     sampleFps(now);
     if (motion) rafId = requestAnimationFrame(frame);
   }
@@ -753,7 +809,7 @@
     readTheme();
     const t = performance.now() / 1000;
     for (const entry of live) paint(entry, t);
-    drawTimeline(motion ? (t / CYCLE) % 1 : 0);
+    drawTimeline(motion ? (t / LAP) % 1 : 0);
   }
 
   function register(cv, id, px) {
