@@ -1,0 +1,554 @@
+<title>Sakina Motion Language</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================================
+   The page is dark-first because the subject is. Light passes are the whole
+   point of this document and they are invisible on a pale ground, so the one
+   place a single-theme commitment is honest is here — but the tokens are still
+   written out rather than assumed, and light mode is a complete second set.
+   =========================================================================== */
+:root {
+  color-scheme: dark light;
+  --bg:      #070D17;
+  --panel:   #0F1A29;
+  --raised:  #18243A;
+  --line:    #22314B;
+  --ink:     #E7EDF7;
+  --ink-2:   #B4C2D8;
+  --muted:   #8496B3;
+  --firuza:  #35B9AC;
+  --saffron: #E3AC55;
+  --anor:    #D25A54;
+  --mine:    #14504A;
+}
+:root[data-theme="light"] {
+  --bg:      #F4F7FB;
+  --panel:   #FFFFFF;
+  --raised:  #FFFFFF;
+  --line:    #DFE7F1;
+  --ink:     #0C1524;
+  --ink-2:   #33435C;
+  --muted:   #5A6C88;
+  --firuza:  #12867C;
+  --saffron: #B07A1E;
+  --anor:    #B23B36;
+  --mine:    #D2EEE9;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Noto Sans", system-ui, sans-serif;
+  font-size: 15.5px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: clamp(30px, 6vw, 68px) clamp(16px, 4vw, 32px) 90px; }
+
+.eyebrow { font-size: 11.5px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+
+h1 {
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: clamp(32px, 5.6vw, 50px);
+  line-height: 1.08; letter-spacing: -0.02em;
+  margin: 14px 0 18px; text-wrap: balance;
+}
+.standfirst {
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: clamp(17px, 2.3vw, 20px);
+  color: var(--ink-2); max-width: 58ch; margin: 0 0 10px;
+}
+.standfirst em { color: var(--ink); }
+
+h2 {
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: clamp(22px, 3.2vw, 30px);
+  letter-spacing: -0.018em; margin: 0 0 6px; text-wrap: balance;
+}
+h3 { font-size: 17px; margin: 26px 0 6px; }
+p { max-width: 66ch; margin: 0 0 14px; }
+.lede { color: var(--ink-2); }
+ul { max-width: 66ch; padding-left: 20px; } li { margin-bottom: 6px; }
+a { color: var(--firuza); }
+strong { font-weight: 600; }
+hr.rule { border: 0; border-top: 1px solid var(--line); margin: 46px 0 0; }
+
+/* ------------------------------------------------------------------ toolbar */
+.toolbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  margin: 26px 0 0; padding: 11px 14px;
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line); border-radius: 7px;
+}
+.toolbar .lbl { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.toolbar button {
+  min-height: 36px; padding: 6px 13px;
+  border: 1px solid var(--line); border-radius: 5px;
+  background: transparent; color: var(--ink); font: inherit; font-size: 13.5px; cursor: pointer;
+}
+.toolbar button:hover { border-color: var(--firuza); }
+.toolbar button:focus-visible { outline: 2px solid var(--firuza); outline-offset: 1px; }
+.toolbar button[aria-pressed="true"] { background: var(--firuza); border-color: var(--firuza); color: var(--bg); font-weight: 600; }
+.toolbar .sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }
+
+/* ------------------------------------------------------------------ specimen */
+.specimen {
+  display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 26px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--panel);
+  margin: 20px 0 8px; overflow: hidden;
+}
+@media (max-width: 760px) { .specimen { grid-template-columns: minmax(0, 1fr); } }
+
+.stage {
+  min-height: 210px; padding: 28px;
+  display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 11px, color-mix(in oklab, var(--line) 26%, transparent) 11px 12px),
+    var(--bg);
+}
+.spec {
+  border-left: 1px solid var(--line); padding: 20px;
+  font-size: 13px; color: var(--ink-2);
+}
+@media (max-width: 760px) { .spec { border-left: 0; border-top: 1px solid var(--line); } }
+.spec dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+.spec dt { color: var(--muted); font-size: 12px; }
+.spec dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); font-size: 12.5px; }
+.spec .note { margin-top: 14px; font-size: 12.5px; line-height: 1.5; }
+.replay {
+  margin-top: 16px; width: 100%; min-height: 38px;
+  border: 1px solid var(--firuza); border-radius: 5px;
+  background: transparent; color: var(--firuza); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer;
+}
+.replay:hover { background: color-mix(in oklab, var(--firuza) 14%, transparent); }
+.replay:focus-visible { outline: 2px solid var(--firuza); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------ bubbles */
+.bubble {
+  position: relative; overflow: hidden;
+  max-width: 260px; padding: 9px 13px; border-radius: 16px;
+  background: var(--raised); border: 1px solid var(--line);
+  font-size: 14.5px;
+}
+.bubble.mine { background: var(--mine); border-color: transparent; }
+.bubble .meta {
+  display: flex; align-items: center; justify-content: flex-end; gap: 5px;
+  font-size: 11px; color: var(--muted); margin-top: 4px; font-variant-numeric: tabular-nums;
+}
+.bubble .tick { opacity: 0; }
+.bubble.acked .tick { opacity: 1; }
+
+/*
+  ТОБ — the light pass.
+  A band at the chorkhona's 45 degrees, crossing once. Not a loop: this fires
+  when something becomes true, which is the opposite of what a shimmer means.
+*/
+.bubble::after {
+  content: ""; position: absolute; inset: 0;
+  /* Sized larger than the box and swept by background-position rather than by
+     translating an oversized element — with a transform the band leaves the
+     bubble part-way through and the pass is invisible exactly when it should be
+     brightest. */
+  background: linear-gradient(
+    45deg,
+    transparent 44%,
+    color-mix(in srgb, var(--firuza) 62%, transparent) 50%,
+    transparent 56%
+  );
+  background-size: 320% 320%;
+  background-position: 100% 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+.bubble.tob::after {
+  animation: tob var(--tob-ms, 320ms) cubic-bezier(0.33, 1, 0.68, 1) 1;
+}
+@keyframes tob {
+  0%   { background-position: 100% 100%; opacity: 0; }
+  18%  { opacity: 1; }
+  82%  { opacity: 1; }
+  100% { background-position: 0% 0%; opacity: 0; }
+}
+
+/*
+  НАФАС — the breath. The object waiting expresses its own state, so there is
+  no separate spinner competing for attention with the thing you care about.
+*/
+.bubble.nafas { animation: nafas var(--nafas-ms, 900ms) ease-in-out infinite alternate; }
+@keyframes nafas { from { opacity: 0.55; } to { opacity: 1; } }
+
+/* ------------------------------------------------------------------ mark */
+.markbox { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.markbox span { font-size: 11.5px; color: var(--muted); }
+.charkh { transform-origin: 50% 50%; }
+.charkh.on { animation: charkh var(--charkh-ms, 1840ms) steps(1, end) infinite; }
+/*
+  ЧАРХ — the turn. Eight discrete 45-degree positions, each held. A smooth spin
+  on a four-fold symmetric mark looks static; stepping makes it visibly turn,
+  and the silhouette alternates square/diamond on every step.
+*/
+@keyframes charkh {
+  0%,   11% { transform: rotate(0deg); }
+  12.5%,24% { transform: rotate(45deg); }
+  25%,  36% { transform: rotate(90deg); }
+  37.5%,49% { transform: rotate(135deg); }
+  50%,  61% { transform: rotate(180deg); }
+  62.5%,74% { transform: rotate(225deg); }
+  75%,  86% { transform: rotate(270deg); }
+  87.5%,99% { transform: rotate(315deg); }
+}
+
+/* Reduce motion: the switch in the toolbar, and the real OS setting. */
+:root[data-motion="off"] .bubble.tob::after,
+:root[data-motion="off"] .bubble.nafas,
+:root[data-motion="off"] .charkh.on { animation: none !important; }
+:root[data-motion="off"] .bubble.nafas { opacity: 0.72; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble.tob::after, .bubble.nafas, .charkh.on { animation: none !important; }
+}
+
+/* ------------------------------------------------------------------ misc */
+.callout {
+  border: 1px solid var(--line); border-left: 3px solid var(--saffron);
+  border-radius: 4px; background: var(--panel); padding: 15px 17px; margin: 22px 0;
+}
+.callout.stop { border-left-color: var(--anor); }
+.callout .tag { font-size: 10.5px; letter-spacing: 0.11em; text-transform: uppercase; font-weight: 700; color: var(--muted); display: block; margin-bottom: 5px; }
+.callout p:last-child { margin-bottom: 0; }
+
+.reject { border-top: 1px solid var(--line); margin-top: 12px; }
+.reject > div { display: grid; grid-template-columns: minmax(140px, 1fr) 2.2fr; gap: 16px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+@media (max-width: 620px) { .reject > div { grid-template-columns: 1fr; gap: 3px; } }
+.reject b { color: var(--anor); font-weight: 600; }
+.reject span { color: var(--ink-2); font-size: 14.5px; }
+
+table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 14px 0; }
+th, td { text-align: start; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+code { font-family: ui-monospace, Menlo, monospace; font-size: 0.9em; background: color-mix(in oklab, var(--firuza) 14%, transparent); padding: 1px 5px; border-radius: 3px; }
+
+footer { margin-top: 54px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+
+<div class="eyebrow">Sakina · motion language</div>
+<h1>Everyone else moves things.<br>We light them.</h1>
+<p class="standfirst">
+  Three primitives, all derived from one fact about our own mark: a chorkhona is
+  not a shape, it is <em>an opening that lets light into a house</em>. That gives
+  us a vocabulary no other messenger is using, and it costs a cheap phone almost
+  nothing.
+</p>
+
+<div class="toolbar" role="group" aria-label="Demo controls">
+  <span class="lbl">Theme</span>
+  <button data-theme-set="dark" aria-pressed="true">Шаб</button>
+  <button data-theme-set="light" aria-pressed="false">Рӯз</button>
+  <span class="sep"></span>
+  <span class="lbl">Motion</span>
+  <button data-motion-set="on" aria-pressed="true">On</button>
+  <button data-motion-set="off" aria-pressed="false">Reduced</button>
+  <span class="sep"></span>
+  <button id="playAll">Replay everything</button>
+</div>
+
+<hr class="rule">
+
+<!-- ================================================================ -->
+<section>
+  <h2>1 · ТОБ — the light pass</h2>
+  <p class="lede">
+    A single band of firuza crosses the surface at 45°, once, and is gone. It
+    fires at the moment something becomes <strong>true</strong>.
+  </p>
+
+  <div class="specimen">
+    <div class="stage">
+      <div class="bubble mine" id="tobBubble">
+        Ҳама чиз хуб, раҳмат
+        <div class="meta">09:42 <span class="tick">✓</span></div>
+      </div>
+    </div>
+    <div class="spec">
+      <dl>
+        <dt>Duration</dt><dd>320 ms</dd>
+        <dt>Angle</dt><dd>45°</dd>
+        <dt>Band</dt><dd>20% of diagonal</dd>
+        <dt>Curve</dt><dd>easeOutCubic</dd>
+        <dt>Repeats</dt><dd>never</dd>
+      </dl>
+      <p class="note">
+        Replaces the tick popping in. The bubble does not move at all — which is
+        the whole point of an app named for stillness.
+      </p>
+      <button class="replay" data-play="tob">Deliver the message</button>
+    </div>
+  </div>
+
+  <h3>Why this is not a shimmer</h3>
+  <p>
+    A loading shimmer loops while you wait, and the design-tells catalogue is
+    right that it is a cliché when used as decoration. This is its semantic
+    opposite: <strong>it runs once, on success, and never while waiting.</strong>
+    Seeing it means something arrived. If it looped it would mean nothing, and we
+    would have built the tell instead of avoiding it.
+  </p>
+  <p>Where it fires: a message acked, a receipt read, an upload finished, a channel joined.</p>
+</section>
+
+<hr class="rule">
+
+<!-- ================================================================ -->
+<section>
+  <h2>2 · НАФАС — the breath</h2>
+  <p class="lede">
+    The thing you are waiting on breathes. There is never a separate spinner
+    competing for attention with the thing you actually care about.
+  </p>
+
+  <div class="specimen">
+    <div class="stage">
+      <div class="bubble mine nafas" id="nafasBubble">
+        Ин ҷо?
+        <div class="meta">09:52</div>
+      </div>
+      <div class="bubble" style="opacity:.35">
+        <span style="color:var(--muted);font-size:13px">…and a settled one, for comparison</span>
+      </div>
+    </div>
+    <div class="spec">
+      <dl>
+        <dt>Period</dt><dd>900 ms</dd>
+        <dt>Range</dt><dd>0.55 → 1.0</dd>
+        <dt>Curve</dt><dd>easeInOut</dd>
+        <dt>Direction</dt><dd>alternating</dd>
+      </dl>
+      <p class="note">
+        Alternating, not looping: a sawtooth snaps back to dim at the top of each
+        cycle, and that snap is exactly the flashing this avoids.
+      </p>
+      <button class="replay" data-play="nafas">Toggle waiting</button>
+    </div>
+  </div>
+
+  <p>
+    A spinner is an object that is not the thing you care about, placed next to
+    the thing you care about, moving. Breathing lets the message itself say it
+    has not landed — which is one fewer element on screen and one less thing
+    competing with the conversation.
+  </p>
+  <p>Where it applies: a pending message, an upload in flight, a skeleton block.</p>
+</section>
+
+<hr class="rule">
+
+<!-- ================================================================ -->
+<section>
+  <h2>3 · ЧАРХ — the turn</h2>
+  <p class="lede">
+    The mark rotates 45° and holds. Eight discrete positions, never a smooth
+    spin.
+  </p>
+
+  <div class="specimen">
+    <div class="stage">
+      <div class="markbox">
+        <svg class="charkh on" id="charkhMark" width="56" height="56" viewBox="0 0 100 100" aria-hidden="true">
+          <g fill="none" stroke="var(--firuza)" stroke-width="5" stroke-linejoin="round">
+            <rect x="12" y="12" width="76" height="76" rx="3"/>
+            <rect x="26.2" y="26.2" width="47.6" height="47.6" rx="3" transform="rotate(45 50 50)"/>
+            <rect x="33" y="33" width="34" height="34" rx="3"/>
+          </g>
+          <rect x="42" y="42" width="16" height="16" rx="2" transform="rotate(45 50 50)" fill="var(--saffron)"/>
+        </svg>
+        <span>stepping</span>
+      </div>
+      <div class="markbox">
+        <svg width="56" height="56" viewBox="0 0 100 100" aria-hidden="true" style="opacity:.4">
+          <g fill="none" stroke="var(--muted)" stroke-width="5" stroke-linejoin="round">
+            <rect x="12" y="12" width="76" height="76" rx="3"/>
+            <rect x="26.2" y="26.2" width="47.6" height="47.6" rx="3" transform="rotate(45 50 50)"/>
+            <rect x="33" y="33" width="34" height="34" rx="3"/>
+          </g>
+          <rect x="42" y="42" width="16" height="16" rx="2" transform="rotate(45 50 50)" fill="var(--muted)"/>
+        </svg>
+        <span>at rest</span>
+      </div>
+    </div>
+    <div class="spec">
+      <dl>
+        <dt>Step</dt><dd>45°</dd>
+        <dt>Positions</dt><dd>8</dd>
+        <dt>Turn</dt><dd>110 ms</dd>
+        <dt>Hold</dt><dd>120 ms</dd>
+        <dt>Revolution</dt><dd>1 840 ms</dd>
+      </dl>
+      <p class="note">
+        The mark has four-fold symmetry, so a smooth spin would look almost
+        static. Stepping makes it visibly turn, and the silhouette alternates
+        square and diamond on every step.
+      </p>
+      <button class="replay" data-play="charkh">Toggle working</button>
+    </div>
+  </div>
+
+  <p>
+    Every loading indicator in the world spins smoothly. Ours steps, because our
+    mark is squares set at 45° to each other and a 45° step is the smallest
+    rotation that returns the shape to a face. It reads as deliberate rather than
+    anxious, which is the difference between a spinner and a clock.
+  </p>
+  <p>
+    Used only where there is no object to breathe: app-level loading, and a
+    refresh already in flight.
+  </p>
+</section>
+
+<hr class="rule">
+
+<!-- ================================================================ -->
+<section>
+  <h2>Where each one goes</h2>
+  <table>
+    <thead><tr><th>Moment</th><th>Primitive</th><th>Why that one</th></tr></thead>
+    <tbody>
+      <tr><td>Message acked by the server</td><td>ТОБ</td><td>It became true. The single most-repeated confirmation in the product</td></tr>
+      <tr><td>Read receipt arrives</td><td>ТОБ</td><td>Same event class, so the same signal — one meaning per animation</td></tr>
+      <tr><td>Upload finished</td><td>ТОБ</td><td>Ends the breath that was running on the same object</td></tr>
+      <tr><td>Message pending</td><td>НАФАС</td><td>The bubble itself is the thing in doubt</td></tr>
+      <tr><td>Upload in flight</td><td>НАФАС</td><td>Same</td></tr>
+      <tr><td>Skeleton loading</td><td>НАФАС</td><td>Already shipped; this makes it part of the system rather than a one-off</td></tr>
+      <tr><td>Refresh working</td><td>ЧАРХ</td><td>No object to breathe — the list is not the thing loading</td></tr>
+      <tr><td>Cold start</td><td>ЧАРХ</td><td>Same</td></tr>
+      <tr><td>Navigating, sending, arriving</td><td>—</td><td>Already covered by hero, lift and settle. Adding light there would make light mean nothing</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <span class="tag">The rule that keeps it a system</span>
+    <p>
+      <strong>One meaning per primitive, and light is only ever for truth.</strong>
+      The moment ТОБ is used for decoration — a flourish on a button, a sweep on
+      a card because the screen felt flat — it stops meaning "delivered" and the
+      whole vocabulary is worth nothing. That is the same discipline the palette
+      already has: one accent, and saffron only for rare warmth.
+    </p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>What this deliberately is not</h2>
+  <div class="reject">
+    <div><b>Telegram's springs</b><span>Elastic overshoot and bouncing bubbles. Ruled out by brand rule 3 before this document existed — motion settles, never bounces — and it is the single most recognisable thing about their motion, so borrowing it reads as imitation rather than influence.</span></div>
+    <div><b>Particles and confetti</b><span>Reaction explosions, celebration bursts. Expensive on the target phone, loud by definition, and the opposite of an app named for stillness.</span></div>
+    <div><b>A sparkle on anything</b><span>Tell A11 in the catalogue: the universal shorthand for "AI feature", now pure noise. Our light is a straight band at a fixed angle, with no star, no twinkle, and no glow.</span></div>
+    <div><b>Looping shimmer as decoration</b><span>The tell that ТОБ is most likely to be mistaken for. Ours fires once on success and never while waiting, which is the opposite meaning.</span></div>
+    <div><b>Randomised jitter</b><span>Guardrail G17. Nothing here is randomised — the stepping angles are fixed, the stagger is derived from row position, and the skeleton's varied widths come from a fixed pattern.</span></div>
+    <div><b>Smooth spinners</b><span>Not wrong, just nobody's. A four-fold symmetric mark spinning smoothly looks static, so the honest choice was either a different indicator or a different rotation. We changed the rotation.</span></div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>Reduce motion</h2>
+  <p>
+    Try the toggle at the top. Every primitive has a path that removes it, not
+    one that shortens it — guardrail G2 is explicit that those are different
+    things, and <code>pnpm test:motion</code> fails the build if an animation is
+    added without one.
+  </p>
+  <ul>
+    <li><strong>ТОБ</strong> — does not run. The tick simply appears; the information was never in the motion.</li>
+    <li><strong>НАФАС</strong> — the object holds a single dimmed opacity, so "waiting" is still legible without anything moving.</li>
+    <li><strong>ЧАРХ</strong> — the mark stands still and a text label carries the state instead, because a loading indicator that neither moves nor says anything is not an indicator.</li>
+  </ul>
+  <div class="callout stop">
+    <span class="tag">The bit that is easy to get wrong</span>
+    <p>
+      Reduced motion is not reduced <em>information</em>. Each fallback above
+      still says the same thing; it just stops saying it with movement. A
+      fallback that removes the meaning along with the animation is a worse bug
+      than the animation was.
+    </p>
+  </div>
+</section>
+
+<footer>
+  Sakina motion language · three primitives, derived from the chorkhona.
+  Values here are the ones proposed for <code>motion.dart</code>; they have not
+  been seen on a real handset, because there is no Flutter SDK in the environment
+  this was built in. Expect the durations to want a few milliseconds either way
+  the first time somebody watches them on a phone.
+</footer>
+
+</div>
+
+<script type="module">
+const root = document.documentElement;
+
+function segmented(attr, apply) {
+  const buttons = [...document.querySelectorAll(`[${attr}]`)];
+  for (const button of buttons) {
+    button.addEventListener("click", () => {
+      for (const other of buttons) {
+        other.setAttribute("aria-pressed", String(other === button));
+      }
+      apply(button.getAttribute(attr));
+    });
+  }
+}
+
+segmented("data-theme-set", (value) => root.setAttribute("data-theme", value));
+segmented("data-motion-set", (value) => root.setAttribute("data-motion", value));
+
+const tobBubble = document.getElementById("tobBubble");
+const nafasBubble = document.getElementById("nafasBubble");
+const charkhMark = document.getElementById("charkhMark");
+
+/** Restart a one-shot CSS animation by removing the class and forcing reflow. */
+function playTob() {
+  tobBubble.classList.remove("tob", "acked");
+  void tobBubble.offsetWidth;
+  tobBubble.classList.add("tob");
+  // The tick lands as the light leaves, so the pass reads as the cause of it
+  // rather than as something that happened alongside.
+  setTimeout(() => tobBubble.classList.add("acked"), 240);
+}
+
+const play = {
+  tob: playTob,
+  nafas: () => nafasBubble.classList.toggle("nafas"),
+  charkh: () => charkhMark.classList.toggle("on"),
+};
+
+for (const button of document.querySelectorAll("[data-play]")) {
+  button.addEventListener("click", () => play[button.dataset.play]());
+}
+
+document.getElementById("playAll").addEventListener("click", () => {
+  playTob();
+  nafasBubble.classList.add("nafas");
+  charkhMark.classList.add("on");
+});
+
+// Fire the light pass once on load so the page demonstrates itself, but only
+// when the reader has not asked for less motion.
+if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  setTimeout(playTob, 700);
+}
+</script>

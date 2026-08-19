@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -79,7 +81,7 @@ class _DrawingMark extends StatefulWidget {
 class _DrawingMarkState extends State<_DrawingMark> with SingleTickerProviderStateMixin {
   late final AnimationController _spin = AnimationController(
     vsync: this,
-    duration: SakinaMotion.spin,
+    duration: SakinaMotion.charkhStep * SakinaMotion.charkhPositions,
   );
 
   @override
@@ -112,6 +114,20 @@ class _DrawingMarkState extends State<_DrawingMark> with SingleTickerProviderSta
     super.dispose();
   }
 
+  /// Turn, then hold — see [TurningMark], which is the same curve for the
+  /// standalone indicator. Shared by shape rather than by code because this one
+  /// also has to blend with the pull-draw progress underneath it.
+  double _charkhAngle(double value) {
+    final positions = SakinaMotion.charkhPositions;
+    final scaled = value * positions;
+    final index = scaled.floor();
+    final within = scaled - index;
+    final turn = within < SakinaMotion.charkhTurnFraction
+        ? SakinaMotion.both.transform(within / SakinaMotion.charkhTurnFraction)
+        : 1.0;
+    return (index + turn) * (math.pi / 4);
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = SakinaPalette.of(context);
@@ -123,10 +139,10 @@ class _DrawingMarkState extends State<_DrawingMark> with SingleTickerProviderSta
       child: AnimatedBuilder(
         animation: _spin,
         builder: (context, _) => Transform.rotate(
-          // A quarter turn per cycle, not a full one: the mark has four-fold
-          // symmetry, so 90 degrees returns it to looking identical. Spinning
-          // further would be motion nobody can see.
-          angle: _spin.value * 1.5707963267948966,
+          // ЧАРХ: eight discrete 45 degree positions, each held. A smooth spin
+          // on a four-fold symmetric mark looks almost static; stepping makes
+          // it visibly turn and alternates the silhouette square/diamond.
+          angle: _charkhAngle(_spin.value),
           child: CustomPaint(
             size: const Size.square(34),
             painter: _ChorkhonaStrokePainter(

@@ -79,9 +79,10 @@ const ANIMATION_APIS = [
  * pattern.
  */
 const ALLOWED_DURATION = [
-  /SakinaMotion\.duration\s*\(/,
-  /SakinaMotion\.(quick|base|travel|long|staggerWindow|pulse|typing|spin)\b/,
-  /SakinaMotion\.staggerFor\s*\(/,
+  // Anything from the vocabulary. Deliberately not a list of names — an
+  // allowlist that has to be edited every time a token is added is one that
+  // gets loosened in a hurry the first time it blocks somebody.
+  /\bSakinaMotion\.\w+/,
   /\.motion\s*\(/, // SakinaLayout.motion(), which gates internally
   /widget\.duration\b/,
   /Duration\.zero\b/,

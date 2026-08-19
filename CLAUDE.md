@@ -48,6 +48,10 @@ Two things that look like tells and are not:
   key is missing a language or if the UI asks for a key that does not exist —
   `t()` returns the key itself on a miss, so the failure mode is a button
   labelled `chanel_name` rather than a crash.
+- **There are three motion primitives and they mean specific things** — see
+  `docs/MOTION.md`. The one worth defending: the light pass fires *once, on
+  success*, and never while waiting. Use it for decoration and it stops meaning
+  "delivered".
 - **Every animation goes through `apps/mobile/lib/src/motion.dart`.**
   `pnpm test:motion` fails if an animating file never reaches the reduce-motion
   gate, or if a `duration:` is written at the call site instead of named in the

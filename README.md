@@ -109,6 +109,8 @@ Read them in this order:
   chosen rather than merely complete, and eight things we should not build
 - [`docs/BRAND.md`](docs/BRAND.md) — the visual identity: the chorkhona mark,
   firuza on night, and the six glyphs that decide the font
+- [`docs/MOTION.md`](docs/MOTION.md) — three primitives derived from the mark,
+  because everyone else moves things and we light them
 - [`docs/UX.md`](docs/UX.md) — Telegram-shaped, checked against Nielsen's heuristics
 - [`docs/DEVICES.md`](docs/DEVICES.md) — running on everything from a Galaxy A15
   to an iPhone 17 Pro Max, and how that is verified without the phones

@@ -95,7 +95,10 @@ shouting is off-brief.
    notes carry the colour and the humour; the frame around them stays still.
    This is also why stickers are high on the roadmap — see
    [`GROWTH.md`](GROWTH.md).
-3. **Motion settles, never bounces.** The whole vocabulary is
+3. **Motion settles, never bounces**, and the language it settles in is
+   [`MOTION.md`](MOTION.md) — three primitives derived from the fact that a
+   chorkhona is an opening that lets light in, so our way of saying something
+   happened is to light it rather than move it. The vocabulary is
    `apps/mobile/lib/src/motion.dart`: durations named for what they are for
    (`quick`, `base`, `travel`, `long`), decelerating curves, and no springs or
    overshoot anywhere. Calm and cheap happen to be the same setting here, which

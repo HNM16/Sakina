@@ -49,8 +49,37 @@ abstract final class SakinaMotion {
   /// One trip of the highlight across the typing dots.
   static const typing = Duration(milliseconds: 1100);
 
-  /// A quarter turn of the refresh mark.
-  static const spin = Duration(milliseconds: 1400);
+  // ------------------------------------------------------------------
+  // The three primitives. See docs/MOTION.md for why these and not others.
+  // ------------------------------------------------------------------
+
+  /// ТОБ — one crossing of the light pass.
+  ///
+  /// Fires when something becomes *true*, once, and never loops. That is the
+  /// whole distinction between this and a loading shimmer, which means the
+  /// opposite: a shimmer says "waiting", this says "done".
+  static const tob = Duration(milliseconds: 320);
+
+  /// The band's share of the surface it crosses.
+  static const double tobBand = 0.28;
+
+  /// НАФАС — the breath, for whatever is being waited on.
+  ///
+  /// The object in doubt expresses its own state, so there is never a separate
+  /// spinner next to the thing you actually care about.
+  static const nafas = Duration(milliseconds: 900);
+  static const double nafasFloor = 0.55;
+
+  /// ЧАРХ — one step of the turning mark, turn plus hold.
+  ///
+  /// Eight positions to a revolution. The chorkhona has four-fold symmetry, so
+  /// a smooth spin would look almost static; stepping makes it visibly turn and
+  /// alternates the silhouette between square and diamond.
+  static const charkhStep = Duration(milliseconds: 230);
+  static const int charkhPositions = 8;
+
+  /// How much of a step is spent turning rather than held.
+  static const double charkhTurnFraction = 110 / 230;
 
   /// How long a staggered list takes in total, however many rows it has.
   ///

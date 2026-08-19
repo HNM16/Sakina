@@ -16,6 +16,7 @@ import 'chat_info_screen.dart';
 import 'indicators.dart';
 import 'media_bubble.dart';
 import 'message_actions.dart';
+import 'motion_primitives.dart';
 import 'sheets.dart';
 import 'skeletons.dart';
 import 'swipe_to_reply.dart';
@@ -326,6 +327,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     final replyTo = message.replyToSeq;
                     final quoted = replyTo == null ? null : bySeq[replyTo];
 
+                    // The two primitives that belong on a message, in the
+                    // order their meanings compose: it breathes while in doubt,
+                    // and light crosses it at the moment the doubt ends.
                     final bubble = _Bubble(
                       message: message,
                       isMine: isMine,
@@ -363,7 +367,20 @@ class _ChatScreenState extends State<ChatScreen> {
                             copyText: message.type == 'text'
                                 ? message.text
                                 : message.caption,
-                            child: bubble,
+                            child: Breathing(
+                              // НАФАС. Only ours — somebody else's message is
+                              // not in doubt from where we are standing.
+                              waiting:
+                                  isMine && message.state == MessageState.pending,
+                              child: LightPass(
+                                // ТОБ. The trigger is the delivery state, so
+                                // the pass runs at the instant pending becomes
+                                // sent and at no other time.
+                                trigger: message.state,
+                                enabled: isMine,
+                                child: bubble,
+                              ),
+                            ),
                           ),
                         ),
                       ),
