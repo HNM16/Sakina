@@ -258,7 +258,9 @@ WHY       Rendered at true pixel size, the mark is a hollow teal square with an
 FIX       A solid-fill variant below ~32px: a firuza tile with the opening
           knocked out and the core in saffron. Drawn as a test, it holds to
           12px. Not applied — CLAUDE.md says show the audit before changing an
-          existing design.
+          existing design. Since then, six candidate marks have been drawn and
+          animated in docs/brand/marks.html, one of which is that variant. The
+          decision is open.
 BLAST     One painter. No layout, no colour, no strings.
 ```
 

@@ -131,6 +131,7 @@ shouting is off-brief.
 | `tools/dev-client/index.html` | The same palette, so the browser client matches |
 | `docs/brand/identity.html` | The rendered identity, both themes |
 | `docs/brand/mark-check.png` | Whether the mark holds up — silhouette, size ramp, squint test |
+| `docs/brand/marks.html` | Six candidate marks, live, with the motion each one implies |
 
 Both images are generated: `pnpm brand:render` re-renders them, so the pages and
 the pictures of the pages cannot drift apart.
@@ -141,8 +142,11 @@ changing a seed colour would quietly restyle the conversation.
 
 ## Not yet decided
 
-- **The app icon.** The chorkhona is the mark; turning it into a launcher icon
-  that survives Android's adaptive-icon masking is separate work.
+- **The app icon, and possibly the mark itself.** The audit found the current
+  mark unreadable under 32 px, which is exactly launcher size. Six simpler
+  candidates are drawn and animated in
+  [`docs/brand/marks.html`](brand/marks.html) — open it, watch them, pick one or
+  reject all six. Adaptive-icon masking is still separate work after that.
 - **Sticker art direction.** This is where atlas stripes, pomegranates and Navruz
   belong, and it needs a Tajik illustrator rather than a spec.
 - **A wordmark in Perso-Arabic script** (سكينة). Worth having for the diaspora and
