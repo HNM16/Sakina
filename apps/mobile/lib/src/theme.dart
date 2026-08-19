@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'motion.dart';
+
 /// Sakina's visual identity, in one place.
 ///
 /// The name means stillness (сукунат / سكينة), and the whole system follows from
@@ -289,11 +291,22 @@ abstract final class SakinaTheme {
             displayColor: text,
           ),
 
-      // Fade-and-settle on Android, the native slide on iOS. Neither springs.
+      // A1/A12: forward slides in from the trailing edge, back slides out to
+      // it, and the page underneath moves a third as far so being covered
+      // reads as depth. Flutter's own builders animate both directions
+      // identically, which leaves the app without a spatial model.
+      //
+      // iOS keeps Cupertino's transition. It carries the interactive
+      // back-swipe, and reimplementing that to gain a slightly different curve
+      // would be replacing something people already know with something they
+      // do not — the same convention argument as docs/UX.md.
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
-          TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.android: SakinaPageTransitions(),
           TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: SakinaPageTransitions(),
+          TargetPlatform.windows: SakinaPageTransitions(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
         },
       ),
     );

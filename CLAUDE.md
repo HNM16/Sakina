@@ -48,6 +48,10 @@ Two things that look like tells and are not:
   key is missing a language or if the UI asks for a key that does not exist —
   `t()` returns the key itself on a miss, so the failure mode is a button
   labelled `chanel_name` rather than a crash.
+- **Every animation goes through `apps/mobile/lib/src/motion.dart`.**
+  `pnpm test:motion` fails if an animating file never reaches the reduce-motion
+  gate, or if a `duration:` is written at the call site instead of named in the
+  vocabulary. Adding a looping indicator means adding its period there too.
 - **`pnpm test:dart` is not a compiler.** There is no Flutter SDK in this
   environment and none of `apps/mobile` has ever been compiled. The script checks
   imports, declared packages, bracket balance and undefined Sakina-named symbols.

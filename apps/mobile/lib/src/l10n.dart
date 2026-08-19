@@ -251,6 +251,18 @@ class L10n {
 
     'loading': {'ru': 'Загрузка…', 'tg': 'Боркунӣ…', 'en': 'Loading…'},
     'nothing_here': {'ru': 'Пока пусто', 'tg': 'Ҳанӯз холӣ', 'en': 'Nothing here yet'},
+
+    // Message actions and replies (backlog A7/A8).
+    'reply': {'ru': 'Ответить', 'tg': 'Ҷавоб додан', 'en': 'Reply'},
+    'copy': {'ru': 'Копировать', 'tg': 'Нусха бардоштан', 'en': 'Copy'},
+    'copied': {'ru': 'Скопировано', 'tg': 'Нусха бардошта шуд', 'en': 'Copied'},
+    'message_unavailable': {
+      'ru': 'Сообщение недоступно',
+      'tg': 'Паём дастрас нест',
+      'en': 'Message unavailable',
+    },
+    'you': {'ru': 'Вы', 'tg': 'Шумо', 'en': 'You'},
+    'someone': {'ru': 'Кто-то', 'tg': 'Касе', 'en': 'Someone'},
   };
 
   String t(String key) {

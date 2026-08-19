@@ -95,11 +95,23 @@ shouting is off-brief.
    notes carry the colour and the humour; the frame around them stays still.
    This is also why stickers are high on the roadmap — see
    [`GROWTH.md`](GROWTH.md).
-3. **Motion settles, never bounces.** Motion we author is 180ms of `easeOutCubic`
-   — no springs, no overshoot. Route transitions keep the platform builder's own
-   timing, because navigation that runs faster than every other app on the phone
-   reads as broken rather than brisk. Calm and cheap happen to be the same
-   setting here, which is not usually how it goes.
+3. **Motion settles, never bounces.** The whole vocabulary is
+   `apps/mobile/lib/src/motion.dart`: durations named for what they are for
+   (`quick`, `base`, `travel`, `long`), decelerating curves, and no springs or
+   overshoot anywhere. Calm and cheap happen to be the same setting here, which
+   is not usually how it goes.
+
+   Two rules that are enforced rather than hoped for, by `pnpm test:motion`:
+   every animating file must reach the reduce-motion gate, and every duration
+   must come from the vocabulary rather than being written at the call site.
+   The gate returns exactly `Duration.zero` — shortening an animation is not
+   the same as disabling it.
+
+   Haptics are part of the same vocabulary and follow one rule: **they confirm,
+   they never decorate.** Nothing vibrates for anything the user did not
+   personally cause. A buzz for an incoming message is what notifications are
+   for, and doubling it is how an app becomes the one that will not stop
+   vibrating.
 4. **Space instead of lines.** Separate groups with room, not dividers. Fewer
    strokes means less to render and less to look at.
 5. **Tajik decides the layout, not English.** Tajik strings run roughly a third

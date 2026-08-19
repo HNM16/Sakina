@@ -35,7 +35,7 @@ configuring to sign in.**
 pnpm test
 ```
 
-Seven suites, 125 checks:
+Eight suites, 132 checks:
 
 | Suite | What it proves |
 | --- | --- |
@@ -44,6 +44,7 @@ Seven suites, 125 checks:
 | `pnpm test:messaging` | 24 checks. Two users exchange Tajik text; a retried send whose ack was lost does **not** duplicate; a client that went offline catches up; non-members are refused. |
 | `pnpm test:social` | 48 checks. Groups, channels and attachments. A channel subscriber is refused at **every** entry point, not just shown a hidden composer; a removed member loses history *and* media; a key from one chat cannot be redeemed for another; `text/html` and SVG are refused outright; a full upload round trip returns the same bytes. Needs `STORAGE_PROVIDER=local`. |
 | `pnpm test:l10n` | 7 checks. Every user-facing string exists in all three languages; every key the UI asks for is defined — `t()` returns the key itself on a miss, so a typo ships as a button labelled `chanel_name`; the six Tajik characters appear in real copy. |
+| `pnpm test:motion` | 7 checks. Every animating file reaches the reduce-motion gate; every duration comes from the vocabulary in `motion.dart` rather than being written at the call site; the gate returns exactly `Duration.zero`, because shortening an animation is not disabling it. Verified to catch both failure modes by deliberately introducing each. |
 | `pnpm test:dart` | 4 checks. Imports resolve, packages are declared, brackets balance, no Sakina-named symbol is referenced but undefined. Not a compiler — see below. |
 | `pnpm test:push` | 17 checks. A device with the app **closed** gets a notification; a device with it **open** does not; the sender is never notified of their own message; no message text appears in the payload; a dead token is retired rather than retried forever. Needs the worker running with `PUSH_PROVIDER=console`. |
 

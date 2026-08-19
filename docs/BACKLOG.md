@@ -1,8 +1,9 @@
 # What is missing
 
 Everything Sakina needs to stop feeling like a skeleton and start feeling like
-an app someone would choose. Research only — nothing here is built, and the
-order is an argument, not a schedule.
+an app someone would choose. The order is an argument, not a schedule.
+
+**Section A is built** (`pnpm test:motion`). Everything else is still research.
 
 Effort is rough: **S** is a day or less, **M** is a few days, **L** is a week or
 more, **XL** is a project with its own design.
@@ -12,27 +13,35 @@ For the features meant to make Sakina *different* rather than *complete*, see
 
 ---
 
-## A. Motion and feel
+## A. Motion and feel ✅ built
 
-The app currently has almost no motion. That is not restraint, it is absence —
-`docs/BRAND.md` rule 3 says motion should *settle*, and right now there is
-nothing to settle. Every item here goes through `SakinaLayout.motion()`, which
-returns `Duration.zero` under reduce-motion.
+**Done.** The vocabulary lives in `apps/mobile/lib/src/motion.dart` and
+`pnpm test:motion` fails the build if an animation is added without it.
+
+Everything below is implemented. Kept in full rather than deleted, because the
+argument for each one is the record of why it exists — and because the next
+person to change an animation should be able to read what it was for.
+
+One thing to keep in mind while reading: **none of it has been run.** There is
+no Flutter SDK in this environment, so the motion is read-checked and
+machine-checked but never once watched. Durations and curves are the values
+most likely to want adjusting the first time somebody sees them on a real
+phone.
 
 | | Feature | Why it matters | Effort |
 | --- | --- | --- | --- |
-| A1 | **Hero transition on opening a chat** — the avatar and title fly from the list row into the app bar | This is the single highest-value animation in any messenger. It answers "where did I come from" without a thought, and it is what makes Telegram feel expensive. Flutter's `Hero` does most of it | M |
-| A2 | **Message send animation** — the bubble lifts from the composer rather than appearing | The composer-to-bubble jump is the most repeated interaction in the product. Ten thousand times a day per user, and right now it is a hard cut | M |
-| A3 | **Staggered chat-list entry on first load** — rows arrive over ~200ms | Covers the moment where an empty list becomes a full one. Without it, the list pops and looks like a bug | S |
-| A4 | **Pull-to-refresh with real feedback** — the chorkhona mark drawing itself as you pull | A brand moment in a place people already pull. Cheap: the mark is already a `CustomPainter`, animate its stroke | M |
-| A5 | **Typing indicator with animated dots** | Currently text. Animated is the universal signal, and text reads as a status bar rather than as a person | S |
-| A6 | **Unread badge count-up**, and the badge shrinking to nothing when a chat is read | The moment of "I cleared it" deserves feedback. Counting down to zero is more satisfying than a badge disappearing | S |
-| A7 | **Swipe-to-reply** with a spring-back and a haptic tick at the threshold | The most-used gesture in modern messengers. Also a Nielsen #7 win: an expert shortcut that beginners never have to find | M |
-| A8 | **Long-press context menu with a scale-and-blur backdrop** | Where reply, forward, copy, delete, react all live. Without it, every message action needs its own button | M |
-| A9 | **Reduced-motion audit as a test** — extend `test:devices` to assert every animation has a zero path | We built `motion()` and nothing enforces its use. A guardrail that is not checked decays | S |
-| A10 | **Haptics vocabulary** — a light tick on send, a heavier one on error, none on scroll | Haptics are the cheapest way to feel expensive, and the most commonly overdone. A written vocabulary stops it becoming noise | S |
-| A11 | **Skeleton screens with a shimmer that respects reduce-motion** | See section B. Listed here because the shimmer is the part that gets it wrong | S |
-| A12 | **Page transition direction that matches the hierarchy** — forward slides in, back slides out | Currently both use the same builder. Directionality is how people build a spatial model of an app | S |
+| A1 ✅ | **Hero transition on opening a chat** — the avatar and title fly from the list row into the app bar | This is the single highest-value animation in any messenger. It answers "where did I come from" without a thought, and it is what makes Telegram feel expensive. Flutter's `Hero` does most of it | M |
+| A2 ✅ | **Message send animation** — the bubble lifts from the composer rather than appearing | The composer-to-bubble jump is the most repeated interaction in the product. Ten thousand times a day per user, and right now it is a hard cut | M |
+| A3 ✅ | **Staggered chat-list entry on first load** — rows arrive over ~200ms | Covers the moment where an empty list becomes a full one. Without it, the list pops and looks like a bug | S |
+| A4 ✅ | **Pull-to-refresh with real feedback** — the chorkhona mark drawing itself as you pull | A brand moment in a place people already pull. Cheap: the mark is already a `CustomPainter`, animate its stroke | M |
+| A5 ✅ | **Typing indicator with animated dots** | Currently text. Animated is the universal signal, and text reads as a status bar rather than as a person | S |
+| A6 ✅ | **Unread badge count-up**, and the badge shrinking to nothing when a chat is read | The moment of "I cleared it" deserves feedback. Counting down to zero is more satisfying than a badge disappearing | S |
+| A7 ✅ | **Swipe-to-reply** with a spring-back and a haptic tick at the threshold | The most-used gesture in modern messengers. Also a Nielsen #7 win: an expert shortcut that beginners never have to find | M |
+| A8 ✅ | **Long-press context menu with a scale-and-blur backdrop** | Where reply, forward, copy, delete, react all live. Without it, every message action needs its own button | M |
+| A9 ✅ | **Reduced-motion audit as a test** — extend `test:devices` to assert every animation has a zero path | We built `motion()` and nothing enforces its use. A guardrail that is not checked decays | S |
+| A10 ✅ | **Haptics vocabulary** — a light tick on send, a heavier one on error, none on scroll | Haptics are the cheapest way to feel expensive, and the most commonly overdone. A written vocabulary stops it becoming noise | S |
+| A11 ✅ | **Skeleton screens with a shimmer that respects reduce-motion** | See section B. Listed here because the shimmer is the part that gets it wrong | S |
+| A12 ✅ | **Page transition direction that matches the hierarchy** — forward slides in, back slides out | Currently both use the same builder. Directionality is how people build a spatial model of an app | S |
 
 ## B. Loading, empty and error states
 

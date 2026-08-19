@@ -159,9 +159,10 @@ class SakinaLayout {
 
   /// Motion duration that respects the platform's reduce-motion switch.
   ///
-  /// Every animation in the app goes through here. Guardrail G2 is explicit
-  /// that shortening an animation is not the same as disabling it, so this
-  /// returns exactly zero rather than something small.
+  /// Kept because layout already knows [animationsDisabled] and a caller that
+  /// has a [SakinaLayout] should not have to reach for a second module. The
+  /// vocabulary — which durations exist and what they are for — lives in
+  /// `motion.dart`, and that is what new code should use.
   Duration motion([Duration base = const Duration(milliseconds: 180)]) =>
       animationsDisabled ? Duration.zero : base;
 

@@ -24,8 +24,8 @@ pnpm dev               # api :4000, gateway :4001, worker :4003
 Verify the whole thing works:
 
 ```bash
-pnpm test        # 125 checks: auth, ban evasion, messaging, push, groups,
-                 # channels, media, localisation, Dart sanity
+pnpm test        # 132 checks: auth, ban evasion, messaging, push, groups,
+                 # channels, media, localisation, Dart sanity, motion
 pnpm test:devices  # the layout at 31 real device sizes, in a real browser
 pnpm bench       # frame rate and gateway latency, with pass/fail bars
 ```

@@ -72,6 +72,14 @@ class Message {
 
   bool get isMedia => type == 'media';
 
+  /// The `seq` of the message this one answers, or null.
+  ///
+  /// seq rather than id because it is per-chat and gapless, so resolving a
+  /// quote is a lookup in the list already in memory. A quote whose target is
+  /// not loaded renders as unavailable rather than failing — the reply is still
+  /// a real message.
+  int? get replyToSeq => (payload['reply_to_seq'] as num?)?.toInt();
+
   /// image | video | file, decided by the SERVER from the mime type. A client
   /// that trusted its own guess here would render an executable as a photo.
   String get mediaKind => payload['kind'] as String? ?? 'file';

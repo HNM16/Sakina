@@ -45,6 +45,15 @@ class ChatRepository extends ChangeNotifier {
   SocketStatus get connection => _connection;
 
   List<ChatSummary> _chats = [];
+
+  /// True until the first read off local disk finishes.
+  ///
+  /// Distinguishes "we do not know yet" from "there is nothing", which are the
+  /// same picture and completely different sentences. Without it a cold start
+  /// shows the empty state — "no chats yet, start one" — to somebody who has
+  /// fifty, for as long as SQLite takes to open.
+  bool _loading = true;
+  bool get loading => _loading;
   List<ChatSummary> get chats => _chats;
 
   final Map<String, List<Message>> _messages = {};
@@ -80,7 +89,14 @@ class ChatRepository extends ChangeNotifier {
   /// Load whatever the device already knows, before any network call. The chat
   /// list must be on screen at launch even with the radio off.
   Future<void> bootstrap() async {
-    _chats = await store.loadChats();
+    try {
+      _chats = await store.loadChats();
+    } finally {
+      // In the finally block: a failed read still has to leave the loading
+      // state, or a skeleton shimmers forever and the user cannot even reach
+      // the empty state's "start a chat" button.
+      _loading = false;
+    }
     if (_disposed) return;
     notifyListeners();
   }
@@ -362,10 +378,10 @@ class ChatRepository extends ChangeNotifier {
   /// Writes the message locally first and returns immediately — the bubble
   /// appears whether or not there is a connection. Delivery is the outbox's
   /// problem from here on.
-  Future<void> sendText(String chatId, String text) async {
+  Future<String?> sendText(String chatId, String text) async {
     final trimmed = text.trim();
-    if (trimmed.isEmpty) return;
-    await sendPayload(chatId, {'type': 'text', 'text': trimmed});
+    if (trimmed.isEmpty) return null;
+    return sendPayload(chatId, {'type': 'text', 'text': trimmed});
   }
 
   /// Send any message payload — text, an attachment, and eventually a payment.
@@ -378,9 +394,20 @@ class ChatRepository extends ChangeNotifier {
   /// For an attachment the bytes are already in storage by the time this is
   /// called — the payload carries the key, not the file — so a media message
   /// travels the same size as a text one and retries just as cheaply.
-  Future<void> sendPayload(String chatId, Map<String, dynamic> payload) async {
+  /// Returns the `client_id` the message was stored under.
+  ///
+  /// [clientId] can be supplied by the caller so it knows the id *before* the
+  /// message exists. The send animation needs that: setting the flag after
+  /// awaiting would mean the bubble renders once plainly, then re-renders
+  /// animating from zero opacity, which is a visible flash rather than an
+  /// entrance.
+  Future<String> sendPayload(
+    String chatId,
+    Map<String, dynamic> payload, {
+    String? clientId,
+  }) async {
     final message = Message(
-      clientId: _uuid.v4(),
+      clientId: clientId ?? _uuid.v4(),
       chatId: chatId,
       senderId: selfId,
       payload: payload,
@@ -399,6 +426,8 @@ class ChatRepository extends ChangeNotifier {
         'payload': message.payload,
       },
     });
+
+    return message.clientId;
   }
 
   void markRead(String chatId, int upToSeq) {

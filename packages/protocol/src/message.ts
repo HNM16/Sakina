@@ -53,9 +53,25 @@ export const MessageType = z.enum([
 ]);
 export type MessageType = z.infer<typeof MessageType>;
 
+/**
+ * The message this one answers, by `seq`.
+ *
+ * `seq` rather than `id`: it is per-chat, gapless, and already the key the
+ * client indexes history by, so resolving a quote is a lookup rather than a
+ * search. It is also four bytes instead of a uuid, which matters on a bus that
+ * carries every message in the product.
+ *
+ * A quote whose target has been deleted, or which arrived before the client
+ * synced that far, renders as "message unavailable" rather than failing — the
+ * reply is still a real message and losing it because its parent is missing
+ * would be worse than showing it without context.
+ */
+const ReplyTo = z.number().int().positive().optional();
+
 export const TextPayload = z.object({
   type: z.literal("text"),
   text: z.string().min(1).max(4096),
+  reply_to_seq: ReplyTo,
 });
 
 /**
@@ -90,6 +106,7 @@ export const MediaPayload = z.object({
   /** Original filename. Meaningless for photos, essential for documents. */
   name: z.string().min(1).max(255).optional(),
   caption: z.string().max(1024).optional(),
+  reply_to_seq: ReplyTo,
 });
 
 export const VoicePayload = z.object({

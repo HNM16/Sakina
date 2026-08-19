@@ -5,10 +5,15 @@ import '../l10n.dart';
 import '../layout.dart';
 import '../media_service.dart';
 import '../models.dart';
+import '../motion.dart';
 import '../socket_client.dart';
 import '../theme.dart';
+import 'chat_avatar.dart';
 import 'chat_screen.dart';
+import 'chorkhona_refresh.dart';
+import 'indicators.dart';
 import 'sheets.dart';
+import 'skeletons.dart';
 
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({
@@ -83,7 +88,12 @@ class ChatListScreen extends StatelessWidget {
               ),
             ],
           ),
-          body: chats.isEmpty
+          body: repository.loading
+              // Not the empty state: an empty screen while SQLite opens reads
+              // as "you have no chats", which is a different and much worse
+              // message than "one moment".
+              ? const ChatListSkeleton()
+              : chats.isEmpty
               // An empty state with a next action, not a shrug. The first thing
               // a new user sees is this screen, and "no chats" alone tells them
               // nothing about what to do about it.
@@ -109,19 +119,38 @@ class ChatListScreen extends StatelessWidget {
                     ),
                   ),
                 )
-              : ListView.builder(
-                  itemCount: chats.length,
-                  addAutomaticKeepAlives: false,
-                  // Space instead of dividers — brand rule 4. Fewer strokes is
-                  // less to render and less to look at.
-                  itemBuilder: (context, index) => _ChatTile(
-                    // The chat list reorders as messages arrive; a stable key
-                    // lets Flutter move elements rather than rebuild them all.
-                    key: ValueKey(chats[index].id),
-                    chat: chats[index],
-                    selfId: repository.selfId,
-                    onTap: () => _openChat(context, chats[index].id),
-                  ),
+              : CustomScrollView(
+                  // A sliver list rather than ListView.builder so the refresh
+                  // control can sit above it — see ChorkhonaRefresh on why that
+                  // API and not RefreshIndicator.
+                  slivers: [
+                    ChorkhonaRefresh(onRefresh: repository.resync),
+                    SliverList.builder(
+                      itemCount: chats.length,
+                      addAutomaticKeepAlives: false,
+                      // Space instead of dividers — brand rule 4. Fewer strokes
+                      // is less to render and less to look at.
+                      itemBuilder: (context, index) => EntranceFade(
+                        // The stagger is keyed to the row's position, and the
+                        // whole sequence finishes inside 220ms however many
+                        // rows there are.
+                        delay: SakinaMotion.staggerFor(context, index),
+                        child: _ChatTile(
+                          // The chat list reorders as messages arrive; a stable
+                          // key lets Flutter move elements rather than rebuild
+                          // them all — and it is what stops EntranceFade
+                          // re-running its entrance on every incoming message.
+                          key: ValueKey(chats[index].id),
+                          chat: chats[index],
+                          selfId: repository.selfId,
+                          onTap: () => _openChat(context, chats[index].id),
+                        ),
+                      ),
+                    ),
+                    // Clears the FAB, so the last chat is not permanently half
+                    // covered by it.
+                    SliverToBoxAdapter(child: SizedBox(height: layout.gap * 6)),
+                  ],
                 ),
           floatingActionButton: FloatingActionButton(
             onPressed: () => _newChat(context),
@@ -232,26 +261,13 @@ class _ChatTile extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: layout.gutter, vertical: 4),
       minTileHeight: SakinaLayout.tapTarget + 8,
-      leading: SizedBox(
-        width: layout.avatarSize,
-        height: layout.avatarSize,
-        child: CircleAvatar(
-          backgroundColor: palette.line,
-          // A group and a channel are different things and the difference
-          // matters before you open them — a channel you cannot reply in looks
-          // exactly like a group until you try. The glyph is information.
-          child: chat.isDirect
-              // substring rather than `.characters`: the latter needs
-              // package:characters imported explicitly, and every name in this
-              // audience is Cyrillic or Latin, so grapheme clusters are not
-              // the risk here.
-              ? Text(title.isEmpty ? '?' : title.substring(0, 1).toUpperCase())
-              : Icon(
-                  chat.isChannel ? Icons.campaign_outlined : Icons.group_outlined,
-                  size: layout.isNarrow ? 20 : 24,
-                  color: palette.muted,
-                ),
-        ),
+      // A1: the flight's other end is the conversation's app bar. Same widget
+      // at both ends so nothing morphs mid-air.
+      leading: Hero(
+        tag: 'chat-avatar-${chat.id}',
+        createRectTween: (begin, end) =>
+            MaterialRectCenterArcTween(begin: begin, end: end),
+        child: ChatAvatar(chat: chat, selfId: selfId, size: layout.avatarSize),
       ),
       title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(
@@ -260,7 +276,7 @@ class _ChatTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(color: palette.muted),
       ),
-      trailing: chat.unreadCount > 0 ? Badge(label: Text('${chat.unreadCount}')) : null,
+      trailing: UnreadBadge(count: chat.unreadCount),
       onTap: onTap,
     );
   }

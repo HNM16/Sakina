@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 import '../api_client.dart';
 import '../chat_repository.dart';
@@ -9,10 +10,15 @@ import '../l10n.dart';
 import '../layout.dart';
 import '../media_service.dart';
 import '../models.dart';
+import '../motion.dart';
 import '../theme.dart';
 import 'chat_info_screen.dart';
+import 'indicators.dart';
 import 'media_bubble.dart';
+import 'message_actions.dart';
 import 'sheets.dart';
+import 'skeletons.dart';
+import 'swipe_to_reply.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
@@ -33,12 +39,23 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
+  final _uuid = const Uuid();
 
   /// Set while an attachment is on its way up. The composer is disabled for the
   /// duration: two uploads racing from one chat is a rare need and a common
   /// source of half-sent messages.
   bool _uploading = false;
   String? _uploadError;
+
+  /// The message being replied to, from a swipe or the long-press menu.
+  Message? _replyingTo;
+
+  /// The client id of the message this screen just sent.
+  ///
+  /// A2 animates exactly one bubble — the one the user caused. Animating every
+  /// newly-arrived message would mean the list jumps around whenever the other
+  /// person is talking, which is motion nobody asked for.
+  String? _justSent;
 
   @override
   void initState() {
@@ -72,23 +89,82 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _send() async {
-    final text = _controller.text;
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+
+    final replyTo = _replyingTo?.seq;
     _controller.clear();
-    await widget.repository.sendText(widget.chatId, text);
+    setState(() => _replyingTo = null);
+
+    // The lightest tick available. This fires fifty times an evening, and
+    // anything heavier becomes fatigue rather than confirmation.
+    SakinaHaptics.sent(context);
+
+    // Generated here and marked before the send, so the bubble is animating the
+    // first time it is ever built.
+    final clientId = _uuid.v4();
+    setState(() => _justSent = clientId);
+
+    await widget.repository.sendPayload(
+      widget.chatId,
+      {
+        'type': 'text',
+        'text': text,
+        if (replyTo != null) 'reply_to_seq': replyTo,
+      },
+      clientId: clientId,
+    );
+
+    // Cleared once it has played. Without this the marker sticks, and scrolling
+    // the message off screen and back re-creates the widget — which would run
+    // the entrance again, weeks later, for no reason.
+    Future<void>.delayed(SakinaMotion.travel, () {
+      if (mounted && _justSent == clientId) setState(() => _justSent = null);
+    });
 
     await _scrollToEnd();
   }
 
+  void _startReply(Message message) {
+    setState(() => _replyingTo = message);
+  }
+
+  /// Who wrote a message, for a quote or a reply preview.
+  String _authorOf(Message message, L10n l10n, ChatSummary? chat) {
+    if (message.senderId == widget.repository.selfId) return l10n.t('you');
+    for (final member in chat?.members ?? const <PublicUser>[]) {
+      if (member.id == message.senderId) return member.displayName;
+    }
+    // A member who has left, or one outside the preview slice a channel sends.
+    // A neutral person, not "message unavailable" — the message is right here.
+    return l10n.t('someone');
+  }
+
+  /// Messages by seq, so resolving a quote is a lookup.
+  ///
+  /// Built once per build rather than scanned per bubble. The scan version was
+  /// O(n²) across the list — on a chat with a few hundred messages that is
+  /// hundreds of thousands of comparisons every frame the list rebuilds, which
+  /// is exactly the kind of thing docs/PERFORMANCE.md exists to keep out.
+  Map<int, Message> _indexBySeq(List<Message> messages) {
+    final index = <int, Message>{};
+    for (final message in messages) {
+      final seq = message.seq;
+      if (seq != null) index[seq] = message;
+    }
+    return index;
+  }
+
   /// Guardrail G2: motion needs a path that removes it rather than one that
-  /// shortens it. [SakinaLayout.motion] returns Duration.zero when the platform
-  /// asks for reduced motion, and animateTo with a zero duration jumps.
+  /// shortens it. [SakinaMotion.duration] returns Duration.zero under
+  /// reduce-motion, and animateTo with a zero duration jumps rather than eases.
   Future<void> _scrollToEnd() async {
     if (!_scrollController.hasClients) return;
     if (!mounted) return;
     await _scrollController.animateTo(
       _scrollController.position.maxScrollExtent + 120,
-      duration: SakinaLayout.of(context).motion(),
-      curve: SakinaTheme.motionCurve,
+      duration: SakinaMotion.duration(context, SakinaMotion.travel),
+      curve: SakinaMotion.curve(context),
     );
   }
 
@@ -125,7 +201,9 @@ class _ChatScreenState extends State<ChatScreen> {
       await widget.repository.sendPayload(widget.chatId, payload);
       await _scrollToEnd();
     } on ApiException catch (err) {
-      if (mounted) setState(() => _uploadError = err.message);
+      if (!mounted) return;
+      SakinaHaptics.failed(context);
+      setState(() => _uploadError = err.message);
     } finally {
       if (mounted) setState(() => _uploading = false);
     }
@@ -146,10 +224,33 @@ class _ChatScreenState extends State<ChatScreen> {
         final chat = matching.isEmpty ? null : matching.first;
         final messages = widget.repository.messagesFor(widget.chatId);
         final typing = widget.repository.isTyping(widget.chatId);
+        // Only built when something in this chat actually quotes something.
+        final bySeq = messages.any((m) => m.replyToSeq != null)
+            ? _indexBySeq(messages)
+            : const <int, Message>{};
 
         return Scaffold(
           appBar: AppBar(
-            title: Column(
+            titleSpacing: 0,
+            title: Row(
+              children: [
+                // A1: the same tag the list row uses, so Flutter flies the
+                // avatar between the two screens instead of cross-fading whole
+                // pages. It answers "where did I come from" without a thought,
+                // which is most of what makes a messenger feel expensive.
+                if (chat != null)
+                  Hero(
+                    tag: 'chat-avatar-${chat.id}',
+                    // The default flight wraps the child in a Material of the
+                    // wrong shape mid-flight; a circle keeps it a circle the
+                    // whole way across.
+                    createRectTween: (begin, end) =>
+                        MaterialRectCenterArcTween(begin: begin, end: end),
+                    child: ChatAvatar(chat: chat, selfId: selfId, size: 34),
+                  ),
+                SizedBox(width: layout.gap * 0.8),
+                Expanded(
+                  child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
@@ -158,7 +259,21 @@ class _ChatScreenState extends State<ChatScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (typing)
-                  Text(l10n.t('typing'), style: Theme.of(context).textTheme.bodySmall)
+                  // A5: movement is the whole information content — text reads
+                  // as a status bar, dots read as a person.
+                  Row(
+                    children: [
+                      Text(
+                        l10n.t('typing'),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: palette.muted),
+                      ),
+                      SizedBox(width: layout.gap * 0.4),
+                      const TypingDots(),
+                    ],
+                  )
                 else if (chat != null && !chat.isDirect)
                   Text(
                     '${chat.memberCount} '
@@ -168,6 +283,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         .bodySmall
                         ?.copyWith(color: palette.muted),
                   ),
+              ],
+                  ),
+                ),
               ],
             ),
             actions: [
@@ -191,7 +309,9 @@ class _ChatScreenState extends State<ChatScreen> {
           body: Column(
             children: [
               Expanded(
-                child: ListView.builder(
+                child: messages.isEmpty && widget.repository.loading
+                    ? const MessageListSkeleton()
+                    : ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: messages.length,
@@ -202,14 +322,51 @@ class _ChatScreenState extends State<ChatScreen> {
                   addRepaintBoundaries: true,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    return _Bubble(
+                    final isMine = message.senderId == selfId;
+                    final replyTo = message.replyToSeq;
+                    final quoted = replyTo == null ? null : bySeq[replyTo];
+
+                    final bubble = _Bubble(
+                      message: message,
+                      isMine: isMine,
+                      media: widget.media,
+                      quotedAuthor:
+                          quoted == null ? null : _authorOf(quoted, l10n, chat),
+                      quotedPreview: quoted?.previewText(l10n.t),
+                      // A reply pointing at something not in the loaded window
+                      // still renders — it says the target is unavailable
+                      // rather than dropping the reply.
+                      quoteMissing: replyTo != null && quoted == null,
+                    );
+
+                    // A7/A8. Both gestures are disabled where they would lead
+                    // to a composer the user does not have.
+                    final canReply = chat?.canPost ?? true;
+
+                    return KeyedSubtree(
                       // A stable key lets Flutter reuse elements when the list
                       // grows, instead of rebuilding every bubble because the
                       // indices shifted.
                       key: ValueKey(message.clientId),
-                      message: message,
-                      isMine: message.senderId == selfId,
-                      media: widget.media,
+                      child: _MaybeSendEntrance(
+                        // A2: only the bubble this screen just created.
+                        animate: message.clientId == _justSent,
+                        child: SwipeToReply(
+                          enabled: canReply && message.type != 'system',
+                          onReply: () => _startReply(message),
+                          // Innermost, so the menu lifts the bubble itself
+                          // rather than the gesture wrapper with its reply
+                          // arrow baked in.
+                          child: LongPressActions(
+                            canReply: canReply,
+                            onReply: () => _startReply(message),
+                            copyText: message.type == 'text'
+                                ? message.text
+                                : message.caption,
+                            child: bubble,
+                          ),
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -242,6 +399,15 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // A7: what the swipe armed, and the way out of it.
+                        // Arming a reply by accident is the likeliest failure
+                        // of the gesture, so dismissing has to be one tap.
+                        if (_replyingTo != null)
+                          ReplyPreview(
+                            author: _authorOf(_replyingTo!, l10n, chat),
+                            preview: _replyingTo!.previewText(l10n.t),
+                            onCancel: () => setState(() => _replyingTo = null),
+                          ),
                         if (_uploadError != null)
                           Padding(
                             padding: EdgeInsets.only(bottom: layout.gap / 2),
@@ -330,17 +496,49 @@ class _ChatScreenState extends State<ChatScreen> {
 /// per bubble per rebuild was measurable work for a string that never changes.
 final _timeFormat = DateFormat.Hm();
 
+/// Runs the A2 entrance for exactly one bubble.
+///
+/// A plain `if` around [EntranceFade] would swap the widget type once the
+/// animation is no longer wanted, which rebuilds the subtree and loses any
+/// gesture in progress. Keeping the wrapper constant and switching its
+/// behaviour avoids that.
+class _MaybeSendEntrance extends StatelessWidget {
+  const _MaybeSendEntrance({required this.animate, required this.child});
+
+  final bool animate;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!animate) return child;
+    return EntranceFade(
+      // Rises further and grows slightly, so it reads as lifting out of the
+      // composer rather than sliding in from off-screen.
+      offset: 0.45,
+      scaleFrom: 0.94,
+      duration: SakinaMotion.travel,
+      child: child,
+    );
+  }
+}
+
 class _Bubble extends StatelessWidget {
   const _Bubble({
     super.key,
     required this.message,
     required this.isMine,
     required this.media,
+    this.quotedAuthor,
+    this.quotedPreview,
+    this.quoteMissing = false,
   });
 
   final Message message;
   final bool isMine;
   final MediaService media;
+  final String? quotedAuthor;
+  final String? quotedPreview;
+  final bool quoteMissing;
 
   @override
   Widget build(BuildContext context) {
@@ -385,6 +583,16 @@ class _Bubble extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
+            if (quotedAuthor != null)
+              QuotedMessage(
+                author: quotedAuthor!,
+                preview: quotedPreview ?? '',
+              )
+            else if (quoteMissing)
+              QuotedMessage(
+                author: L10n.of(context).t('message_unavailable'),
+                preview: '',
+              ),
             if (message.isMedia) ...[
               MediaAttachment(message: message, media: media),
               if (caption != null && caption.isNotEmpty) ...[
