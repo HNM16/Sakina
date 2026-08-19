@@ -1,15 +1,21 @@
 #!/usr/bin/env node
-// Renders the two brand images that documents point at, so they cannot drift
-// away from the documents again:
+// Renders the brand images that documents point at, so they cannot drift away
+// from the documents again:
 //
-//   docs/brand/identity.png    the identity page, exactly as identity.html says
-//   docs/brand/mark-check.png  the evidence behind the mark findings in
-//                              docs/DESIGN-AUDIT.md
+//   docs/brand/identity.png      the identity page, exactly as identity.html says
+//   docs/brand/mark-check.png    the evidence behind the mark findings in
+//                                docs/DESIGN-AUDIT.md
+//   docs/brand/samani-frames.png every САМАНӢ variant sampled across one cycle
 //
-// The second one is drawn from geometric first principles. The shapes it puts
+// mark-check is drawn from geometric first principles. The shapes it puts
 // beside ours are *families* — "concentric rounded squares", "an octagram" —
 // reconstructed from their definitions. No other company's mark is reproduced
 // here, and none should be added.
+//
+// samani-frames asks samani.html's own painter for specific moments rather than
+// screenshotting it mid-loop, because a screenshot of a running animation shows
+// one arbitrary frame and proves nothing. It has already earned that: it caught
+// БОФТ leaving the indicator visibly empty at the start of every repeat.
 import { chromium } from 'playwright';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -179,5 +185,54 @@ const sheet = await browser.newPage({ viewport: { width: 1240, height: 900 }, de
 await sheet.setContent(SHEET);
 await sheet.screenshot({ path: out('mark-check.png'), fullPage: true });
 console.log('  docs/brand/mark-check.png');
+
+// A filmstrip of every САМАНӢ variant, sampled at fixed moments. A screenshot
+// of a running loop catches one arbitrary frame and tells you nothing, so
+// samani.html exposes its own painter and this asks it for specific times.
+const STRIP = [
+  ['ГУЗАР', 'guzar', [0, 0.28, 0.55, 0.83, 1.1, 1.38, 1.65, 1.93]],
+  ['МАВҶ', 'mavj', [0, 0.18, 0.35, 0.53, 0.7, 0.88, 1.05, 1.23]],
+  ['БОФТ', 'boft', [0.05, 0.22, 0.4, 0.58, 0.76, 0.95, 1.3, 1.8]],
+  ['НАФАС', 'nafas', [0, 0.11, 0.23, 0.34, 0.45, 0.56, 0.68, 0.79]],
+  ['ЧАРХ', 'charkh', [0, 0.1, 0.2, 0.45, 0.62, 0.72, 0.82, 1.07]],
+  ['ГИРЕҲ', 'gireh', [0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4]],
+  ['ТОБ', 'tob', [0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.26, 0.32]],
+];
+
+const strip = await browser.newPage({
+  viewport: { width: 900, height: 700 },
+  deviceScaleFactor: 2,
+  colorScheme: 'dark',
+});
+await strip.goto(pathToFileURL(resolve(root, 'docs/brand/samani.html')).href);
+await strip.evaluate((rows) => {
+  const board = document.createElement('div');
+  board.id = 'filmstrip';
+  board.style.cssText =
+    'position:fixed;inset:0;z-index:99;background:#0A1220;padding:28px 32px;' +
+    'display:flex;flex-direction:column;gap:18px;' +
+    'font:13px/1.4 "Noto Sans",system-ui,sans-serif;color:#8496B3';
+  const title = document.createElement('div');
+  title.textContent = 'САМАНӢ — every variant, sampled across one cycle';
+  title.style.cssText = 'color:#E8EEF7;font-size:16px;font-weight:700;margin-bottom:2px';
+  board.appendChild(title);
+  for (const [label, id, times] of rows) {
+    const line = document.createElement('div');
+    line.style.cssText = 'display:flex;align-items:center;gap:16px';
+    const name = document.createElement('div');
+    name.textContent = label;
+    name.style.cssText = 'width:74px;flex:none;letter-spacing:.06em';
+    line.appendChild(name);
+    for (const t of times) {
+      const cv = document.createElement('canvas');
+      window.SakinaSamani.paint(cv, id, 56, t);
+      line.appendChild(cv);
+    }
+    board.appendChild(line);
+  }
+  document.body.appendChild(board);
+}, STRIP);
+await strip.locator('#filmstrip').screenshot({ path: out('samani-frames.png') });
+console.log('  docs/brand/samani-frames.png');
 
 await browser.close();

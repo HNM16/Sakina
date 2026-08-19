@@ -1,0 +1,662 @@
+<title>САМАНӢ in Motion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap">
+<style>
+  :root {
+    --night:   #F4F7FB;
+    --surface: #FFFFFF;
+    --saffron: #B07A1E;
+    --muted:   #5A6C88;
+    --text:    #0A1220;
+    --hair:    #D7DEE9;
+    --tile:    #E4EAF3;
+    /* Light grounds want the active bar deeper, not paler. */
+    --lit-toward: #0A1220;
+    --lit-amount: .32;
+    --firuza-css: #35B9B9;
+    --accent-text: #237373;
+
+    --step--1: .8125rem;
+    --step-0:  1rem;
+    --step-1:  1.1875rem;
+    --step-2:  1.75rem;
+    --step-3:  2.5rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --night:   #0A1220;
+      --surface: #18243A;
+      --saffron: #E3AC55;
+      --muted:   #8496B3;
+      --text:    #E8EEF7;
+      --hair:    #22314B;
+      --tile:    #1E2C45;
+      --lit-toward: #E8EEF7;
+      --lit-amount: .34;
+      --firuza-css: #35B9B9;
+      --accent-text: #35B9B9;
+    }
+  }
+  :root[data-theme="dark"] {
+    --night:   #0A1220;
+    --surface: #18243A;
+    --saffron: #E3AC55;
+    --muted:   #8496B3;
+    --text:    #E8EEF7;
+    --hair:    #22314B;
+    --tile:    #1E2C45;
+    --lit-toward: #E8EEF7;
+    --lit-amount: .34;
+    --firuza-css: #35B9B9;
+    --accent-text: #35B9B9;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--night);
+    color: var(--text);
+    font: 400 var(--step-0)/1.6 "Noto Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 60rem; margin: 0 auto; padding: 3.5rem 1.5rem 5rem; }
+
+  .eyebrow {
+    font-size: var(--step--1); font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--accent-text); margin: 0 0 .9rem;
+  }
+  h1 {
+    font-size: var(--step-3); font-weight: 700; letter-spacing: -.03em;
+    line-height: 1.08; margin: 0 0 .9rem; text-wrap: balance; max-width: 18ch;
+  }
+  .lede { font-size: var(--step-1); color: var(--muted); margin: 0 0 .9rem; max-width: 60ch; }
+  p { max-width: 64ch; }
+
+  h2 {
+    font-size: var(--step-2); font-weight: 700; letter-spacing: -.02em;
+    margin: 0 0 .5rem; line-height: 1.15;
+  }
+  section { margin-top: 3.25rem; padding-top: 2.25rem; border-top: 1px solid var(--hair); }
+  section > p:first-of-type { margin-top: 0; color: var(--muted); }
+
+  button {
+    font: 600 var(--step--1)/1 "Noto Sans", system-ui, sans-serif;
+    color: var(--text); background: var(--surface);
+    border: 1px solid var(--hair); border-radius: 10px;
+    min-height: 44px; padding: 0 1.1rem; cursor: pointer;
+  }
+  button:hover { border-color: var(--firuza-css); }
+  button:focus-visible { outline: 2px solid var(--firuza-css); outline-offset: 2px; }
+  button[aria-pressed="true"], button[aria-checked="true"] {
+    border-color: var(--firuza-css); color: var(--accent-text);
+  }
+  .controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+  .controls span { font-size: var(--step--1); color: var(--muted); }
+
+  .compare { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 1.75rem; }
+  .compare figure {
+    margin: 0; background: var(--surface); border-radius: 16px;
+    padding: 1.5rem; display: grid; place-items: center; gap: .9rem;
+    min-width: 13rem; flex: 1 1 13rem;
+  }
+  .compare figcaption { font-size: var(--step--1); color: var(--muted); text-align: center; max-width: 24ch; }
+  .compare b { display: block; color: var(--text); font-size: var(--step-0); margin-bottom: .25rem; }
+
+  .variants { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1.5rem; margin-top: 1.75rem; }
+  .variant { background: var(--surface); border-radius: 16px; padding: 1.5rem; }
+  .variant .row { display: flex; align-items: center; gap: 1.1rem; }
+  .variant h3 { margin: 0; font-size: var(--step-1); letter-spacing: -.01em; }
+  .variant h3 small { display: block; font-size: var(--step--1); font-weight: 400; color: var(--muted); letter-spacing: .04em; }
+  .variant .role {
+    display: inline-block; margin-top: .9rem; font-size: .6875rem; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--accent-text);
+  }
+  .variant p { margin: .35rem 0 0; font-size: var(--step--1); color: var(--muted); max-width: none; }
+  .variant .small { margin-left: auto; opacity: .95; }
+
+  .hues { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.75rem; }
+  .hue {
+    background: var(--surface); border: 1px solid var(--hair); border-radius: 16px;
+    padding: 1.25rem; display: grid; place-items: center; gap: .75rem;
+    cursor: pointer; min-width: 11rem; flex: 1 1 11rem; color: var(--text);
+    font: 400 var(--step--1)/1.5 "Noto Sans", system-ui, sans-serif; min-height: 44px;
+  }
+  .hue b { font-size: var(--step-0); }
+  .hue code { font-variant-numeric: tabular-nums; color: var(--muted); font-size: .75rem; }
+  .hue[aria-checked="true"] { border-color: var(--firuza-css); border-width: 2px; padding: calc(1.25rem - 1px); }
+
+  .verdict { margin-top: 1.75rem; padding: 1.1rem 1.25rem; border-radius: 12px; background: var(--tile); }
+  .verdict p { margin: 0; max-width: 62ch; }
+  .verdict p + p { margin-top: .8rem; }
+
+  canvas { display: block; }
+  footer { margin-top: 3.25rem; padding-top: 2rem; border-top: 1px solid var(--hair); color: var(--muted); font-size: var(--step--1); }
+  footer p { margin: 0 0 .8rem; }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Sakina · brand</p>
+    <h1>САМАНӢ, and six ways it could move.</h1>
+    <p class="lede">
+      The bond is settled. How it behaves while you wait is not. Everything below
+      runs live — pick a row, then pick a hue.
+    </p>
+    <div class="controls">
+      <button id="motion" type="button" aria-pressed="true">Motion is on</button>
+      <span id="motion-note">Turn it off to see every reduced-motion fallback.</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Why it read as a game</h2>
+    <p>
+      Two things, and the colour was only one of them.
+    </p>
+    <p>
+      A whole bar switching from teal to orange is a large jump made instantly,
+      which is the grammar of a puzzle game telling you a piece is now active. It
+      also spends saffron, and saffron is supposed to be rare. Replacing the jump
+      with a lighter tint of the same teal, and letting the light travel along
+      the bars instead of switching them, changes the reading completely without
+      changing the mark at all.
+    </p>
+    <div class="compare">
+      <figure>
+        <canvas data-variant="game" data-size="104"></canvas>
+        <figcaption><b>Before</b>Whole bar, saffron, instant. Four states, no travel.</figcaption>
+      </figure>
+      <figure>
+        <canvas data-variant="guzar" data-size="104"></canvas>
+        <figcaption><b>After</b>A tint of the same teal, travelling. One continuous journey.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Six variants</h2>
+    <p>
+      Each is shown at display size and at 28&nbsp;px, which is roughly where a
+      loading mark actually sits in an app bar.
+    </p>
+    <div class="variants" id="variants"></div>
+  </section>
+
+  <section>
+    <h2>The hue</h2>
+    <p>
+      A pure hue nudge: saturation and lightness are identical across all three,
+      so the only thing changing is how green or blue the teal reads. Click one
+      and the whole page follows.
+    </p>
+    <div class="hues" id="hues" role="radiogroup" aria-label="Accent hue"></div>
+    <div class="verdict">
+      <p>
+        Firuza sits at hue 174, which is a teal leaning green — the Samanid glaze
+        reading comes from that lean. Hue 180 is the exact midpoint between green
+        and blue and is the more expected choice for an app of this kind, which is
+        what makes it the smaller of the two steps away from where we are.
+      </p>
+      <p>
+        Past about 186 the colour stops looking like glaze and starts looking like
+        every other messenger, so that is the far edge rather than a candidate.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>What I would pick</h2>
+    <div class="verdict">
+      <p>
+        <b>ГУЗАР for loading, НАФАС for waiting, ТОБ for arrival.</b> Three
+        states, three primitives already in <code>docs/MOTION.md</code>, and one
+        rule that keeps them apart: the mark is one colour, and saffron only ever
+        means <em>arrived</em>. Nothing in a loop is allowed to spend it.
+      </p>
+      <p>
+        ГУЗАР over МАВҶ because the travelling light has a direction and the
+        breathing wave does not, and a loading state that is going somewhere is
+        easier to wait through. ГИРЕҲ is the most characterful of the six and the
+        one I would keep in reserve for a pull-to-refresh, where a short physical
+        gesture wants a short physical answer.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      The bars are unchanged from <code>marks.html</code>. Only the lit colour and
+      the way it moves differ here.
+    </p>
+    <p>
+      Every variant has a path that removes it rather than shortening it, which is
+      what <code>pnpm test:motion</code> enforces in the Flutter client. None of
+      this has been seen on a handset.
+    </p>
+  </footer>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const HUES = [
+    { id: 174, hex: "#35B9AC", name: "Firuza", note: "hue 174 — as it is today" },
+    { id: 180, hex: "#35B9B9", name: "Firuza 180", note: "hue 180 — the tiny step" },
+    { id: 186, hex: "#35ACB9", name: "Firuza 186", note: "hue 186 — the far edge" },
+  ];
+
+  let baseHex = HUES[1].hex;              // the tiny step, pre-selected
+  const theme = { saffron: "#E3AC55", toward: "#E8EEF7", amount: 0.34 };
+
+  function readTheme() {
+    const cs = getComputedStyle(document.documentElement);
+    theme.saffron = cs.getPropertyValue("--saffron").trim() || theme.saffron;
+    theme.toward = cs.getPropertyValue("--lit-toward").trim() || theme.toward;
+    theme.amount = parseFloat(cs.getPropertyValue("--lit-amount")) || theme.amount;
+  }
+
+  const rgb = (hex) => {
+    const h = hex.replace("#", "");
+    const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+  const hexOf = ([r, g, b]) =>
+    "#" + [r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+  const mix = (a, b, t) => {
+    const A = rgb(a), B = rgb(b);
+    return hexOf([0, 1, 2].map((i) => A[i] + (B[i] - A[i]) * t));
+  };
+  const rgba = (hex, a) => { const [r, g, b] = rgb(hex); return `rgba(${r},${g},${b},${a})`; };
+
+  const litHex = () => mix(baseHex, theme.toward, theme.amount);
+
+  /* ---- the bond ---------------------------------------------------------- */
+  // Unchanged from marks.html. Each bar carries the direction it runs in, which
+  // is what lets light travel round the weave in one continuous loop.
+  const BARS = [
+    { x: 14, y: 14, w: 48, h: 20, dx:  1, dy:  0 }, // top, left to right
+    { x: 66, y: 14, w: 20, h: 48, dx:  0, dy:  1 }, // right, top to bottom
+    { x: 38, y: 66, w: 48, h: 20, dx: -1, dy:  0 }, // bottom, right to left
+    { x: 14, y: 38, w: 20, h: 48, dx:  0, dy: -1 }, // left, bottom to top
+  ];
+  const RUN = 48, LOOP = RUN * 4;
+
+  function barPath(g, u, b, ox = 0, oy = 0) {
+    g.beginPath();
+    g.roundRect((b.x + ox) * u, (b.y + oy) * u, b.w * u, b.h * u, 6 * u);
+  }
+
+  // Where a bar's start and end sit on the loop, in path units.
+  const barSpan = (i) => [i * RUN, (i + 1) * RUN];
+
+  // Distance around the loop, taking the short way.
+  function loopDist(a, b) {
+    const d = Math.abs(a - b) % LOOP;
+    return d > LOOP / 2 ? LOOP - d : d;
+  }
+
+  const ease = (t) => 1 - Math.pow(1 - t, 3);
+  const breath = (t) => 0.55 + 0.45 * (0.5 - Math.cos(t * Math.PI * 2) / 2);
+
+  /* ---- variants ---------------------------------------------------------- */
+  // Every draw takes (g, px, t) where t is seconds. `still` means the platform
+  // asked for no motion: each variant then paints its own resting state, which
+  // still has to say the same thing the movement said.
+
+  const BAND = 62;   // how much of the loop the travelling light covers
+
+  const VARIANTS = {
+    // The one being replaced. Kept so the difference is visible rather than
+    // asserted.
+    game(g, px, t, still) {
+      const u = px / 100;
+      const step = still ? 0 : Math.floor(t / 0.46) % 4;
+      BARS.forEach((b, i) => {
+        barPath(g, u, b);
+        g.fillStyle = (!still && i === step) ? theme.saffron : baseHex;
+        g.fill();
+      });
+    },
+
+    guzar(g, px, t, still) {
+      const u = px / 100;
+      const lit = litHex();
+      BARS.forEach((b) => { barPath(g, u, b); g.fillStyle = baseHex; g.fill(); });
+      if (still) return;
+      const centre = (t / 2.2) % 1 * LOOP;
+      BARS.forEach((b, i) => {
+        const [s0] = barSpan(i);
+        g.save();
+        barPath(g, u, b);
+        g.clip();
+        // Five stops along the bar's own axis approximate a soft band with a
+        // peak. A two-stop gradient can only ramp, and a ramp reads as a wipe.
+        const x0 = (b.dx < 0 ? b.x + b.w : b.x) * u;
+        const y0 = (b.dy < 0 ? b.y + b.h : b.y) * u;
+        const x1 = (b.dx < 0 ? b.x : b.x + b.w) * u;
+        const y1 = (b.dy < 0 ? b.y : b.y + b.h) * u;
+        const grad = g.createLinearGradient(x0, y0, x1, y1);
+        for (let k = 0; k <= 4; k++) {
+          const local = k / 4;
+          const d = loopDist(s0 + local * RUN, centre);
+          grad.addColorStop(local, rgba(lit, Math.max(0, 1 - d / (BAND / 2))));
+        }
+        g.fillStyle = grad;
+        g.fillRect(0, 0, px, px);
+        g.restore();
+      });
+    },
+
+    boft(g, px, t, still) {
+      const u = px / 100;
+      // 2.0s, with all four bars down by 61% of the cycle. Slower than this and
+      // the indicator sits visibly empty at the start of every repeat, which
+      // reads as a failure rather than as a beginning.
+      const cycle = 2.0, p = (t / cycle) % 1;
+      BARS.forEach((b, i) => {
+        const start = i * 0.13;
+        const grow = still ? 1 : Math.max(0, Math.min(1, (p - start) / 0.22));
+        if (grow <= 0) return;
+        const e = ease(grow);
+        g.save();
+        // Clip to the growing length, measured along the bar's own direction.
+        g.beginPath();
+        if (b.dx) {
+          const len = b.w * e;
+          g.rect((b.dx > 0 ? b.x : b.x + b.w - len) * u, b.y * u, len * u, b.h * u);
+        } else {
+          const len = b.h * e;
+          g.rect(b.x * u, (b.dy > 0 ? b.y : b.y + b.h - len) * u, b.w * u, len * u);
+        }
+        g.clip();
+        barPath(g, u, b);
+        g.fillStyle = baseHex;
+        g.fill();
+        g.restore();
+      });
+    },
+
+    nafas(g, px, t, still) {
+      const u = px / 100;
+      g.globalAlpha = still ? 0.72 : breath((t / 0.9) % 1);
+      BARS.forEach((b) => { barPath(g, u, b); g.fillStyle = baseHex; g.fill(); });
+      g.globalAlpha = 1;
+    },
+
+    mavj(g, px, t, still) {
+      const u = px / 100;
+      BARS.forEach((b, i) => {
+        g.globalAlpha = still ? 0.72 : breath(((t / 1.4) + i * 0.25) % 1);
+        barPath(g, u, b);
+        g.fillStyle = baseHex;
+        g.fill();
+      });
+      g.globalAlpha = 1;
+    },
+
+    charkh(g, px, t, still) {
+      const u = px / 100;
+      // A quarter turn maps the pinwheel onto itself, so the mark arrives back
+      // at its own silhouette every step. Turn, then hold.
+      const STEP = 0.62, TURN = 0.3;
+      let angle = 0;
+      if (!still) {
+        const n = Math.floor(t / STEP);
+        const within = (t % STEP) / STEP;
+        const k = within < TURN / STEP ? ease(within / (TURN / STEP)) : 1;
+        angle = (n + k) * (Math.PI / 2);
+      }
+      g.save();
+      g.translate(px / 2, px / 2);
+      g.rotate(angle);
+      g.translate(-px / 2, -px / 2);
+      BARS.forEach((b) => { barPath(g, u, b); g.fillStyle = baseHex; g.fill(); });
+      g.restore();
+    },
+
+    gireh(g, px, t, still) {
+      const u = px / 100;
+      // Each bar slides along the direction it runs, so the four gaps close
+      // together and open together. The knot tightening, then letting go.
+      const d = still ? 0 : 5 * (0.5 - Math.cos((t / 1.6) % 1 * Math.PI * 2) / 2);
+      BARS.forEach((b) => {
+        barPath(g, u, b, b.dx * d, b.dy * d);
+        g.fillStyle = baseHex;
+        g.fill();
+      });
+    },
+
+    tob(g, px, t, still) {
+      const u = px / 100;
+      BARS.forEach((b) => { barPath(g, u, b); g.fillStyle = baseHex; g.fill(); });
+      if (still) return;
+      // Once every cycle, not continuously. This is arrival, not waiting.
+      const CYCLE = 2.4, p = (t % CYCLE) / 0.32;
+      if (p >= 1) return;
+      const travel = px * 2, band = travel * 0.28;
+      const c = -band + p * (travel + band * 2);
+      const env = p < 0.18 ? p / 0.18 : p > 0.82 ? (1 - p) / 0.18 : 1;
+      const grad = g.createLinearGradient(c - band / 2, c - band / 2, c + band / 2, c + band / 2);
+      grad.addColorStop(0, rgba(theme.saffron, 0));
+      grad.addColorStop(0.5, rgba(theme.saffron, 0.9 * Math.max(0, Math.min(1, env))));
+      grad.addColorStop(1, rgba(theme.saffron, 0));
+      g.save();
+      g.globalCompositeOperation = "source-atop";
+      g.fillStyle = grad;
+      g.fillRect(0, 0, px, px);
+      g.restore();
+    },
+  };
+
+  const SHOWN = [
+    { id: "guzar", name: "ГУЗАР", gloss: "guzar — the pass", role: "Loading",
+      note: "One light travels the whole weave, entering each bar where the last one left. Nothing switches; something moves." },
+    { id: "mavj", name: "МАВҶ", gloss: "mavj — the wave", role: "Loading",
+      note: "The same journey with no edge at all: each bar breathes a quarter-cycle behind the one before it, so the swell goes round on its own." },
+    { id: "boft", name: "БОФТ", gloss: "boft — the weaving", role: "Cold start",
+      note: "The bars lay themselves down in order and stay. It only makes sense the first time, which is exactly what a cold start is." },
+    { id: "nafas", name: "НАФАС", gloss: "nafas — the breath", role: "Waiting",
+      note: "The whole bond breathes as one. The quietest of the six, and the only one that costs a single opacity value." },
+    { id: "charkh", name: "ЧАРХ", gloss: "charkh — the turn", role: "Refreshing",
+      note: "A quarter turn, then a hold. The pinwheel lands on its own silhouette every step, so it reads as deliberate rather than as a spinner." },
+    { id: "gireh", name: "ГИРЕҲ", gloss: "gireh — the knot", role: "Pull to refresh",
+      note: "Each bar slides along its own run, closing all four gaps at once and opening them again. The knot tightening." },
+  ];
+
+  /* ---- rendering ---------------------------------------------------------- */
+
+  let motion = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let rafId = 0, tickCount = 0;
+  const live = [];
+
+  function fit(cv, px) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = px * dpr; cv.height = px * dpr;
+    cv.style.width = px + "px"; cv.style.height = px + "px";
+    cv.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function paint(entry, t) {
+    const g = entry.cv.getContext("2d");
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, entry.cv.width, entry.cv.height); g.restore();
+    VARIANTS[entry.id](g, entry.px, t, !motion);
+  }
+
+  function frame(now) {
+    rafId = 0;
+    if ((tickCount++ & 31) === 0) readTheme();
+    const t = now / 1000;
+    for (const entry of live) paint(entry, t);
+    if (motion) rafId = requestAnimationFrame(frame);
+  }
+
+  function repaintAll() {
+    readTheme();
+    for (const entry of live) paint(entry, performance.now() / 1000);
+  }
+
+  function register(cv, id, px) {
+    fit(cv, px);
+    const entry = { cv, id, px };
+    live.push(entry);
+    return entry;
+  }
+
+  // The two comparison plates are declared in the markup, since they are the
+  // argument rather than a list item.
+  for (const cv of document.querySelectorAll("canvas[data-variant]")) {
+    register(cv, cv.dataset.variant, Number(cv.dataset.size));
+  }
+
+  const variantHost = document.getElementById("variants");
+  for (const v of SHOWN) {
+    const card = document.createElement("div");
+    card.className = "variant";
+
+    const row = document.createElement("div");
+    row.className = "row";
+    const big = document.createElement("canvas");
+    register(big, v.id, 76);
+    const heading = document.createElement("h3");
+    heading.innerHTML = v.name + "<small>" + v.gloss + "</small>";
+    const small = document.createElement("canvas");
+    small.className = "small";
+    register(small, v.id, 28);
+    row.append(big, heading, small);
+
+    const role = document.createElement("span");
+    role.className = "role";
+    role.textContent = v.role;
+    const note = document.createElement("p");
+    note.textContent = v.note;
+
+    card.append(row, role, note);
+    variantHost.appendChild(card);
+  }
+
+  // Arrival gets its own card at the end of the list: it is not a loading state
+  // and should not be chosen instead of one.
+  {
+    const card = document.createElement("div");
+    card.className = "variant";
+    const row = document.createElement("div");
+    row.className = "row";
+    const big = document.createElement("canvas");
+    register(big, "tob", 76);
+    const heading = document.createElement("h3");
+    heading.innerHTML = "ТОБ<small>tob — the light pass</small>";
+    const small = document.createElement("canvas");
+    small.className = "small";
+    register(small, "tob", 28);
+    row.append(big, heading, small);
+    const role = document.createElement("span");
+    role.className = "role";
+    role.textContent = "Arrived — not a loop";
+    const note = document.createElement("p");
+    note.textContent =
+      "The one place saffron is still spent, and it is spent once. Shown here on a repeat so it can be seen at all; in the app it fires when something becomes true and then is gone.";
+    card.append(row, role, note);
+    variantHost.appendChild(card);
+  }
+
+  /* ---- hue picker --------------------------------------------------------- */
+
+  const hueHost = document.getElementById("hues");
+  function applyHue(hex) {
+    baseHex = hex;
+    document.documentElement.style.setProperty("--firuza-css", hex);
+    // The raw hue is fine as a border on either ground, but as text on a light
+    // ground it lands around 2.4:1. Deepen it there rather than shipping a
+    // contrast failure for the sake of a swatch matching exactly.
+    const onLight = theme.toward === "#0A1220";
+    document.documentElement.style.setProperty(
+      "--accent-text", onLight ? mix(hex, "#0A1220", 0.42) : hex);
+    for (const el of hueHost.children) {
+      el.setAttribute("aria-checked", String(el.dataset.hex === hex));
+    }
+    repaintAll();
+  }
+
+  // Swatches are deliberately kept out of `live`: they are being compared with
+  // each other, and a moving sample is harder to compare than a still one. Each
+  // paints in its own hue rather than the page's.
+  const swatches = [];
+
+  for (const h of HUES) {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "hue";
+    el.setAttribute("role", "radio");
+    el.dataset.hex = h.hex;
+
+    const cv = document.createElement("canvas");
+    fit(cv, 56);
+    const paint56 = () => {
+      const g = cv.getContext("2d");
+      g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+      g.clearRect(0, 0, cv.width, cv.height); g.restore();
+      const u = 56 / 100;
+      for (const b of BARS) { barPath(g, u, b); g.fillStyle = h.hex; g.fill(); }
+    };
+    swatches.push(paint56);
+
+    const name = document.createElement("b");
+    name.textContent = h.name;
+    const note = document.createElement("span");
+    note.textContent = h.note;
+    const code = document.createElement("code");
+    code.textContent = h.hex;
+
+    el.append(cv, name, note, code);
+    el.addEventListener("click", () => applyHue(h.hex));
+    hueHost.appendChild(el);
+  }
+
+  const repaintSwatches = () => { for (const paint of swatches) paint(); };
+
+  /* ---- motion control ----------------------------------------------------- */
+
+  const toggle = document.getElementById("motion");
+  const note = document.getElementById("motion-note");
+
+  function applyMotion() {
+    toggle.textContent = motion ? "Motion is on" : "Motion is off";
+    toggle.setAttribute("aria-pressed", String(motion));
+    note.textContent = motion
+      ? "Turn it off to see every reduced-motion fallback."
+      : "Every variant is at rest. Nothing is running slower — it is not running.";
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    if (motion) rafId = requestAnimationFrame(frame);
+    else repaintAll();
+  }
+  toggle.addEventListener("click", () => { motion = !motion; applyMotion(); });
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    readTheme(); repaintSwatches(); if (!motion) repaintAll();
+  });
+
+  readTheme();
+  applyHue(baseHex);
+  repaintSwatches();
+  applyMotion();
+
+  // Exposed so a variant can be painted at a chosen moment rather than caught
+  // in passing. `pnpm brand:render` uses it to build the filmstrip in
+  // docs/brand/samani-frames.png, and it is the only honest way to check a
+  // loop: a screenshot of a running animation shows one arbitrary frame.
+  window.SakinaSamani = {
+    variants: Object.keys(VARIANTS),
+    paint(canvas, id, px, seconds) {
+      fit(canvas, px);
+      const g = canvas.getContext("2d");
+      g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+      g.clearRect(0, 0, canvas.width, canvas.height); g.restore();
+      VARIANTS[id](g, px, seconds, false);
+    },
+  };
+})();
+</script>

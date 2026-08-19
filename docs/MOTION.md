@@ -3,7 +3,7 @@
 > Everyone else moves things. We light them.
 
 Live specimens, with a reduce-motion toggle:
-[`docs/prototype/motion.html`](prototype/motion.html).
+[`docs/brand/motion.html`](brand/motion.html).
 
 The tokens are in `apps/mobile/lib/src/motion.dart`, the widgets in
 `apps/mobile/lib/src/ui/motion_primitives.dart`, and `pnpm test:motion` fails
