@@ -317,9 +317,15 @@ abstract final class SakinaTheme {
 ///
 /// Four squares, each turned against the one below, opening to let light into
 /// the home — the right shape for an app whose main job is keeping families in
-/// touch across a border. It is also four straight-edged shapes, so it costs
-/// almost nothing to paint and stays legible at 16 pixels, which a paper plane
-/// does not.
+/// touch across a border. Four is not a stylisation: a real chorkhona is four
+/// concentric layers, standing for earth, wind, fire and water, around a
+/// central opening.
+///
+/// Four straight-edged shapes cost almost nothing to paint and need no asset.
+/// They are *not* legible at every size, though: below roughly 32 logical
+/// pixels the strokes fall under a pixel and the tiers merge into a blob. The
+/// launcher icon, the favicon and the notification icon all still need a
+/// solid-fill variant, which does not exist yet — see `docs/DESIGN-AUDIT.md`.
 class ChorkhonaMark extends StatelessWidget {
   const ChorkhonaMark({super.key, this.size = 40, this.color, this.coreColor});
 
@@ -379,13 +385,20 @@ class _ChorkhonaPainter extends CustomPainter {
       canvas.restore();
     }
 
-    // Each tier turned 45° against the one below — that alternation is what
-    // makes the silhouette an eight-pointed opening rather than a plain square.
+    // Each tier turned 45° against the one below — that alternation is the
+    // whole difference between this and a plain stack of concentric squares.
     //
-    // It sheds tiers rather than collapsing. Three nested outlines inside 24
-    // logical pixels merge into a blob, so small sizes keep the outer square,
-    // the one 45° turn that makes the shape recognisable, and the core. This is
-    // what lets the mark sit in an app bar and on a splash screen unchanged.
+    // The silhouette is a rounded *square*, not an eight-pointed star, because
+    // these squares are concentric and never overlap. Keep it that way. Two
+    // overlapping squares make an octagram, which is the Turkic star carried on
+    // the Uzbek, Turkmen and Azerbaijani state emblems — the wrong flag to wear
+    // for a product whose accent was chosen off Samanid tilework.
+    //
+    // Tiers are shed as the box shrinks: under 40 the inner square goes, under
+    // 24 the 45° turn goes too. That order is backwards, since the turn is the
+    // tier carrying the identity, and no order rescues the mark at 16px. Both
+    // are open findings in docs/DESIGN-AUDIT.md rather than fixed here, because
+    // changing either changes the design.
     square(38, 0);
     if (size.width >= 24) square(26, _fortyFiveDegrees);
     if (size.width >= 40) square(17, 0);

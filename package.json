@@ -14,6 +14,7 @@
     "infra:down": "docker compose -f infra/docker-compose.yml down",
     "infra:reset": "docker compose -f infra/docker-compose.yml down -v",
     "dev:client": "node tools/dev-client/serve.mjs",
+    "brand:render": "node tools/brand-render.mjs",
     "test": "pnpm test:auth && pnpm test:bans && pnpm test:messaging && pnpm test:push && pnpm test:social && pnpm test:l10n && pnpm test:dart && pnpm test:motion",
     "test:messaging": "node services/gateway/scripts/e2e-smoke.mjs",
     "test:auth": "node services/api/scripts/auth-smoke.mjs",

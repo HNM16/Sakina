@@ -24,11 +24,13 @@ across a border, and a skylight is a hole cut in a roof so that light gets in.
 It is also four straight-edged shapes, which costs almost nothing to paint on a
 budget phone — a paper plane does not.
 
-It sheds tiers rather than shrinking. Three nested outlines inside 24 logical
-pixels merge into a blob, so at small sizes the mark drops to the outer square,
-the single 45° turn that makes the shape recognisable, and the core. That is what
-lets the same widget sit in an app bar and on a splash screen without a second
-asset.
+It sheds tiers as the box shrinks — under 40 logical pixels the inner square
+goes, under 24 the 45° turn goes as well. **That does not work, and the audit
+says so.** Shedding drops the 45° turn, the tier carrying the identity, before
+the outer square, which carries none; and in either order three sub-pixel strokes
+inside 16 pixels merge into a blob. This is a large-size mark. The launcher icon,
+the favicon and the notification icon need a solid-fill variant — an open finding
+in [`DESIGN-AUDIT.md`](DESIGN-AUDIT.md#the-mark), not a decision already taken.
 
 Implemented as `ChorkhonaMark` in `apps/mobile/lib/src/theme.dart`, drawn on a
 canvas rather than shipped as an asset.
@@ -128,6 +130,10 @@ shouting is off-brief.
 | `apps/mobile/lib/src/theme.dart` | The whole system: colours, `SakinaPalette`, both `ThemeData`s, and the mark |
 | `tools/dev-client/index.html` | The same palette, so the browser client matches |
 | `docs/brand/identity.html` | The rendered identity, both themes |
+| `docs/brand/mark-check.png` | Whether the mark holds up — silhouette, size ramp, squint test |
+
+Both images are generated: `pnpm brand:render` re-renders them, so the pages and
+the pictures of the pages cannot drift apart.
 
 Bubble colours are a named `ThemeExtension` rather than Material's
 `primaryContainer`, deliberately: reading them off the generated scheme means
