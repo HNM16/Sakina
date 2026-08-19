@@ -95,6 +95,18 @@
   .controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
   .controls span { font-size: var(--step--1); color: var(--muted); }
 
+  .loop-stage { display: flex; gap: 1.75rem; flex-wrap: wrap; align-items: stretch; margin-top: 1.75rem; }
+  .plate { background: var(--surface); border-radius: 18px; padding: 1.75rem; display: grid; place-items: center; }
+  .plate.big { flex: 0 0 auto; }
+  .loop-side { display: flex; flex-direction: column; justify-content: space-between; gap: 1.25rem; flex: 1 1 15rem; }
+  .sizes { display: flex; gap: 1.5rem; align-items: flex-end; flex-wrap: wrap; }
+  .sizes figure { margin: 0; text-align: center; }
+  .sizes figcaption { font-size: .6875rem; color: var(--muted); margin-top: .5rem; font-variant-numeric: tabular-nums; }
+  .fps { margin: 0; font-size: var(--step--1); color: var(--muted); }
+  .fps b { color: var(--text); font-variant-numeric: tabular-nums; }
+  #timeline { width: 100%; height: 76px; margin-top: 1.75rem; }
+  .timeline-note { margin: .75rem 0 0; font-size: var(--step--1); color: var(--muted); }
+
   .compare { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 1.75rem; }
   .compare figure {
     margin: 0; background: var(--surface); border-radius: 16px;
@@ -139,16 +151,48 @@
 <div class="wrap">
   <header>
     <p class="eyebrow">Sakina · brand</p>
-    <h1>САМАНӢ, and six ways it could move.</h1>
+    <h1>САМАНӢ, and how it moves.</h1>
     <p class="lede">
-      The bond is settled. How it behaves while you wait is not. Everything below
-      runs live — pick a row, then pick a hue.
+      The bond is settled. How it behaves while you wait is the question. The
+      loop below is the answer; the seven variants under it are the parts it is
+      made from. Everything runs live.
     </p>
     <div class="controls">
       <button id="motion" type="button" aria-pressed="true">Motion is on</button>
       <span id="motion-note">Turn it off to see every reduced-motion fallback.</span>
     </div>
   </header>
+
+  <section id="loop-section">
+    <h2>The loop</h2>
+    <p>
+      ГУЗАР, ЧАРХ and БОФТ on one clock, handing over to each other and starting
+      again. One cycle is 5.4 seconds.
+    </p>
+    <p>
+      They mix rather than crossfade, because they are not the same kind of
+      thing: ГУЗАР is a colour travelling, ЧАРХ is a rotation, БОФТ is an extent.
+      Three separate channels over one clock means that at a handover the mark
+      really is doing two things at once, instead of one picture dissolving into
+      another.
+    </p>
+    <div class="loop-stage">
+      <div class="plate big"><canvas data-variant="loop" data-size="168"></canvas></div>
+      <div class="loop-side">
+        <div class="sizes">
+          <figure><canvas data-variant="loop" data-size="40"></canvas><figcaption>40 px</figcaption></figure>
+          <figure><canvas data-variant="loop" data-size="28"></canvas><figcaption>28 px</figcaption></figure>
+          <figure><canvas data-variant="loop" data-size="20"></canvas><figcaption>20 px</figcaption></figure>
+        </div>
+        <p class="fps">Measured here: <b id="fps">—</b></p>
+      </div>
+    </div>
+    <canvas id="timeline" aria-hidden="true"></canvas>
+    <p class="timeline-note">
+      Which channel is carrying, across one cycle. The overlaps are the
+      handovers — the only places two channels are both above zero.
+    </p>
+  </section>
 
   <section>
     <h2>Why it read as a game</h2>
@@ -176,10 +220,11 @@
   </section>
 
   <section>
-    <h2>Six variants</h2>
+    <h2>The parts</h2>
     <p>
-      Each is shown at display size and at 28&nbsp;px, which is roughly where a
-      loading mark actually sits in an app bar.
+      The seven behaviours the loop is assembled from, each on its own. Shown at
+      display size and at 28&nbsp;px, which is roughly where a loading mark
+      actually sits in an app bar.
     </p>
     <div class="variants" id="variants"></div>
   </section>
@@ -210,17 +255,23 @@
     <h2>What I would pick</h2>
     <div class="verdict">
       <p>
-        <b>ГУЗАР for loading, НАФАС for waiting, ТОБ for arrival.</b> Three
-        states, three primitives already in <code>docs/MOTION.md</code>, and one
-        rule that keeps them apart: the mark is one colour, and saffron only ever
-        means <em>arrived</em>. Nothing in a loop is allowed to spend it.
+        <b>The loop for loading. НАФАС for waiting. ТОБ for arrival. ГИРЕҲ for
+        pull-to-refresh.</b> Four states, one rule keeping them apart: the mark
+        is one colour, and saffron only ever means <em>arrived</em>. Nothing in a
+        loop is allowed to spend it.
       </p>
       <p>
-        ГУЗАР over МАВҶ because the travelling light has a direction and the
-        breathing wave does not, and a loading state that is going somewhere is
-        easier to wait through. ГИРЕҲ is the most characterful of the six and the
-        one I would keep in reserve for a pull-to-refresh, where a short physical
-        gesture wants a short physical answer.
+        The loop is for the long waits, where a single repeating gesture becomes
+        wallpaper after ten seconds and three taking turns does not. НАФАС stays
+        separate because a pending message is not loading — it is one object in
+        doubt, and it should say so itself rather than summon an indicator.
+      </p>
+      <p>
+        МАВҶ and БОФТ are not dropped, they are absorbed: БОФТ is the third
+        channel of the loop, and МАВҶ is what ГУЗАР becomes if the travelling
+        light ever turns out to be too much on a cheap screen. ГИРЕҲ is the most
+        characterful of the seven and the only one held back, because a short
+        physical gesture wants a short physical answer rather than a cycle.
       </p>
     </div>
   </section>
@@ -249,13 +300,15 @@
   ];
 
   let baseHex = HUES[1].hex;              // the tiny step, pre-selected
-  const theme = { saffron: "#E3AC55", toward: "#E8EEF7", amount: 0.34 };
+  const theme = { saffron: "#E3AC55", toward: "#E8EEF7", amount: 0.34, muted: "#8496B3", hair: "#22314B" };
 
   function readTheme() {
     const cs = getComputedStyle(document.documentElement);
     theme.saffron = cs.getPropertyValue("--saffron").trim() || theme.saffron;
     theme.toward = cs.getPropertyValue("--lit-toward").trim() || theme.toward;
     theme.amount = parseFloat(cs.getPropertyValue("--lit-amount")) || theme.amount;
+    theme.muted = cs.getPropertyValue("--muted").trim() || theme.muted;
+    theme.hair = cs.getPropertyValue("--hair").trim() || theme.hair;
   }
 
   const rgb = (hex) => {
@@ -300,6 +353,93 @@
 
   const ease = (t) => 1 - Math.pow(1 - t, 3);
   const breath = (t) => 0.55 + 0.45 * (0.5 - Math.cos(t * Math.PI * 2) / 2);
+  const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+  const smoothstep = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+  // A plateau with eased shoulders — 0 outside, 1 inside, no corners.
+  const windowAt = (p, start, end, ramp) =>
+    smoothstep(start - ramp, start + ramp, p) * (1 - smoothstep(end - ramp, end + ramp, p));
+
+  /* ---- the composite ------------------------------------------------------ */
+  // The three do not need crossfading, because they are not the same kind of
+  // thing. ГУЗАР is a colour travelling, ЧАРХ is a rotation, БОФТ is an extent.
+  // Three independent channels over one clock, each with its own window, so at
+  // a handover the mark really is doing two things at once rather than one
+  // picture dissolving into another.
+  const CYCLE = 5.4;
+  const SEG = { guzar: [0.00, 0.40], charkh: [0.44, 0.68], boft: [0.72, 1.00] };
+  const RAMP = 0.035;
+
+  const weights = (p) => ({
+    guzar: windowAt(p, SEG.guzar[0], SEG.guzar[1], RAMP),
+    charkh: windowAt(p, SEG.charkh[0], SEG.charkh[1], RAMP),
+    boft: windowAt(p, SEG.boft[0], SEG.boft[1], RAMP),
+  });
+
+  // Two quarter turns, each eased then held. The phase ends at exactly π, and π
+  // maps this pinwheel onto itself, so the wrap back to 0 at the top of the next
+  // cycle is invisible. That is the whole reason ЧАРХ can sit in a loop at all.
+  function turnAngle(p) {
+    const [s, e] = SEG.charkh;
+    if (p <= s) return 0;
+    if (p >= e) return Math.PI;
+    const q = (p - s) / (e - s);
+    const index = Math.floor(q * 2);
+    const within = (q * 2) % 1;
+    const TURN = 0.55;
+    const k = within < TURN ? ease(within / TURN) : 1;
+    return (index + k) * (Math.PI / 2);
+  }
+
+  // Each bar pulls back to its own start and grows out again, staggered, so the
+  // weave is redone rather than erased.
+  //
+  // The stagger and the span are tied together: four bars, so 3·STAGGER + SPAN
+  // must be exactly 1 for the last bar to finish as the phase does. Their
+  // difference is what decides how many bars are in flight at once, and that is
+  // the whole ballgame — at 0.18 and 0.46 three were short simultaneously and
+  // the mark collapsed to two bars. A loading mark that empties itself reads as
+  // a failure, so these are set to leave at most one bar meaningfully short.
+  const BOFT_STAGGER = 0.2333, BOFT_SPAN = 0.30;
+
+  function boftExtent(p, i) {
+    const [s, e] = SEG.boft;
+    if (p < s || p > e) return 1;
+    const q = (p - s) / (e - s);
+    const local = (q - i * BOFT_STAGGER) / BOFT_SPAN;
+    if (local <= 0 || local >= 1) return 1;
+    return local < 0.4
+      ? 1 - ease(local / 0.4)
+      : ease((local - 0.4) / 0.6);
+  }
+
+  // Clip to a bar's grown length, measured along the direction it runs.
+  function clipExtent(g, u, b, extent) {
+    g.beginPath();
+    if (b.dx) {
+      const len = b.w * extent;
+      g.rect((b.dx > 0 ? b.x : b.x + b.w - len) * u, b.y * u, len * u, b.h * u);
+    } else {
+      const len = b.h * extent;
+      g.rect(b.x * u, (b.dy > 0 ? b.y : b.y + b.h - len) * u, b.w * u, len * u);
+    }
+    g.clip();
+  }
+
+  // The travelling band, as a five-stop gradient along a bar's own axis. Two
+  // stops can only ramp, and a ramp reads as a wipe rather than as a light.
+  function travelGradient(g, u, b, i, centre, alpha, lit) {
+    const x0 = (b.dx < 0 ? b.x + b.w : b.x) * u;
+    const y0 = (b.dy < 0 ? b.y + b.h : b.y) * u;
+    const x1 = (b.dx < 0 ? b.x : b.x + b.w) * u;
+    const y1 = (b.dy < 0 ? b.y : b.y + b.h) * u;
+    const grad = g.createLinearGradient(x0, y0, x1, y1);
+    for (let k = 0; k <= 4; k++) {
+      const local = k / 4;
+      const d = loopDist(i * RUN + local * RUN, centre);
+      grad.addColorStop(local, rgba(lit, alpha * Math.max(0, 1 - d / (BAND / 2))));
+    }
+    return grad;
+  }
 
   /* ---- variants ---------------------------------------------------------- */
   // Every draw takes (g, px, t) where t is seconds. `still` means the platform
@@ -449,6 +589,47 @@
       g.fillRect(0, 0, px, px);
       g.restore();
     },
+
+    // ГУЗАР, ЧАРХ and БОФТ on one clock. See the channel notes above.
+    loop(g, px, t, still) {
+      const u = px / 100;
+      if (still) {
+        for (const b of BARS) { barPath(g, u, b); g.fillStyle = baseHex; g.fill(); }
+        return;
+      }
+      const p = (t / CYCLE) % 1;
+      const w = weights(p);
+      const lit = litHex();
+      // The band keeps advancing through every phase and is only gated by the
+      // ГУЗАР window, so when the light returns it has not lost its place.
+      const centre = ((t / 2.2) % 1) * LOOP;
+
+      g.save();
+      g.translate(px / 2, px / 2);
+      g.rotate(turnAngle(p));
+      g.translate(-px / 2, -px / 2);
+
+      BARS.forEach((b, i) => {
+        const extent = w.boft > 0.002 ? boftExtent(p, i) : 1;
+        if (extent <= 0) return;
+        g.save();
+        if (extent < 1) clipExtent(g, u, b, extent);
+        barPath(g, u, b);
+        g.fillStyle = baseHex;
+        g.fill();
+        if (w.guzar > 0.002) {
+          g.save();
+          barPath(g, u, b);
+          g.clip();
+          g.fillStyle = travelGradient(g, u, b, i, centre, w.guzar, lit);
+          g.fillRect(0, 0, px, px);
+          g.restore();
+        }
+        g.restore();
+      });
+
+      g.restore();
+    },
   };
 
   const SHOWN = [
@@ -486,17 +667,93 @@
     VARIANTS[entry.id](g, entry.px, t, !motion);
   }
 
+  /* ---- the channel timeline ----------------------------------------------- */
+
+  const timeline = document.getElementById("timeline");
+  const ROWS = [["ГУЗАР", "guzar"], ["ЧАРХ", "charkh"], ["БОФТ", "boft"]];
+  const GUTTER = 66, ROW_H = 18, ROW_GAP = 8, TL_H = 76;
+  let bands = null, trackW = 0;
+
+  // The three curves never change shape, so they are drawn once into an
+  // offscreen canvas and blitted. Only the playhead moves, and redrawing seven
+  // hundred one-pixel columns three times over at 60 fps to move one line would
+  // be a strange way to spend a frame.
+  function buildBands() {
+    const width = timeline.clientWidth;
+    if (!width) return;
+    trackW = Math.max(1, Math.round(width - GUTTER - 4));
+    bands = document.createElement("canvas");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    bands.width = width * dpr; bands.height = TL_H * dpr;
+    const g = bands.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.font = '600 11px "Noto Sans", system-ui, sans-serif';
+    g.textBaseline = "middle";
+    ROWS.forEach(([label, key], r) => {
+      const y = r * (ROW_H + ROW_GAP) + 6;
+      g.fillStyle = theme.muted;
+      g.fillText(label, 0, y + ROW_H / 2);
+      g.fillStyle = theme.hair;
+      g.fillRect(GUTTER, y + ROW_H, trackW, 1);
+      for (let x = 0; x < trackW; x++) {
+        const weight = weights(x / trackW)[key];
+        if (weight <= 0.002) continue;
+        g.fillStyle = rgba(baseHex, 0.28 + 0.62 * weight);
+        g.fillRect(GUTTER + x, y + ROW_H - weight * ROW_H, 1, weight * ROW_H);
+      }
+    });
+  }
+
+  function drawTimeline(p) {
+    if (!bands) buildBands();
+    if (!bands) return;
+    const width = timeline.clientWidth;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (timeline.width !== Math.round(width * dpr)) {
+      timeline.width = Math.round(width * dpr);
+      timeline.height = TL_H * dpr;
+      timeline.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    const g = timeline.getContext("2d");
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, timeline.width, timeline.height); g.restore();
+    g.drawImage(bands, 0, 0, width, TL_H);
+    g.fillStyle = litHex();
+    g.fillRect(GUTTER + p * trackW, 2, 1.5, TL_H - 10);
+  }
+
+  /* ---- frame rate --------------------------------------------------------- */
+  // Reported rather than claimed. It is a browser here, not the Flutter client,
+  // so this measures whether the drawing is cheap enough — not what a handset
+  // will do with it.
+
+  const fpsEl = document.getElementById("fps");
+  let fpsPrev = 0, fpsFrames = 0, fpsElapsed = 0;
+
+  function sampleFps(now) {
+    if (fpsPrev) { fpsElapsed += now - fpsPrev; fpsFrames++; }
+    fpsPrev = now;
+    if (fpsElapsed >= 500) {
+      fpsEl.textContent = Math.round(1000 / (fpsElapsed / fpsFrames)) + " fps";
+      fpsElapsed = 0; fpsFrames = 0;
+    }
+  }
+
   function frame(now) {
     rafId = 0;
     if ((tickCount++ & 31) === 0) readTheme();
     const t = now / 1000;
     for (const entry of live) paint(entry, t);
+    drawTimeline((t / CYCLE) % 1);
+    sampleFps(now);
     if (motion) rafId = requestAnimationFrame(frame);
   }
 
   function repaintAll() {
     readTheme();
-    for (const entry of live) paint(entry, performance.now() / 1000);
+    const t = performance.now() / 1000;
+    for (const entry of live) paint(entry, t);
+    drawTimeline(motion ? (t / CYCLE) % 1 : 0);
   }
 
   function register(cv, id, px) {
@@ -575,6 +832,7 @@
     const onLight = theme.toward === "#0A1220";
     document.documentElement.style.setProperty(
       "--accent-text", onLight ? mix(hex, "#0A1220", 0.42) : hex);
+    bands = null;   // the curves are drawn in the accent, so they follow it
     for (const el of hueHost.children) {
       el.setAttribute("aria-checked", String(el.dataset.hex === hex));
     }
@@ -630,13 +888,24 @@
       ? "Turn it off to see every reduced-motion fallback."
       : "Every variant is at rest. Nothing is running slower — it is not running.";
     if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
-    if (motion) rafId = requestAnimationFrame(frame);
-    else repaintAll();
+    fpsPrev = 0; fpsFrames = 0; fpsElapsed = 0;
+    if (motion) {
+      rafId = requestAnimationFrame(frame);
+    } else {
+      fpsEl.textContent = "not running";
+      repaintAll();
+    }
   }
   toggle.addEventListener("click", () => { motion = !motion; applyMotion(); });
 
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-    readTheme(); repaintSwatches(); if (!motion) repaintAll();
+    readTheme(); bands = null; repaintSwatches(); if (!motion) repaintAll();
+  });
+
+  let resizeTimer = 0;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { bands = null; if (!motion) repaintAll(); }, 120);
   });
 
   readTheme();
