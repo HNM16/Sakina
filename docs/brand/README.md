@@ -10,11 +10,11 @@ files are what it looks like.
 | --- | --- | --- |
 | [`identity.html`](identity.html) | The whole system on one page: palette, type, the mark, both themes | You want the short version of `BRAND.md` with live swatches |
 | [`marks.html`](marks.html) | Six candidate marks, animated, down to 16 px | The mark is being decided — see `../DESIGN-AUDIT.md` |
-| [`samani.html`](samani.html) | The chosen mark, with every animation variant it could carry | Picking how САМАНӢ moves |
+| [`samani.html`](samani.html) | ЧАРХ, the quarter turn, with its two timings on sliders | Working on how the mark moves |
 | [`motion.html`](motion.html) | The three motion primitives as live specimens, with a reduce-motion toggle | You are implementing anything in `../MOTION.md` |
 | `identity.png` | A still of `identity.html`, for embedding in Markdown | — |
 | `mark-check.png` | Evidence for the mark findings: silhouette, size ramp, squint test | — |
-| `samani-frames.png` | Every САМАНӢ variant sampled across one cycle, so a loop can be judged from a still | — |
+| `charkh-frames.png` | One turn of ЧАРХ sampled at fixed moments, so the easing can be judged from a still | — |
 | `light-pass.png` | A still of ТОБ mid-crossing | — |
 
 ## Regenerating the images

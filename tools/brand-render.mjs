@@ -5,17 +5,16 @@
 //   docs/brand/identity.png      the identity page, exactly as identity.html says
 //   docs/brand/mark-check.png    the evidence behind the mark findings in
 //                                docs/DESIGN-AUDIT.md
-//   docs/brand/samani-frames.png every САМАНӢ variant sampled across one cycle
+//   docs/brand/charkh-frames.png  one turn of ЧАРХ, sampled at fixed moments
 //
 // mark-check is drawn from geometric first principles. The shapes it puts
 // beside ours are *families* — "concentric rounded squares", "an octagram" —
 // reconstructed from their definitions. No other company's mark is reproduced
 // here, and none should be added.
 //
-// samani-frames asks samani.html's own painter for specific moments rather than
-// screenshotting it mid-loop, because a screenshot of a running animation shows
-// one arbitrary frame and proves nothing. It has already earned that: it caught
-// БОФТ leaving the indicator visibly empty at the start of every repeat.
+// charkh-frames asks samani.html's own painter for specific moments rather than
+// screenshotting it mid-turn, because a screenshot of a running animation shows
+// one arbitrary frame and proves nothing.
 import { chromium } from 'playwright';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -186,59 +185,46 @@ await sheet.setContent(SHEET);
 await sheet.screenshot({ path: out('mark-check.png'), fullPage: true });
 console.log('  docs/brand/mark-check.png');
 
-// A filmstrip of every САМАНӢ variant, sampled at fixed moments. A screenshot
-// of a running loop catches one arbitrary frame and tells you nothing, so
-// samani.html exposes its own painter and this asks it for specific times.
-const STRIP = [
-  // The loop at three of its six mixes, each sampled across one of its own
-  // laps, so the range the presets cover is visible in the still as well.
-  ['ОРОМ', 'loop', [0, 0.36, 0.72, 1.08, 1.44, 1.80, 2.16, 2.52], 'orom'],
-  ['КОР', 'loop', [0, 0.26, 0.52, 0.78, 1.04, 1.30, 1.56, 1.82], 'kor'],
-  ['ЗАРБ', 'loop', [0, 0.23, 0.46, 0.69, 0.92, 1.15, 1.38, 1.61], 'zarb'],
-  ['НАВБАТ', 'navbat', [0, 0.26, 0.52, 0.78, 1.04, 1.30, 1.56, 1.82]],
-  ['ГУЗАР', 'guzar', [0, 0.28, 0.55, 0.83, 1.1, 1.38, 1.65, 1.93]],
-  ['МАВҶ', 'mavj', [0, 0.18, 0.35, 0.53, 0.7, 0.88, 1.05, 1.23]],
-  ['БОФТ', 'boft', [0.05, 0.22, 0.4, 0.58, 0.76, 0.95, 1.3, 1.8]],
-  ['НАФАС', 'nafas', [0, 0.11, 0.23, 0.34, 0.45, 0.56, 0.68, 0.79]],
-  ['ЧАРХ', 'charkh', [0, 0.1, 0.2, 0.45, 0.62, 0.72, 0.82, 1.07]],
-  ['ГИРЕҲ', 'gireh', [0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4]],
-  ['ТОБ', 'tob', [0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.26, 0.32]],
-];
+// One turn of ЧАРХ, sampled at fixed moments. A screenshot of a running loop
+// catches an arbitrary frame and proves nothing, so samani.html exposes its own
+// painter and this asks it for specific times.
+const CHARKH = { turn: 420, hold: 380 };
+const STRIP = [0, 60, 120, 190, 260, 330, 420, 560, 700, 800, 860, 920, 990, 1060, 1130, 1220];
 
 const strip = await browser.newPage({
-  viewport: { width: 900, height: 980 },
+  viewport: { width: 900, height: 260 },
   deviceScaleFactor: 2,
   colorScheme: 'dark',
 });
 await strip.goto(pathToFileURL(resolve(root, 'docs/brand/samani.html')).href);
-await strip.evaluate((rows) => {
+await strip.evaluate(({ times, cfg }) => {
   const board = document.createElement('div');
   board.id = 'filmstrip';
   board.style.cssText =
     'position:fixed;inset:0;z-index:99;background:#0A1220;padding:28px 32px;' +
-    'display:flex;flex-direction:column;gap:18px;' +
+    'display:flex;flex-direction:column;gap:16px;' +
     'font:13px/1.4 "Noto Sans",system-ui,sans-serif;color:#8496B3';
   const title = document.createElement('div');
-  title.textContent = 'САМАНӢ — every variant, sampled across one cycle';
-  title.style.cssText = 'color:#E8EEF7;font-size:16px;font-weight:700;margin-bottom:2px';
+  title.textContent = `ЧАРХ — one turn and the hold after it (${cfg.turn} ms turn, ${cfg.hold} ms hold)`;
+  title.style.cssText = 'color:#E8EEF7;font-size:16px;font-weight:700';
   board.appendChild(title);
-  for (const [label, id, times, presetId] of rows) {
-    const line = document.createElement('div');
-    line.style.cssText = 'display:flex;align-items:center;gap:16px';
-    const name = document.createElement('div');
-    name.textContent = label;
-    name.style.cssText = 'width:74px;flex:none;letter-spacing:.06em';
-    line.appendChild(name);
-    for (const t of times) {
-      const cv = document.createElement('canvas');
-      window.SakinaSamani.paint(cv, id, 56, t, presetId);
-      line.appendChild(cv);
-    }
-    board.appendChild(line);
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:12px;align-items:center;flex-wrap:wrap';
+  for (const t of times) {
+    const cell = document.createElement('div');
+    cell.style.cssText = 'text-align:center;font-size:10px';
+    const cv = document.createElement('canvas');
+    window.SakinaCharkh.paint(cv, 46, t, cfg.turn, cfg.hold);
+    const cap = document.createElement('div');
+    cap.textContent = t + 'ms';
+    cap.style.marginTop = '6px';
+    cell.append(cv, cap);
+    row.appendChild(cell);
   }
+  board.appendChild(row);
   document.body.appendChild(board);
-}, STRIP);
-await strip.locator('#filmstrip').screenshot({ path: out('samani-frames.png') });
-console.log('  docs/brand/samani-frames.png');
+}, { times: STRIP, cfg: CHARKH });
+await strip.locator('#filmstrip').screenshot({ path: out('charkh-frames.png') });
+console.log('  docs/brand/charkh-frames.png');
 
 await browser.close();

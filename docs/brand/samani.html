@@ -1,4 +1,4 @@
-<title>САМАНӢ in Motion</title>
+<title>ЧАРХ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap">
@@ -6,50 +6,28 @@
   :root {
     --night:   #F4F7FB;
     --surface: #FFFFFF;
-    --saffron: #B07A1E;
+    --firuza:  #127D87;
     --muted:   #5A6C88;
     --text:    #0A1220;
     --hair:    #D7DEE9;
-    --tile:    #E4EAF3;
-    /* Light grounds want the active bar deeper, not paler. */
-    --lit-toward: #0A1220;
-    --lit-amount: .32;
-    --firuza-css: #32BBC8;
-    --accent-text: #21747C;
-
-    --step--1: .8125rem;
-    --step-0:  1rem;
-    --step-1:  1.1875rem;
-    --step-2:  1.75rem;
-    --step-3:  2.5rem;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --night:   #0A1220;
       --surface: #18243A;
-      --saffron: #E3AC55;
+      --firuza:  #32BBC8;
       --muted:   #8496B3;
       --text:    #E8EEF7;
       --hair:    #22314B;
-      --tile:    #1E2C45;
-      --lit-toward: #E8EEF7;
-      --lit-amount: .34;
-      --firuza-css: #32BBC8;
-      --accent-text: #32BBC8;
     }
   }
   :root[data-theme="dark"] {
     --night:   #0A1220;
     --surface: #18243A;
-    --saffron: #E3AC55;
+    --firuza:  #32BBC8;
     --muted:   #8496B3;
     --text:    #E8EEF7;
     --hair:    #22314B;
-    --tile:    #1E2C45;
-    --lit-toward: #E8EEF7;
-    --lit-amount: .34;
-    --firuza-css: #32BBC8;
-    --accent-text: #32BBC8;
   }
 
   * { box-sizing: border-box; }
@@ -58,303 +36,107 @@
     margin: 0;
     background: var(--night);
     color: var(--text);
-    font: 400 var(--step-0)/1.6 "Noto Sans", system-ui, sans-serif;
+    font: 400 1rem/1.6 "Noto Sans", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 60rem; margin: 0 auto; padding: 3.5rem 1.5rem 5rem; }
+  .wrap { max-width: 44rem; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
 
   .eyebrow {
-    font-size: var(--step--1); font-weight: 600; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--accent-text); margin: 0 0 .9rem;
+    font-size: .8125rem; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--firuza); margin: 0 0 .8rem;
   }
-  h1 {
-    font-size: var(--step-3); font-weight: 700; letter-spacing: -.03em;
-    line-height: 1.08; margin: 0 0 .9rem; text-wrap: balance; max-width: 18ch;
-  }
-  .lede { font-size: var(--step-1); color: var(--muted); margin: 0 0 .9rem; max-width: 60ch; }
-  p { max-width: 64ch; }
+  h1 { font-size: 2.5rem; font-weight: 700; letter-spacing: -.03em; line-height: 1.1; margin: 0 0 .8rem; }
+  h1 small { display: block; font-size: .875rem; font-weight: 400; letter-spacing: .04em; color: var(--muted); margin-top: .5rem; }
+  p { max-width: 60ch; }
+  p.lede { font-size: 1.1875rem; color: var(--muted); margin: 0 0 1rem; }
 
-  h2 {
-    font-size: var(--step-2); font-weight: 700; letter-spacing: -.02em;
-    margin: 0 0 .5rem; line-height: 1.15;
+  .stage {
+    margin-top: 2.5rem; background: var(--surface); border-radius: 20px;
+    padding: 3rem 2rem; display: flex; gap: 3rem;
+    align-items: flex-end; justify-content: center; flex-wrap: wrap;
   }
-  section { margin-top: 3.25rem; padding-top: 2.25rem; border-top: 1px solid var(--hair); }
-  section > p:first-of-type { margin-top: 0; color: var(--muted); }
+  figure { margin: 0; text-align: center; }
+  figcaption { font-size: .6875rem; color: var(--muted); margin-top: .75rem; font-variant-numeric: tabular-nums; }
+  canvas { display: block; }
+  #still-label { font-size: .8125rem; color: var(--muted); margin-top: 1rem; text-align: center; }
 
+  .knobs {
+    margin-top: 2rem; display: grid; gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  }
+  .knob { display: grid; gap: .5rem; }
+  .knob label { font-size: .8125rem; font-weight: 600; }
+  .knob output { color: var(--firuza); font-variant-numeric: tabular-nums; font-weight: 400; }
+  input[type="range"] { width: 100%; accent-color: var(--firuza); min-height: 44px; }
+  input[type="range"]:focus-visible { outline: 2px solid var(--firuza); outline-offset: 4px; }
+
+  .controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.75rem; }
   button {
-    font: 600 var(--step--1)/1 "Noto Sans", system-ui, sans-serif;
+    font: 600 .8125rem/1 "Noto Sans", system-ui, sans-serif;
     color: var(--text); background: var(--surface);
     border: 1px solid var(--hair); border-radius: 10px;
     min-height: 44px; padding: 0 1.1rem; cursor: pointer;
   }
-  button:hover { border-color: var(--firuza-css); }
-  button:focus-visible { outline: 2px solid var(--firuza-css); outline-offset: 2px; }
-  button[aria-pressed="true"], button[aria-checked="true"] {
-    border-color: var(--firuza-css); color: var(--accent-text);
+  button:hover { border-color: var(--firuza); }
+  button:focus-visible { outline: 2px solid var(--firuza); outline-offset: 2px; }
+  button[aria-pressed="true"] { border-color: var(--firuza); color: var(--firuza); }
+  .controls span { font-size: .8125rem; color: var(--muted); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.75rem; border-top: 1px solid var(--hair);
+    color: var(--muted); font-size: .8125rem;
   }
-  .controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
-  .controls span { font-size: var(--step--1); color: var(--muted); }
-
-  .loop-stage { display: flex; gap: 1.75rem; flex-wrap: wrap; align-items: stretch; margin-top: 1.75rem; }
-  .plate { background: var(--surface); border-radius: 18px; padding: 1.75rem; display: grid; place-items: center; }
-  .plate.big { flex: 0 0 auto; }
-  .loop-side { display: flex; flex-direction: column; justify-content: space-between; gap: 1.25rem; flex: 1 1 15rem; }
-  .sizes { display: flex; gap: 1.5rem; align-items: flex-end; flex-wrap: wrap; }
-  .sizes figure { margin: 0; text-align: center; }
-  .sizes figcaption { font-size: .6875rem; color: var(--muted); margin-top: .5rem; font-variant-numeric: tabular-nums; }
-  .fps { margin: 0; font-size: var(--step--1); color: var(--muted); }
-  .fps b { color: var(--text); font-variant-numeric: tabular-nums; }
-  #timeline { width: 100%; height: 88px; margin-top: 1.75rem; }
-  .timeline-note { margin: .75rem 0 0; font-size: var(--step--1); color: var(--muted); }
-
-  .compare { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 1.75rem; }
-  .compare figure {
-    margin: 0; background: var(--surface); border-radius: 16px;
-    padding: 1.5rem; display: grid; place-items: center; gap: .9rem;
-    min-width: 13rem; flex: 1 1 13rem;
-  }
-  .compare figcaption { font-size: var(--step--1); color: var(--muted); text-align: center; max-width: 24ch; }
-  .compare b { display: block; color: var(--text); font-size: var(--step-0); margin-bottom: .25rem; }
-
-  .variants { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1.5rem; margin-top: 1.75rem; }
-  .variant { background: var(--surface); border-radius: 16px; padding: 1.5rem; }
-  .variant .row { display: flex; align-items: center; gap: 1.1rem; }
-  .variant h3 { margin: 0; font-size: var(--step-1); letter-spacing: -.01em; }
-  .variant h3 small { display: block; font-size: var(--step--1); font-weight: 400; color: var(--muted); letter-spacing: .04em; }
-  .variant .role {
-    display: inline-block; margin-top: .9rem; font-size: .6875rem; font-weight: 600;
-    letter-spacing: .08em; text-transform: uppercase; color: var(--accent-text);
-  }
-  .variant p { margin: .35rem 0 0; font-size: var(--step--1); color: var(--muted); max-width: none; }
-  .variant .small { margin-left: auto; opacity: .95; }
-
-  .mixes { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1.25rem; margin-top: 1.75rem; }
-  .mix {
-    display: block; width: 100%; text-align: left; cursor: pointer;
-    background: var(--surface); border: 1px solid var(--hair); border-radius: 16px;
-    padding: 1.25rem; color: var(--text);
-    font: 400 var(--step--1)/1.5 "Noto Sans", system-ui, sans-serif;
-  }
-  .mix[aria-checked="true"] { border-color: var(--firuza-css); border-width: 2px; padding: calc(1.25rem - 1px); }
-  .mix-head { display: flex; align-items: center; gap: .9rem; }
-  .mix-head h3 { margin: 0; font-size: var(--step-1); font-weight: 700; letter-spacing: -.01em; }
-  .mix-head h3 small { display: block; font-size: .6875rem; font-weight: 400; color: var(--muted); letter-spacing: .04em; }
-  .mix-head .tiny { margin-left: auto; }
-  .mix-diagram { width: 100%; height: 46px; margin-top: 1rem; }
-  .mix dl {
-    display: grid; grid-template-columns: auto auto; gap: .15rem 1rem;
-    margin: .85rem 0 0; font-size: .6875rem;
-  }
-  .mix dt { color: var(--muted); }
-  .mix dd { margin: 0; font-variant-numeric: tabular-nums; }
-  .mix .note { margin: .85rem 0 0; color: var(--muted); }
-
-  .hues { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.75rem; }
-  .hue {
-    background: var(--surface); border: 1px solid var(--hair); border-radius: 16px;
-    padding: 1.25rem; display: grid; place-items: center; gap: .75rem;
-    cursor: pointer; min-width: 11rem; flex: 1 1 11rem; color: var(--text);
-    font: 400 var(--step--1)/1.5 "Noto Sans", system-ui, sans-serif; min-height: 44px;
-  }
-  .hue b { font-size: var(--step-0); }
-  .hue code { font-variant-numeric: tabular-nums; color: var(--muted); font-size: .75rem; }
-  .hue[aria-checked="true"] { border-color: var(--firuza-css); border-width: 2px; padding: calc(1.25rem - 1px); }
-
-  .verdict { margin-top: 1.75rem; padding: 1.1rem 1.25rem; border-radius: 12px; background: var(--tile); }
-  .verdict p { margin: 0; max-width: 62ch; }
-  .verdict p + p { margin-top: .8rem; }
-
-  canvas { display: block; }
-  footer { margin-top: 3.25rem; padding-top: 2rem; border-top: 1px solid var(--hair); color: var(--muted); font-size: var(--step--1); }
   footer p { margin: 0 0 .8rem; }
+  code { font-size: .95em; }
 </style>
 
 <div class="wrap">
-  <header>
-    <p class="eyebrow">Sakina · brand</p>
-    <h1>САМАНӢ, and how it moves.</h1>
-    <p class="lede">
-      The bond is settled. How it behaves while you wait is the question. The
-      loop below is the answer, mixed six ways underneath it, and under those
-      are the single behaviours it is built from. Everything runs live.
-    </p>
-    <div class="controls">
-      <button id="motion" type="button" aria-pressed="true">Motion is on</button>
-      <button id="soft" type="button" aria-pressed="false">Highlight: saffron step</button>
-      <span id="motion-note">Turn motion off to see every reduced-motion fallback.</span>
+  <p class="eyebrow">Sakina · brand</p>
+  <h1>ЧАРХ<small>charkh — the turn</small></h1>
+  <p class="lede">
+    The mark turns a quarter, holds, and turns again.
+  </p>
+  <p>
+    A quarter is the smallest turn that lands the pinwheel back on its own
+    silhouette, so it never looks like it is spinning — it looks like it keeps
+    arriving. Two numbers describe the whole thing: how long the turn takes and
+    how long it waits before the next one.
+  </p>
+
+  <div class="stage">
+    <figure><canvas id="big"></canvas><figcaption>96 px</figcaption></figure>
+    <figure><canvas id="m40"></canvas><figcaption>40 px</figcaption></figure>
+    <figure><canvas id="m28"></canvas><figcaption>28 px</figcaption></figure>
+    <figure><canvas id="m20"></canvas><figcaption>20 px</figcaption></figure>
+  </div>
+  <p id="still-label" hidden>Loading</p>
+
+  <div class="knobs">
+    <div class="knob">
+      <label for="turn">Turn <output id="turn-out">420 ms</output></label>
+      <input type="range" id="turn" min="120" max="900" step="20" value="420">
     </div>
-  </header>
-
-  <section id="loop-section">
-    <h2>The loop</h2>
-    <p>
-      НАВБАТ, БОФТ and ЧАРХ, running at the same time rather than in turn.
-      Showing <b id="which">КОР</b>: the step takes <span id="step-s">0.52</span>&nbsp;s
-      and the light goes round in <span id="lap-s">2.08</span>&nbsp;s. Pick a
-      different mix below and this follows it.
-    </p>
-    <p>
-      The first attempt at this cut the cycle into three windows and faded one
-      behaviour out as the next came in. It did not flow: windowing gives each
-      behaviour a beginning and an end, and however soft the crossfade, the eye
-      still reads three animations taking turns.
-    </p>
-    <p>
-      So there are no windows here. There is one quantity — the light's position
-      around the weave, which only ever increases — and the other two behaviours
-      are read off it. A bar is saffron when the light is on it. A bar is out of
-      place by how far the light still has to travel to reach it: it reaches
-      ahead along the line it runs on and is home again exactly as the light
-      lands, so the highlight always arrives on something just settled. And the
-      mark turns a quarter for every lap. Nothing starts, nothing stops, and
-      there is one cause instead of three.
-    </p>
-    <div class="loop-stage">
-      <div class="plate big"><canvas data-variant="loop" data-size="168"></canvas></div>
-      <div class="loop-side">
-        <div class="sizes">
-          <figure><canvas data-variant="loop" data-size="40"></canvas><figcaption>40 px</figcaption></figure>
-          <figure><canvas data-variant="loop" data-size="28"></canvas><figcaption>28 px</figcaption></figure>
-          <figure><canvas data-variant="loop" data-size="20"></canvas><figcaption>20 px</figcaption></figure>
-        </div>
-        <p class="fps">Measured here: <b id="fps">—</b></p>
-      </div>
+    <div class="knob">
+      <label for="hold">Hold <output id="hold-out">380 ms</output></label>
+      <input type="range" id="hold" min="0" max="900" step="20" value="380">
     </div>
-    <canvas id="timeline" aria-hidden="true"></canvas>
-    <p class="timeline-note">
-      How busy each behaviour is across one lap: whether the top bar is lit, how
-      far out of place it is, and how fast the mark is turning. НАВБАТ is a
-      square wave because it is a step — that is the point of it. The other two
-      run underneath it continuously, which is what the step needed.
-    </p>
-  </section>
+  </div>
+  <p id="derived" class="lede" style="font-size:.8125rem;margin-top:1rem"></p>
 
-  <section id="mixes">
-    <h2>Six mixes</h2>
-    <p>
-      The same three behaviours every time. What changes is the speed of the
-      step, how far and how early the weave reaches, and how much of the
-      cycle the turn is spread across.
-    </p>
-    <p>
-      Each card carries its own timing diagram, drawn to the same scale as the
-      big one, so the shapes can be compared directly. Click one to send it to
-      the top.
-    </p>
-    <div class="mixes" id="mix-grid" role="radiogroup" aria-label="Mix"></div>
-  </section>
-
-  <section>
-    <h2>Why it read as a game</h2>
-    <p>
-      Not the step. The step was never the problem.
-    </p>
-    <p>
-      An earlier pass here blamed the instant switch and softened it into a wide
-      travelling light. That was wrong: it made a different animation, and lost
-      the one thing worth keeping. What actually made the original read as a
-      board game is that the step was the <em>only</em> thing happening. Four
-      states and nothing else is a game piece lighting up. The same four states
-      over a weave that is shifting under it and a mark that is turning is a beat
-      over a phrase — same notes, and it stops sounding like a toy.
-    </p>
-    <p>
-      Both plates below run the identical highlight, at the identical speed. The
-      only difference is what is underneath it.
-    </p>
-    <div class="compare">
-      <figure>
-        <canvas data-variant="navbat" data-size="104"></canvas>
-        <figcaption><b>On its own</b>Four states and nothing else. This is the part that reads as a board game.</figcaption>
-      </figure>
-      <figure>
-        <canvas data-variant="loop" data-size="104"></canvas>
-        <figcaption><b>In the loop</b>The identical step, over a weave that is shifting and a mark that is turning.</figcaption>
-      </figure>
-    </div>
-  </section>
-
-  <section>
-    <h2>The parts</h2>
-    <p>
-      Each behaviour on its own. The first three are what the loop is made of;
-      the rest are alternatives and near neighbours. Shown at display size and at
-      28&nbsp;px, which is roughly where a loading mark actually sits in an app
-      bar.
-    </p>
-    <div class="variants" id="variants"></div>
-  </section>
-
-  <section>
-    <h2>The hue</h2>
-    <p>
-      Three points around the new accent, all at the same saturation and
-      lightness, so the only thing changing is how green or blue it reads. Click
-      one and the whole page follows.
-    </p>
-    <div class="hues" id="hues" role="radiogroup" aria-label="Accent hue"></div>
-    <div class="verdict">
-      <p>
-        Firuza now sits at hue 185, moved there from 174 and lifted slightly in
-        saturation and lightness. The old value was a teal leaning green; this
-        one is properly turquoise.
-      </p>
-      <p>
-        That is truer to where it came from, not a departure from it. The
-        turquoise on Samanid and Timurid tilework runs blue rather than green —
-        the domes at Bukhara and Samarkand are closer to 185 than to 174 — so the
-        move strengthens the reason the colour was chosen rather than trading it
-        away.
-      </p>
-      <p>
-        The two neighbours are here for calibration. Past about 192 it stops
-        looking like glaze and starts looking like every other messenger.
-      </p>
-    </div>
-  </section>
-
-  <section>
-    <h2>What I would pick</h2>
-    <div class="verdict">
-      <p>
-        <b>КОР for loading. НАФАС for waiting. ТОБ for arrival. ГИРЕҲ for
-        pull-to-refresh.</b> Four states, one rule keeping them apart: the mark
-        is one colour, and saffron only ever means <em>arrived</em>. Nothing in a
-        loop is allowed to spend it — the step inside the loop is the exception
-        the rule was written around, and it is worth being uncomfortable about.
-      </p>
-      <p>
-        КОР over the other five because nothing in it dominates. ОРОМ is the one
-        I would swap to if this ends up on screen for minutes rather than
-        seconds, and ЗАРБ is the honest fallback if the ripple and the turn turn
-        out to be invisible at 24&nbsp;px on a real handset — which is exactly
-        the kind of thing that cannot be settled here.
-      </p>
-      <p>
-        НАФАС stays outside the loop because a pending message is not loading. It
-        is one object in doubt, and it should say so itself rather than summon an
-        indicator to say it on its behalf.
-      </p>
-      <p>
-        ГУЗАР and МАВҶ are the two alternatives worth keeping on file. ГУЗАР
-        moves light <em>within</em> the bars rather than between them, which is
-        the softer reading if НАВБАТ turns out too punctuated on a real screen;
-        МАВҶ is softer still and has no direction at all. ГИРЕҲ is the most
-        characterful of them and the only one deliberately held back, because a
-        short physical gesture wants a short physical answer rather than a cycle.
-      </p>
-    </div>
-  </section>
+  <div class="controls">
+    <button id="motion" type="button" aria-pressed="true">Motion is on</button>
+    <span id="motion-note">Turn it off to see the reduced-motion fallback.</span>
+  </div>
 
   <footer>
     <p>
-      The bars are unchanged from <code>marks.html</code>. Only the lit colour and
-      the way it moves differ here.
+      Four bars, one colour, firuza at <code>#32BBC8</code>. Nothing else moves
+      and nothing changes colour.
     </p>
     <p>
-      Every variant has a path that removes it rather than shortening it, which is
-      what <code>pnpm test:motion</code> enforces in the Flutter client. None of
-      this has been seen on a handset.
+      Under reduced motion the mark stands still and a word carries the state,
+      because an indicator that neither moves nor says anything is not an
+      indicator. Nothing here has been seen on a handset.
     </p>
   </footer>
 </div>
@@ -363,422 +145,26 @@
 (() => {
   "use strict";
 
-  const HUES = [
-    { id: 178, hex: "#32C8C3", name: "Firuza 178", note: "hue 178 — greener" },
-    { id: 185, hex: "#32BBC8", name: "Firuza", note: "hue 185 — the theme" },
-    { id: 192, hex: "#32AAC8", name: "Firuza 192", note: "hue 192 — bluer still" },
-  ];
-
-  let baseHex = HUES[1].hex;              // the theme colour
-  const theme = { saffron: "#E3AC55", toward: "#E8EEF7", amount: 0.34, muted: "#8496B3", hair: "#22314B" };
-
-  function readTheme() {
-    const cs = getComputedStyle(document.documentElement);
-    theme.saffron = cs.getPropertyValue("--saffron").trim() || theme.saffron;
-    theme.toward = cs.getPropertyValue("--lit-toward").trim() || theme.toward;
-    theme.amount = parseFloat(cs.getPropertyValue("--lit-amount")) || theme.amount;
-    theme.muted = cs.getPropertyValue("--muted").trim() || theme.muted;
-    theme.hair = cs.getPropertyValue("--hair").trim() || theme.hair;
-  }
-
-  const rgb = (hex) => {
-    const h = hex.replace("#", "");
-    const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
-    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-  };
-  const hexOf = ([r, g, b]) =>
-    "#" + [r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
-  const mix = (a, b, t) => {
-    const A = rgb(a), B = rgb(b);
-    return hexOf([0, 1, 2].map((i) => A[i] + (B[i] - A[i]) * t));
-  };
-  const rgba = (hex, a) => { const [r, g, b] = rgb(hex); return `rgba(${r},${g},${b},${a})`; };
-
-  const litHex = () => mix(baseHex, theme.toward, theme.amount);
-  // The step is saffron, as it always was. The tint is only there so the two
-  // can be put side by side on the page.
-  const highlightHex = () => (SOFT ? litHex() : theme.saffron);
-
-  /* ---- the bond ---------------------------------------------------------- */
-  // Unchanged from marks.html. Each bar carries the direction it runs in, which
-  // is what lets light travel round the weave in one continuous loop.
+  // The Samanid bond: four bars, each stopping short of the next so the joints
+  // stay open and the weave reads. Overlapping them closes it into a plain ring.
   const BARS = [
-    { x: 14, y: 14, w: 48, h: 20, dx:  1, dy:  0 }, // top, left to right
-    { x: 66, y: 14, w: 20, h: 48, dx:  0, dy:  1 }, // right, top to bottom
-    { x: 38, y: 66, w: 48, h: 20, dx: -1, dy:  0 }, // bottom, right to left
-    { x: 14, y: 38, w: 20, h: 48, dx:  0, dy: -1 }, // left, bottom to top
-  ];
-  const RUN = 48, LOOP = RUN * 4;
-
-  function barPath(g, u, b, ox = 0, oy = 0) {
-    g.beginPath();
-    g.roundRect((b.x + ox) * u, (b.y + oy) * u, b.w * u, b.h * u, 6 * u);
-  }
-
-  // Where a bar's start and end sit on the loop, in path units.
-  const barSpan = (i) => [i * RUN, (i + 1) * RUN];
-
-  // Distance around the loop, taking the short way.
-  function loopDist(a, b) {
-    const d = Math.abs(a - b) % LOOP;
-    return d > LOOP / 2 ? LOOP - d : d;
-  }
-
-  const ease = (t) => 1 - Math.pow(1 - t, 3);
-  const breath = (t) => 0.55 + 0.45 * (0.5 - Math.cos(t * Math.PI * 2) / 2);
-  const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
-  const smoothstep = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
-
-  /* ---- the composite ------------------------------------------------------ */
-  //
-  // The first attempt at this cut the cycle into three windows and faded one
-  // channel out as the next came in. It did not flow. Windowing means each
-  // behaviour has a beginning and an end, and however soft the crossfade is,
-  // the eye still reads three animations taking turns.
-  //
-  // So there are no windows here. There is one quantity — `pos`, the light's
-  // position around the weave, which only ever increases — and all three
-  // behaviours are functions of it:
-  //
-  //   НАВБАТ  a bar is lit by how near the light is to it
-  //   БОФТ    a bar is out of place by how near the light is to it
-  //   ЧАРХ    the mark has turned by how many laps the light has made
-  //
-  // Nothing starts. Nothing stops. The light travelling is the single cause and
-  // the other two are its consequences, which is what makes it read as one
-  // behaviour rather than three.
-  // Everything that can be tuned lives in a preset, so the same three
-  // behaviours can be mixed several ways and compared rather than argued about.
-  //
-  //   step        seconds the saffron spends on one bar
-  //   weave.amp   how far a bar slides along its own run, in units of 100
-  //   weave.start where ahead of the light it begins to reach, in bar-units
-  //   weave.mid   where it is reaching furthest
-  //   weave.end   where it is home again — 0.5 in every preset, because that is
-  //               the instant the saffron lands, and a bar still out of place
-  //               when it lights reads as an error rather than as a beat
-  //   turn.laps   laps the mark takes to complete one quarter turn
-  //   turn.in/out the span of that cycle the turn is eased across
-  const PRESETS = [
-    {
-      id: "orom", name: "ОРОМ", gloss: "orom — calm",
-      step: 0.72,
-      weave: { amp: 5, start: 1.95, mid: 1.15, end: 0.5 },
-      turn: { laps: 1, in: 0.02, out: 0.98 },
-      note: "Everything slowed and softened. The weave barely shifts and the turn never stops, so nothing in it asks for attention. The one to pick if this will sit on screen for a long time.",
-    },
-    {
-      id: "kor", name: "КОР", gloss: "kor — work",
-      step: 0.52,
-      weave: { amp: 8, start: 1.8, mid: 1.1, end: 0.5 },
-      turn: { laps: 1, in: 0.10, out: 0.94 },
-      note: "The balance we arrived at: the step reads clearly, the weave is plainly visible, the turn is continuous. Nothing dominates.",
-    },
-    {
-      id: "tez", name: "ТЕЗ", gloss: "tez — quick",
-      step: 0.34,
-      weave: { amp: 7, start: 1.5, mid: 1.0, end: 0.5 },
-      turn: { laps: 1, in: 0.10, out: 0.90 },
-      note: "The same mix at pace. A lap in 1.4 s makes it feel like something is being worked on hard, which is right for a short wait and wearing for a long one.",
-    },
-    {
-      id: "zarb", name: "ЗАРБ", gloss: "zarb — the beat",
-      step: 0.46,
-      weave: { amp: 4, start: 1.3, mid: 0.9, end: 0.5 },
-      turn: { laps: 2, in: 0.25, out: 0.85 },
-      note: "The step carries it and the other two are texture: a barely-there ripple and a turn slow enough to notice only if you watch for it. Closest to the original animation, without being only the original animation.",
-    },
-    {
-      id: "bofanda", name: "БОФАНДА", gloss: "bofanda — the weaver",
-      step: 0.62,
-      weave: { amp: 13, start: 1.95, mid: 1.2, end: 0.5 },
-      turn: { laps: 2, in: 0.05, out: 0.95 },
-      note: "The weaving leads. Bars reach far enough that the gaps visibly open and close as the ripple passes, and the saffron is what confirms each one has settled.",
-    },
-    {
-      id: "charkhish", name: "ЧАРХИШ", gloss: "charkhish — turning",
-      step: 0.58,
-      weave: { amp: 5, start: 1.5, mid: 1.0, end: 0.5 },
-      turn: { laps: 1, in: 0.34, out: 0.76 },
-      note: "The turn concentrated into a sweep in the middle of each lap instead of spread across it. It is the only preset where the rotation is an event you can point at, which is either the interesting one or the restless one.",
-    },
+    [14, 14, 48, 20],   // top, left to right
+    [66, 14, 20, 48],   // right, top to bottom
+    [38, 66, 48, 20],   // bottom, right to left
+    [14, 38, 20, 48],   // left, bottom to top
   ];
 
-  let preset = PRESETS[1];        // КОР
-  const lapOf = (pr) => pr.step * 4;
-
-  // Signed distance from the light to bar i, in bar-units, wrapped to [-2, 2).
-  // Positive means the light has not reached it yet.
-  function offsetOf(i, pos) {
-    let u = (i - pos) % 4;
-    if (u < -2) u += 4;
-    if (u >= 2) u -= 4;
-    return u;
-  }
-
-  // The original animation, unchanged: one whole bar at a time, saffron, and it
-  // switches rather than slides.
-  //
-  // Softening this into a wide travelling light was a mistake — it made a
-  // different animation. What made the original read as a puzzle game was never
-  // the step; it was that the step was the *only* thing happening. Four states
-  // and nothing else is a board game. The same step over a weave that is
-  // shifting under it and a mark that is turning is a beat over a phrase.
-  //
-  // SOFT is kept only so the two can be compared on the page. It is off.
-  let SOFT = false;
-  const SOFT_WIDTH = 1.25;
-  function litness(u) {
-    if (!SOFT) return Math.abs(u) < 0.5 ? 1 : 0;
-    const d = Math.abs(u);
-    return d >= SOFT_WIDTH ? 0 : smoothstep(0, 1, 1 - d / SOFT_WIDTH);
-  }
-
-  // Timed so a bar is back in place at the exact moment the saffron arrives —
-  // the step lights at u = 0.5, so the weave settles there. This is what ties
-  // the two channels together: the weaving is not happening near the highlight,
-  // it is happening ahead of it, and the highlight lands on what it just
-  // settled. Same beat, one cause.
-  //
-  // БОФТ, rebuilt. It used to shorten a bar and grow it back, and however the
-  // numbers were tuned that reads as a bar that is broken rather than a bar that
-  // is being worked on — a length that changes looks like a rendering fault, not
-  // like loading.
-  //
-  // Now the bar keeps its length and slides along the line it runs on: it
-  // reaches ahead as the light approaches and is home again as the light lands.
-  // Because the four bars are a pinwheel, one sliding closes the gap in front of
-  // it and opens the one behind, so in sequence a ripple travels round the
-  // weave. Nothing ever shortens, so nothing ever looks broken, and a ripple
-  // going somewhere is what a loading indicator is supposed to look like.
-  function slideOf(u, pr) {
-    const w = pr.weave;
-    if (u > w.start || u < w.end) return 0;
-    return u > w.mid
-      ? w.amp * ease((w.start - u) / (w.start - w.mid))
-      : w.amp * (1 - ease((w.mid - u) / (w.mid - w.end)));
-  }
-
-  // A quarter turn per lap, eased across most of it rather than fired between
-  // laps. Because a quarter turn maps this pinwheel onto itself, the mark keeps
-  // arriving back at its own silhouette — so it reads as settling repeatedly
-  // rather than as a spinner, and there is no seam to hide.
-  // Spreading it across nearly the whole cycle means the turn is never the thing
-  // you notice starting; narrowing it makes the turn an event in its own right.
-  // Both are offered.
-  function turnProgress(w, pr) {
-    const { in: a, out: b } = pr.turn;
-    return w <= a ? 0 : w >= b ? 1 : smoothstep(0, 1, (w - a) / (b - a));
-  }
-  function turnAngle(pos, pr) {
-    const cycles = pos / (4 * pr.turn.laps);
-    const n = Math.floor(cycles);
-    return (n + turnProgress(cycles - n, pr)) * (Math.PI / 2);
-  }
-
-  // The travelling band, as a five-stop gradient along a bar's own axis. Two
-  // stops can only ramp, and a ramp reads as a wipe rather than as a light.
-  function travelGradient(g, u, b, i, centre, alpha, lit) {
-    const x0 = (b.dx < 0 ? b.x + b.w : b.x) * u;
-    const y0 = (b.dy < 0 ? b.y + b.h : b.y) * u;
-    const x1 = (b.dx < 0 ? b.x : b.x + b.w) * u;
-    const y1 = (b.dy < 0 ? b.y : b.y + b.h) * u;
-    const grad = g.createLinearGradient(x0, y0, x1, y1);
-    for (let k = 0; k <= 4; k++) {
-      const local = k / 4;
-      const d = loopDist(i * RUN + local * RUN, centre);
-      grad.addColorStop(local, rgba(lit, alpha * Math.max(0, 1 - d / (BAND / 2))));
-    }
-    return grad;
-  }
-
-  /* ---- variants ---------------------------------------------------------- */
-  // Every draw takes (g, px, t) where t is seconds. `still` means the platform
-  // asked for no motion: each variant then paints its own resting state, which
-  // still has to say the same thing the movement said.
-
-  const BAND = 62;   // how much of the loop the travelling light covers
-
-  const VARIANTS = {
-
-    guzar(g, px, t, still) {
-      const u = px / 100;
-      const lit = litHex();
-      BARS.forEach((b) => { barPath(g, u, b); g.fillStyle = baseHex; g.fill(); });
-      if (still) return;
-      const centre = (t / 2.2) % 1 * LOOP;
-      BARS.forEach((b, i) => {
-        const [s0] = barSpan(i);
-        g.save();
-        barPath(g, u, b);
-        g.clip();
-        // Five stops along the bar's own axis approximate a soft band with a
-        // peak. A two-stop gradient can only ramp, and a ramp reads as a wipe.
-        const x0 = (b.dx < 0 ? b.x + b.w : b.x) * u;
-        const y0 = (b.dy < 0 ? b.y + b.h : b.y) * u;
-        const x1 = (b.dx < 0 ? b.x : b.x + b.w) * u;
-        const y1 = (b.dy < 0 ? b.y : b.y + b.h) * u;
-        const grad = g.createLinearGradient(x0, y0, x1, y1);
-        for (let k = 0; k <= 4; k++) {
-          const local = k / 4;
-          const d = loopDist(s0 + local * RUN, centre);
-          grad.addColorStop(local, rgba(lit, Math.max(0, 1 - d / (BAND / 2))));
-        }
-        g.fillStyle = grad;
-        g.fillRect(0, 0, px, px);
-        g.restore();
-      });
-    },
-
-    boft(g, px, t, still, pr) {
-      const u = px / 100;
-      const pos = t / pr.step;
-      BARS.forEach((b, i) => {
-        const slide = still ? 0 : slideOf(offsetOf(i, pos), pr);
-        barPath(g, u, b, b.dx * slide, b.dy * slide);
-        g.fillStyle = baseHex;
-        g.fill();
-      });
-    },
-
-    nafas(g, px, t, still) {
-      const u = px / 100;
-      g.globalAlpha = still ? 0.72 : breath((t / 0.9) % 1);
-      BARS.forEach((b) => { barPath(g, u, b); g.fillStyle = baseHex; g.fill(); });
-      g.globalAlpha = 1;
-    },
-
-    mavj(g, px, t, still) {
-      const u = px / 100;
-      BARS.forEach((b, i) => {
-        g.globalAlpha = still ? 0.72 : breath(((t / 1.4) + i * 0.25) % 1);
-        barPath(g, u, b);
-        g.fillStyle = baseHex;
-        g.fill();
-      });
-      g.globalAlpha = 1;
-    },
-
-    charkh(g, px, t, still) {
-      const u = px / 100;
-      // A quarter turn maps the pinwheel onto itself, so the mark arrives back
-      // at its own silhouette every step. Turn, then hold.
-      const STEP = 0.62, TURN = 0.3;
-      let angle = 0;
-      if (!still) {
-        const n = Math.floor(t / STEP);
-        const within = (t % STEP) / STEP;
-        const k = within < TURN / STEP ? ease(within / (TURN / STEP)) : 1;
-        angle = (n + k) * (Math.PI / 2);
-      }
-      g.save();
-      g.translate(px / 2, px / 2);
-      g.rotate(angle);
-      g.translate(-px / 2, -px / 2);
-      BARS.forEach((b) => { barPath(g, u, b); g.fillStyle = baseHex; g.fill(); });
-      g.restore();
-    },
-
-    gireh(g, px, t, still) {
-      const u = px / 100;
-      // Each bar slides along the direction it runs, so the four gaps close
-      // together and open together. The knot tightening, then letting go.
-      const d = still ? 0 : 5 * (0.5 - Math.cos((t / 1.6) % 1 * Math.PI * 2) / 2);
-      BARS.forEach((b) => {
-        barPath(g, u, b, b.dx * d, b.dy * d);
-        g.fillStyle = baseHex;
-        g.fill();
-      });
-    },
-
-    tob(g, px, t, still) {
-      const u = px / 100;
-      BARS.forEach((b) => { barPath(g, u, b); g.fillStyle = baseHex; g.fill(); });
-      if (still) return;
-      // Once every cycle, not continuously. This is arrival, not waiting.
-      const CYCLE = 2.4, p = (t % CYCLE) / 0.32;
-      if (p >= 1) return;
-      const travel = px * 2, band = travel * 0.28;
-      const c = -band + p * (travel + band * 2);
-      const env = p < 0.18 ? p / 0.18 : p > 0.82 ? (1 - p) / 0.18 : 1;
-      const grad = g.createLinearGradient(c - band / 2, c - band / 2, c + band / 2, c + band / 2);
-      grad.addColorStop(0, rgba(theme.saffron, 0));
-      grad.addColorStop(0.5, rgba(theme.saffron, 0.9 * Math.max(0, Math.min(1, env))));
-      grad.addColorStop(1, rgba(theme.saffron, 0));
-      g.save();
-      g.globalCompositeOperation = "source-atop";
-      g.fillStyle = grad;
-      g.fillRect(0, 0, px, px);
-      g.restore();
-    },
-
-    // The original bar-by-bar animation with the instant switch taken out: the
-    // light arrives and leaves gradually, so it flows from bar to bar rather
-    // than snapping.
-    navbat(g, px, t, still, pr) {
-      const u = px / 100;
-      const pos = t / pr.step;
-      const lit = highlightHex();
-      BARS.forEach((b, i) => {
-        const l = still ? 0 : litness(offsetOf(i, pos));
-        barPath(g, u, b);
-        g.fillStyle = l > 0.004 ? mix(baseHex, lit, l) : baseHex;
-        g.fill();
-      });
-    },
-
-    // НАВБАТ, БОФТ and ЧАРХ as one behaviour rather than three in sequence.
-    // See the channel notes above: no phases, just one advancing light and the
-    // two things that follow from where it is.
-    loop(g, px, t, still, pr) {
-      const u = px / 100;
-      if (still) {
-        for (const b of BARS) { barPath(g, u, b); g.fillStyle = baseHex; g.fill(); }
-        return;
-      }
-      const pos = t / pr.step;
-      const lit = highlightHex();
-
-      g.save();
-      g.translate(px / 2, px / 2);
-      g.rotate(turnAngle(pos, pr));
-      g.translate(-px / 2, -px / 2);
-
-      BARS.forEach((b, i) => {
-        const off = offsetOf(i, pos);
-        const slide = slideOf(off, pr);
-        const l = litness(off);
-        barPath(g, u, b, b.dx * slide, b.dy * slide);
-        g.fillStyle = l > 0.004 ? mix(baseHex, lit, l) : baseHex;
-        g.fill();
-      });
-
-      g.restore();
-    },
-  };
-
-  const SHOWN = [
-    { id: "navbat", name: "НАВБАТ", gloss: "navbat — taking turns", role: "In the loop",
-      note: "The original animation, unchanged: one whole bar saffron at a time, switching rather than sliding. The button at the top swaps it for the softened version so the two can be compared." },
-    { id: "boft", name: "БОФТ", gloss: "boft — the weaving", role: "In the loop",
-      note: "Each bar reaches ahead along the line it runs on and comes back, one after another, so a ripple travels round the weave. It keeps its length throughout — a bar that shortens reads as broken rather than as busy." },
-    { id: "charkh", name: "ЧАРХ", gloss: "charkh — the turn", role: "In the loop",
-      note: "A quarter turn per lap. The pinwheel lands on its own silhouette every time, so the mark keeps settling rather than spinning." },
-    { id: "guzar", name: "ГУЗАР", gloss: "guzar — the pass", role: "Alternative",
-      note: "One light travels the whole weave, entering each bar where the last one left. Nothing switches; something moves." },
-    { id: "mavj", name: "МАВҶ", gloss: "mavj — the wave", role: "Loading",
-      note: "The same journey with no edge at all: each bar breathes a quarter-cycle behind the one before it, so the swell goes round on its own." },
-    { id: "nafas", name: "НАФАС", gloss: "nafas — the breath", role: "Waiting",
-      note: "The whole bond breathes as one. The quietest of the six, and the only one that costs a single opacity value." },
-    { id: "gireh", name: "ГИРЕҲ", gloss: "gireh — the knot", role: "Pull to refresh",
-      note: "Each bar slides along its own run, closing all four gaps at once and opening them again. The knot tightening." },
-  ];
-
-  /* ---- rendering ---------------------------------------------------------- */
-
+  let turnMs = 420, holdMs = 380;
   let motion = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let rafId = 0, tickCount = 0;
-  const live = [];
+  let firuza = "#32BBC8";
+  let rafId = 0;
+
+  const canvases = [
+    [document.getElementById("big"), 96],
+    [document.getElementById("m40"), 40],
+    [document.getElementById("m28"), 28],
+    [document.getElementById("m20"), 20],
+  ];
 
   function fit(cv, px) {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -787,352 +173,63 @@
     cv.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  function paint(entry, t) {
-    const g = entry.cv.getContext("2d");
-    g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
-    g.clearRect(0, 0, entry.cv.width, entry.cv.height); g.restore();
-    VARIANTS[entry.id](g, entry.px, t, !motion, entry.preset || preset);
+  // Eased in and out, so the turn neither snaps away from rest nor stops dead.
+  // No overshoot: brand rule 3 says motion settles, it does not bounce.
+  const smoothstep = (t) => t * t * (3 - 2 * t);
+
+  function angleAt(ms) {
+    const step = turnMs + holdMs;
+    const n = Math.floor(ms / step);
+    const within = ms % step;
+    const k = within >= turnMs ? 1 : smoothstep(within / turnMs);
+    return (n + k) * (Math.PI / 2);
   }
 
-  /* ---- the channel timeline ----------------------------------------------- */
-
-  const timeline = document.getElementById("timeline");
-  const ROWS = ["НАВБАТ", "БОФТ", "ЧАРХ"];
-
-  // How busy each channel is at a given point in the lap. There is no notion of
-  // one being "on" any more, so this plots activity: how lit bar 0 is, how far
-  // far out of place it is, and how fast the mark is turning. They overlap
-  // almost everywhere, which is the difference from the version that switched.
-  function activity(x, pr) {
-    const off = offsetOf(0, x * 4);
-    const dx = 0.004;
-    // One lap of the light is turn.laps-th of a turn cycle, so the turn's
-    // progress has to be sampled on its own clock rather than on the lap's.
-    const c = (x / pr.turn.laps) % 1;
-    const rate =
-      (turnProgress(Math.min(1, c + dx), pr) - turnProgress(Math.max(0, c - dx), pr)) /
-      (2 * dx * pr.turn.laps);
-    // Normalised against the peak rate of a smoothstep across the turn window.
-    const peak = 1.5 / ((pr.turn.out - pr.turn.in) * pr.turn.laps);
-    return {
-      "НАВБАТ": litness(off),
-      "БОФТ": Math.abs(slideOf(off, pr)) / pr.weave.amp,
-      "ЧАРХ": Math.min(1, rate / peak),
-    };
-  }
-  // 3 rows of ROW_H with ROW_GAP between them, plus 6 above and room for the
-  // playhead below. At 76 the last row was clipped off the bottom.
-  const GUTTER = 66, ROW_H = 18, ROW_GAP = 8, TL_H = 88;
-  let bands = null, trackW = 0;
-
-  // The three curves never change shape, so they are drawn once into an
-  // offscreen canvas and blitted. Only the playhead moves, and redrawing seven
-  // hundred one-pixel columns three times over at 60 fps to move one line would
-  // be a strange way to spend a frame.
-  function buildBands() {
-    const width = timeline.clientWidth;
-    if (!width) return;
-    trackW = Math.max(1, Math.round(width - GUTTER - 4));
-    bands = document.createElement("canvas");
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    bands.width = width * dpr; bands.height = TL_H * dpr;
-    const g = bands.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.font = '600 11px "Noto Sans", system-ui, sans-serif';
-    g.textBaseline = "middle";
-    ROWS.forEach((label, r) => {
-      const y = r * (ROW_H + ROW_GAP) + 6;
-      g.fillStyle = theme.muted;
-      g.fillText(label, 0, y + ROW_H / 2);
-      g.fillStyle = theme.hair;
-      g.fillRect(GUTTER, y + ROW_H, trackW, 1);
-      curve(g, GUTTER, y, trackW, ROW_H, label, preset);
-    });
-  }
-
-  // One filled path per row rather than a column of one-pixel rectangles.
-  // The rectangles built an rgba string per column — about two thousand of them
-  // per rebuild — and since a rebuild happens on every preset click that showed
-  // up as a 150 ms stall exactly when someone was comparing mixes.
-  function curve(g, x0, y, width, height, label, pr) {
-    g.beginPath();
-    g.moveTo(x0, y + height);
-    for (let x = 0; x <= width; x += 2) {
-      const weight = activity(x / width, pr)[label];
-      g.lineTo(x0 + x, y + height - weight * height);
+  function draw(cv, px, angle) {
+    const g = cv.getContext("2d");
+    const u = px / 100;
+    g.save();
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, cv.width, cv.height);
+    g.restore();
+    g.save();
+    g.translate(px / 2, px / 2);
+    g.rotate(angle);
+    g.translate(-px / 2, -px / 2);
+    g.fillStyle = firuza;
+    for (const [x, y, w, h] of BARS) {
+      g.beginPath();
+      g.roundRect(x * u, y * u, w * u, h * u, 6 * u);
+      g.fill();
     }
-    g.lineTo(x0 + width, y + height);
-    g.closePath();
-    g.fillStyle = rgba(baseHex, 0.72);
-    g.fill();
+    g.restore();
   }
 
-  function drawTimeline(p) {
-    if (!bands) buildBands();
-    if (!bands) return;
-    const width = timeline.clientWidth;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    if (timeline.width !== Math.round(width * dpr)) {
-      timeline.width = Math.round(width * dpr);
-      timeline.height = TL_H * dpr;
-      timeline.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-    const g = timeline.getContext("2d");
-    g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
-    g.clearRect(0, 0, timeline.width, timeline.height); g.restore();
-    g.drawImage(bands, 0, 0, width, TL_H);
-    g.fillStyle = litHex();
-    g.fillRect(GUTTER + p * trackW, 2, 1.5, TL_H - 10);
-  }
-
-  /* ---- frame rate --------------------------------------------------------- */
-  // Reported rather than claimed. It is a browser here, not the Flutter client,
-  // so this measures whether the drawing is cheap enough — not what a handset
-  // will do with it.
-
-  const fpsEl = document.getElementById("fps");
-  let fpsPrev = 0, fpsFrames = 0, fpsElapsed = 0;
-
-  function sampleFps(now) {
-    if (fpsPrev) { fpsElapsed += now - fpsPrev; fpsFrames++; }
-    fpsPrev = now;
-    if (fpsElapsed >= 1000) {
-      fpsEl.textContent = Math.round(1000 / (fpsElapsed / fpsFrames)) + " fps";
-      fpsElapsed = 0; fpsFrames = 0;
-    }
+  function readTheme() {
+    const v = getComputedStyle(document.documentElement).getPropertyValue("--firuza").trim();
+    if (v) firuza = v;
   }
 
   function frame(now) {
     rafId = 0;
-    if ((tickCount++ & 31) === 0) readTheme();
-    const t = now / 1000;
-    for (const entry of live) paint(entry, t);
-    drawTimeline((t / lapOf(preset)) % 1);
-    sampleFps(now);
+    const angle = angleAt(now);
+    for (const [cv, px] of canvases) draw(cv, px, angle);
     if (motion) rafId = requestAnimationFrame(frame);
   }
 
-  function repaintAll() {
+  function paintStill() {
     readTheme();
-    const t = performance.now() / 1000;
-    for (const entry of live) paint(entry, t);
-    drawTimeline(motion ? (t / lapOf(preset)) % 1 : 0);
+    for (const [cv, px] of canvases) draw(cv, px, 0);
   }
 
-  function register(cv, id, px) {
-    fit(cv, px);
-    const entry = { cv, id, px };
-    live.push(entry);
-    return entry;
+  const stillLabel = document.getElementById("still-label");
+  const derived = document.getElementById("derived");
+
+  function describe() {
+    const step = turnMs + holdMs;
+    derived.textContent =
+      `A quarter every ${step} ms, so a full revolution takes ${(step * 4 / 1000).toFixed(2)} s.`;
   }
-
-  // The two comparison plates are declared in the markup, since they are the
-  // argument rather than a list item.
-  for (const cv of document.querySelectorAll("canvas[data-variant]")) {
-    register(cv, cv.dataset.variant, Number(cv.dataset.size));
-  }
-
-  const variantHost = document.getElementById("variants");
-  for (const v of SHOWN) {
-    const card = document.createElement("div");
-    card.className = "variant";
-
-    const row = document.createElement("div");
-    row.className = "row";
-    const big = document.createElement("canvas");
-    register(big, v.id, 76);
-    const heading = document.createElement("h3");
-    heading.innerHTML = v.name + "<small>" + v.gloss + "</small>";
-    const small = document.createElement("canvas");
-    small.className = "small";
-    register(small, v.id, 28);
-    row.append(big, heading, small);
-
-    const role = document.createElement("span");
-    role.className = "role";
-    role.textContent = v.role;
-    const note = document.createElement("p");
-    note.textContent = v.note;
-
-    card.append(row, role, note);
-    variantHost.appendChild(card);
-  }
-
-  // Arrival gets its own card at the end of the list: it is not a loading state
-  // and should not be chosen instead of one.
-  {
-    const card = document.createElement("div");
-    card.className = "variant";
-    const row = document.createElement("div");
-    row.className = "row";
-    const big = document.createElement("canvas");
-    register(big, "tob", 76);
-    const heading = document.createElement("h3");
-    heading.innerHTML = "ТОБ<small>tob — the light pass</small>";
-    const small = document.createElement("canvas");
-    small.className = "small";
-    register(small, "tob", 28);
-    row.append(big, heading, small);
-    const role = document.createElement("span");
-    role.className = "role";
-    role.textContent = "Arrived — not a loop";
-    const note = document.createElement("p");
-    note.textContent =
-      "The one place saffron is still spent, and it is spent once. Shown here on a repeat so it can be seen at all; in the app it fires when something becomes true and then is gone.";
-    card.append(row, role, note);
-    variantHost.appendChild(card);
-  }
-
-  /* ---- the mixes ---------------------------------------------------------- */
-
-  const mixGrid = document.getElementById("mix-grid");
-  const whichEl = document.getElementById("which");
-  const stepEl = document.getElementById("step-s");
-  const lapEl = document.getElementById("lap-s");
-  const miniPainters = [];
-
-  // Same three rows as the big diagram, at a third the height, so the shapes
-  // can be read against each other rather than one at a time.
-  function drawMini(cv, pr) {
-    const width = cv.clientWidth || 240, height = 46;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    cv.width = Math.round(width * dpr); cv.height = Math.round(height * dpr);
-    const g = cv.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, width, height);
-    const rowH = 12, gap = 5, track = Math.max(1, Math.round(width - 46));
-    ROWS.forEach((label, r) => {
-      const y = r * (rowH + gap);
-      g.font = '600 8px "Noto Sans", system-ui, sans-serif';
-      g.textBaseline = "middle";
-      g.fillStyle = theme.muted;
-      g.fillText(label, 0, y + rowH / 2);
-      g.fillStyle = theme.hair;
-      g.fillRect(46, y + rowH, track, 1);
-      curve(g, 46, y, track, rowH, label, pr);
-    });
-  }
-
-  function applyPreset(pr) {
-    preset = pr;
-    whichEl.textContent = pr.name;
-    stepEl.textContent = pr.step.toFixed(2);
-    lapEl.textContent = lapOf(pr).toFixed(2);
-    for (const el of mixGrid.children) {
-      el.setAttribute("aria-checked", String(el.dataset.preset === pr.id));
-    }
-    bands = null;
-    if (!motion) repaintAll();
-  }
-
-  for (const pr of PRESETS) {
-    const card = document.createElement("button");
-    card.type = "button";
-    card.className = "mix";
-    card.setAttribute("role", "radio");
-    card.dataset.preset = pr.id;
-
-    const head = document.createElement("div");
-    head.className = "mix-head";
-    const big = document.createElement("canvas");
-    register(big, "loop", 62).preset = pr;
-    const heading = document.createElement("h3");
-    heading.innerHTML = pr.name + "<small>" + pr.gloss + "</small>";
-    const tiny = document.createElement("canvas");
-    tiny.className = "tiny";
-    register(tiny, "loop", 24).preset = pr;
-    head.append(big, heading, tiny);
-
-    const diagram = document.createElement("canvas");
-    diagram.className = "mix-diagram";
-    miniPainters.push(() => drawMini(diagram, pr));
-
-    const dl = document.createElement("dl");
-    const turn = pr.turn.laps === 1
-      ? "90° a lap"
-      : "90° every " + pr.turn.laps + " laps";
-    const spread = Math.round((pr.turn.out - pr.turn.in) * 100) + "% of it";
-    for (const [term, value] of [
-      ["Step", pr.step.toFixed(2) + " s"],
-      ["Lap", lapOf(pr).toFixed(2) + " s"],
-      ["Weave", "slides " + pr.weave.amp + " units, over " +
-        (pr.weave.start - pr.weave.end).toFixed(2) + " bars"],
-      ["Turn", turn + ", eased over " + spread],
-    ]) {
-      const dt = document.createElement("dt"); dt.textContent = term;
-      const dd = document.createElement("dd"); dd.textContent = value;
-      dl.append(dt, dd);
-    }
-
-    const note = document.createElement("p");
-    note.className = "note";
-    note.textContent = pr.note;
-
-    card.append(head, diagram, dl, note);
-    card.addEventListener("click", () => applyPreset(pr));
-    mixGrid.appendChild(card);
-  }
-
-  const repaintMinis = () => { for (const paint of miniPainters) paint(); };
-
-  /* ---- hue picker --------------------------------------------------------- */
-
-  const hueHost = document.getElementById("hues");
-  function applyHue(hex) {
-    baseHex = hex;
-    document.documentElement.style.setProperty("--firuza-css", hex);
-    // The raw hue is fine as a border on either ground, but as text on a light
-    // ground it lands around 2.4:1. Deepen it there rather than shipping a
-    // contrast failure for the sake of a swatch matching exactly.
-    const onLight = theme.toward === "#0A1220";
-    document.documentElement.style.setProperty(
-      "--accent-text", onLight ? mix(hex, "#0A1220", 0.42) : hex);
-    bands = null;   // the curves are drawn in the accent, so they follow it
-    repaintMinis();
-    for (const el of hueHost.children) {
-      el.setAttribute("aria-checked", String(el.dataset.hex === hex));
-    }
-    repaintAll();
-  }
-
-  // Swatches are deliberately kept out of `live`: they are being compared with
-  // each other, and a moving sample is harder to compare than a still one. Each
-  // paints in its own hue rather than the page's.
-  const swatches = [];
-
-  for (const h of HUES) {
-    const el = document.createElement("button");
-    el.type = "button";
-    el.className = "hue";
-    el.setAttribute("role", "radio");
-    el.dataset.hex = h.hex;
-
-    const cv = document.createElement("canvas");
-    fit(cv, 56);
-    const paint56 = () => {
-      const g = cv.getContext("2d");
-      g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
-      g.clearRect(0, 0, cv.width, cv.height); g.restore();
-      const u = 56 / 100;
-      for (const b of BARS) { barPath(g, u, b); g.fillStyle = h.hex; g.fill(); }
-    };
-    swatches.push(paint56);
-
-    const name = document.createElement("b");
-    name.textContent = h.name;
-    const note = document.createElement("span");
-    note.textContent = h.note;
-    const code = document.createElement("code");
-    code.textContent = h.hex;
-
-    el.append(cv, name, note, code);
-    el.addEventListener("click", () => applyHue(h.hex));
-    hueHost.appendChild(el);
-  }
-
-  const repaintSwatches = () => { for (const paint of swatches) paint(); };
-
-  /* ---- motion control ----------------------------------------------------- */
 
   const toggle = document.getElementById("motion");
   const note = document.getElementById("motion-note");
@@ -1141,63 +238,46 @@
     toggle.textContent = motion ? "Motion is on" : "Motion is off";
     toggle.setAttribute("aria-pressed", String(motion));
     note.textContent = motion
-      ? "Turn it off to see every reduced-motion fallback."
-      : "Every variant is at rest. Nothing is running slower — it is not running.";
+      ? "Turn it off to see the reduced-motion fallback."
+      : "The mark is still. The word below is what carries the state instead.";
+    stillLabel.hidden = motion;
     if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
-    fpsPrev = 0; fpsFrames = 0; fpsElapsed = 0;
-    if (motion) {
-      rafId = requestAnimationFrame(frame);
-    } else {
-      fpsEl.textContent = "not running";
-      repaintAll();
-    }
+    if (motion) { readTheme(); rafId = requestAnimationFrame(frame); }
+    else paintStill();
   }
+
   toggle.addEventListener("click", () => { motion = !motion; applyMotion(); });
 
-  const softToggle = document.getElementById("soft");
-  softToggle.addEventListener("click", () => {
-    SOFT = !SOFT;
-    softToggle.textContent = SOFT ? "Highlight: teal tint" : "Highlight: saffron step";
-    softToggle.setAttribute("aria-pressed", String(SOFT));
-    bands = null;
-    if (!motion) repaintAll();
-  });
+  for (const [id, set] of [["turn", (v) => (turnMs = v)], ["hold", (v) => (holdMs = v)]]) {
+    const input = document.getElementById(id);
+    const out = document.getElementById(id + "-out");
+    input.addEventListener("input", () => {
+      set(Number(input.value));
+      out.textContent = input.value + " ms";
+      describe();
+    });
+  }
 
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-    readTheme(); bands = null; repaintSwatches(); repaintMinis();
-    if (!motion) repaintAll();
+    readTheme();
+    if (!motion) paintStill();
   });
 
-  let resizeTimer = 0;
-  window.addEventListener("resize", () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      bands = null; repaintMinis();
-      if (!motion) repaintAll();
-    }, 120);
-  });
-
+  for (const [cv, px] of canvases) fit(cv, px);
   readTheme();
-  applyHue(baseHex);
-  applyPreset(preset);
-  repaintSwatches();
-  repaintMinis();
+  describe();
   applyMotion();
 
-  // Exposed so a variant can be painted at a chosen moment rather than caught
-  // in passing. `pnpm brand:render` uses it to build the filmstrip in
-  // docs/brand/samani-frames.png, and it is the only honest way to check a
-  // loop: a screenshot of a running animation shows one arbitrary frame.
-  window.SakinaSamani = {
-    variants: Object.keys(VARIANTS),
-    presets: PRESETS.map((pr) => pr.id),
-    paint(canvas, id, px, seconds, presetId) {
+  // So a still of the turn can be sampled at chosen moments rather than caught
+  // mid-flight. `pnpm brand:render` uses it.
+  window.SakinaCharkh = {
+    paint(canvas, px, ms, turn, hold) {
+      const previous = [turnMs, holdMs];
+      if (turn) turnMs = turn;
+      if (hold) holdMs = hold;
       fit(canvas, px);
-      const g = canvas.getContext("2d");
-      g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
-      g.clearRect(0, 0, canvas.width, canvas.height); g.restore();
-      const pr = PRESETS.find((x) => x.id === presetId) || preset;
-      VARIANTS[id](g, px, seconds, false, pr);
+      draw(canvas, px, angleAt(ms));
+      [turnMs, holdMs] = previous;
     },
   };
 })();
