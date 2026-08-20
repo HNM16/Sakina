@@ -46,14 +46,21 @@ an inversion.
 | --- | --- | --- | --- |
 | **Шаб** — night | the ground | `#0A1220` | `#F4F7FB` |
 | **Сурфа** — surface | cards, bubbles | `#18243A` | `#FFFFFF` |
-| **Фирӯза** — turquoise | the one accent | `#35B9AC` | `#12867C` |
+| **Фирӯза** — turquoise | the one accent | `#32BBC8` | `#127D87` |
 | **Заъфарон** — saffron | rare warmth | `#E3AC55` | `#B07A1E` |
 | **Анор** — pomegranate | only for loss | `#D25A54` | `#B23B36` |
 | **Кӯҳ** — mountain | secondary text | `#8496B3` | `#5A6C88` |
 
 Firuza is the glaze on Samanid tilework — the dynasty Tajik national identity is
-built on. It is ours in a way a flag colour is not, and it belongs to nobody else
-in this category.
+built on. It is ours in a way a flag colour is not.
+
+It sat at hue 174 until it was moved to 185, which is bluer and reads as
+turquoise rather than as a green-leaning teal. That is closer to the source, not
+further from it: the glaze on the Samanid and Timurid domes runs blue, and 174
+was the compromise. Saturation and lightness went up a little with it. What it
+is *not* is a claim that nobody else uses this colour — see
+[`DESIGN-AUDIT.md`](DESIGN-AUDIT.md), where the absence of a clearance search is
+an open finding.
 
 ### What was ruled out, and why
 

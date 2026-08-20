@@ -403,11 +403,11 @@ a browser:
    Neither is the registry that decides, though: that is Tajikistan's National
    Patent and Information Centre (НПИЦ), under the Ministry of Economic
    Development and Trade, and it has to be asked directly.
-3. **Settle the BRAND.md claim.** "It belongs to nobody else in this category"
-   is written about firuza as though someone had checked. Either check it against
-   the messengers and banks actually on a Tajik phone, or soften the sentence to
-   what is true: it was chosen off Samanid tilework, which is a reason, not a
-   clearance.
+3. **Check firuza against what is already on a Tajik phone.** BRAND.md used to
+   claim the colour "belongs to nobody else in this category" as though someone
+   had looked; that sentence is gone, but the check behind it still has not
+   happened. It matters slightly more now that the accent has moved to hue 185,
+   which is nearer the teal most messengers reach for.
 
 Worth saying plainly: none of this is a legal opinion, and a real clearance is a
 trademark attorney's job in the jurisdictions you intend to launch in.

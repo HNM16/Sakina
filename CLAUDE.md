@@ -16,7 +16,7 @@ final legal text. Never remove a focus state.
 
 `docs/BRAND.md` and `apps/mobile/lib/src/theme.dart` are the source of truth for
 colour, type and the mark. Guardrail G8 in the skill says an existing system
-overrides its defaults list — this is that system. Firuza (`#35B9AC`) is the
+overrides its defaults list — this is that system. Firuza (`#32BBC8`) is the
 accent because it is the glaze on Samanid tilework, not because it tested well;
 do not swap it out to escape a tell.
 

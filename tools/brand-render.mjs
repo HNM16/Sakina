@@ -25,7 +25,7 @@ const out = (f) => resolve(root, 'docs/brand', f);
 
 // Kept deliberately in step with _ChorkhonaPainter in apps/mobile/lib/src/theme.dart.
 const PAINTER = String.raw`
-const FIR = '#35B9AC', SAF = '#E3AC55';
+const FIR = '#32BBC8', SAF = '#E3AC55';
 function rr(g, c, half, unit, rot, fill, r) {
   g.save(); g.translate(c, c); g.rotate(rot);
   const w = half * 2 * unit;
@@ -95,7 +95,7 @@ const SHEET = String.raw`<!doctype html><html lang="en"><meta charset="utf-8">
       font:14px/1.55 "Noto Sans",system-ui,sans-serif;padding:44px 48px 56px}
  h1{font:600 26px/1.2 system-ui;margin:0 0 6px}
  h1+p{color:#8496B3;margin:0 0 8px;max-width:80ch}
- h2{font:600 16px/1.3 system-ui;color:#35B9AC;margin:40px 0 4px}
+ h2{font:600 16px/1.3 system-ui;color:#32BBC8;margin:40px 0 4px}
  p.n{color:#8496B3;margin:0 0 18px;max-width:80ch}
  .row{display:flex;gap:32px;align-items:flex-end;flex-wrap:wrap}
  figure{margin:0;text-align:center}

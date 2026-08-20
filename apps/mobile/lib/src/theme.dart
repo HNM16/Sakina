@@ -42,8 +42,8 @@ abstract final class SakinaColors {
   /// WhatsApp owns green (which also rules out the instinctive "Islamic
   /// green"), and the flag palette belongs to the state messenger that launched
   /// here in 2025. Firuza is ours in a way a flag colour is not.
-  static const tileNight = Color(0xFF35B9AC);
-  static const tileDay = Color(0xFF12867C);
+  static const tileNight = Color(0xFF32BBC8);
+  static const tileDay = Color(0xFF127D87);
 
   /// Заъфарон — saffron. Rare warmth only: a Navruz greeting, a pinned chat.
   /// A screen with three accent colours has none.

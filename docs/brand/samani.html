@@ -14,8 +14,8 @@
     /* Light grounds want the active bar deeper, not paler. */
     --lit-toward: #0A1220;
     --lit-amount: .32;
-    --firuza-css: #35B9B9;
-    --accent-text: #237373;
+    --firuza-css: #32BBC8;
+    --accent-text: #21747C;
 
     --step--1: .8125rem;
     --step-0:  1rem;
@@ -34,8 +34,8 @@
       --tile:    #1E2C45;
       --lit-toward: #E8EEF7;
       --lit-amount: .34;
-      --firuza-css: #35B9B9;
-      --accent-text: #35B9B9;
+      --firuza-css: #32BBC8;
+      --accent-text: #32BBC8;
     }
   }
   :root[data-theme="dark"] {
@@ -48,8 +48,8 @@
     --tile:    #1E2C45;
     --lit-toward: #E8EEF7;
     --lit-amount: .34;
-    --firuza-css: #35B9B9;
-    --accent-text: #35B9B9;
+    --firuza-css: #32BBC8;
+    --accent-text: #32BBC8;
   }
 
   * { box-sizing: border-box; }
@@ -202,10 +202,10 @@
     <p>
       So there are no windows here. There is one quantity — the light's position
       around the weave, which only ever increases — and the other two behaviours
-      are read off it. A bar is saffron when the light is on it. A bar is short
-      by how far the light still has to travel to reach it: each bar pulls back
-      and re-lays itself over the step before, finishing exactly as the light
-      lands, so the highlight always arrives on something just completed. And the
+      are read off it. A bar is saffron when the light is on it. A bar is out of
+      place by how far the light still has to travel to reach it: it reaches
+      ahead along the line it runs on and is home again exactly as the light
+      lands, so the highlight always arrives on something just settled. And the
       mark turns a quarter for every lap. Nothing starts, nothing stops, and
       there is one cause instead of three.
     </p>
@@ -223,7 +223,7 @@
     <canvas id="timeline" aria-hidden="true"></canvas>
     <p class="timeline-note">
       How busy each behaviour is across one lap: whether the top bar is lit, how
-      far it has been pulled back, and how fast the mark is turning. НАВБАТ is a
+      far out of place it is, and how fast the mark is turning. НАВБАТ is a
       square wave because it is a step — that is the point of it. The other two
       run underneath it continuously, which is what the step needed.
     </p>
@@ -233,7 +233,7 @@
     <h2>Six mixes</h2>
     <p>
       The same three behaviours every time. What changes is the speed of the
-      step, how deep and how early the weave pulls back, and how much of the
+      step, how far and how early the weave reaches, and how much of the
       cycle the turn is spread across.
     </p>
     <p>
@@ -255,7 +255,7 @@
       the one thing worth keeping. What actually made the original read as a
       board game is that the step was the <em>only</em> thing happening. Four
       states and nothing else is a game piece lighting up. The same four states
-      over a weave that is re-laying itself and a mark that is turning is a beat
+      over a weave that is shifting under it and a mark that is turning is a beat
       over a phrase — same notes, and it stops sounding like a toy.
     </p>
     <p>
@@ -269,7 +269,7 @@
       </figure>
       <figure>
         <canvas data-variant="loop" data-size="104"></canvas>
-        <figcaption><b>In the loop</b>The identical step, over a weave that is re-laying and a mark that is turning.</figcaption>
+        <figcaption><b>In the loop</b>The identical step, over a weave that is shifting and a mark that is turning.</figcaption>
       </figure>
     </div>
   </section>
@@ -288,21 +288,27 @@
   <section>
     <h2>The hue</h2>
     <p>
-      A pure hue nudge: saturation and lightness are identical across all three,
-      so the only thing changing is how green or blue the teal reads. Click one
-      and the whole page follows.
+      Three points around the new accent, all at the same saturation and
+      lightness, so the only thing changing is how green or blue it reads. Click
+      one and the whole page follows.
     </p>
     <div class="hues" id="hues" role="radiogroup" aria-label="Accent hue"></div>
     <div class="verdict">
       <p>
-        Firuza sits at hue 174, which is a teal leaning green — the Samanid glaze
-        reading comes from that lean. Hue 180 is the exact midpoint between green
-        and blue and is the more expected choice for an app of this kind, which is
-        what makes it the smaller of the two steps away from where we are.
+        Firuza now sits at hue 185, moved there from 174 and lifted slightly in
+        saturation and lightness. The old value was a teal leaning green; this
+        one is properly turquoise.
       </p>
       <p>
-        Past about 186 the colour stops looking like glaze and starts looking like
-        every other messenger, so that is the far edge rather than a candidate.
+        That is truer to where it came from, not a departure from it. The
+        turquoise on Samanid and Timurid tilework runs blue rather than green —
+        the domes at Bukhara and Samarkand are closer to 185 than to 174 — so the
+        move strengthens the reason the colour was chosen rather than trading it
+        away.
+      </p>
+      <p>
+        The two neighbours are here for calibration. Past about 192 it stops
+        looking like glaze and starts looking like every other messenger.
       </p>
     </div>
   </section>
@@ -320,7 +326,7 @@
       <p>
         КОР over the other five because nothing in it dominates. ОРОМ is the one
         I would swap to if this ends up on screen for minutes rather than
-        seconds, and ЗАРБ is the honest fallback if the weave and the turn turn
+        seconds, and ЗАРБ is the honest fallback if the ripple and the turn turn
         out to be invisible at 24&nbsp;px on a real handset — which is exactly
         the kind of thing that cannot be settled here.
       </p>
@@ -358,12 +364,12 @@
   "use strict";
 
   const HUES = [
-    { id: 174, hex: "#35B9AC", name: "Firuza", note: "hue 174 — as it is today" },
-    { id: 180, hex: "#35B9B9", name: "Firuza 180", note: "hue 180 — the tiny step" },
-    { id: 186, hex: "#35ACB9", name: "Firuza 186", note: "hue 186 — the far edge" },
+    { id: 178, hex: "#32C8C3", name: "Firuza 178", note: "hue 178 — greener" },
+    { id: 185, hex: "#32BBC8", name: "Firuza", note: "hue 185 — the theme" },
+    { id: 192, hex: "#32AAC8", name: "Firuza 192", note: "hue 192 — bluer still" },
   ];
 
-  let baseHex = HUES[1].hex;              // the tiny step, pre-selected
+  let baseHex = HUES[1].hex;              // the theme colour
   const theme = { saffron: "#E3AC55", toward: "#E8EEF7", amount: 0.34, muted: "#8496B3", hair: "#22314B" };
 
   function readTheme() {
@@ -435,7 +441,7 @@
   // behaviours are functions of it:
   //
   //   НАВБАТ  a bar is lit by how near the light is to it
-  //   БОФТ    a bar is short by how near the light is to it
+  //   БОФТ    a bar is out of place by how near the light is to it
   //   ЧАРХ    the mark has turned by how many laps the light has made
   //
   // Nothing starts. Nothing stops. The light travelling is the single cause and
@@ -445,54 +451,54 @@
   // behaviours can be mixed several ways and compared rather than argued about.
   //
   //   step        seconds the saffron spends on one bar
-  //   weave.depth how short a bar gets, as a fraction of its length
-  //   weave.start where ahead of the light it begins pulling back, in bar-units
-  //   weave.mid   where it is at its shortest
-  //   weave.end   where it is whole again — 0.5 in every preset, because that is
-  //               the instant the saffron lands, and a bar lighting up while
-  //               still half-grown reads as an error rather than as a beat
+  //   weave.amp   how far a bar slides along its own run, in units of 100
+  //   weave.start where ahead of the light it begins to reach, in bar-units
+  //   weave.mid   where it is reaching furthest
+  //   weave.end   where it is home again — 0.5 in every preset, because that is
+  //               the instant the saffron lands, and a bar still out of place
+  //               when it lights reads as an error rather than as a beat
   //   turn.laps   laps the mark takes to complete one quarter turn
   //   turn.in/out the span of that cycle the turn is eased across
   const PRESETS = [
     {
       id: "orom", name: "ОРОМ", gloss: "orom — calm",
       step: 0.72,
-      weave: { depth: 0.58, start: 1.95, mid: 1.15, end: 0.5 },
+      weave: { amp: 5, start: 1.95, mid: 1.15, end: 0.5 },
       turn: { laps: 1, in: 0.02, out: 0.98 },
-      note: "Everything slowed and softened. The weave barely dips and the turn never stops, so nothing in it asks for attention. The one to pick if this will sit on screen for a long time.",
+      note: "Everything slowed and softened. The weave barely shifts and the turn never stops, so nothing in it asks for attention. The one to pick if this will sit on screen for a long time.",
     },
     {
       id: "kor", name: "КОР", gloss: "kor — work",
       step: 0.52,
-      weave: { depth: 0.38, start: 1.8, mid: 1.0, end: 0.5 },
+      weave: { amp: 8, start: 1.8, mid: 1.1, end: 0.5 },
       turn: { laps: 1, in: 0.10, out: 0.94 },
       note: "The balance we arrived at: the step reads clearly, the weave is plainly visible, the turn is continuous. Nothing dominates.",
     },
     {
       id: "tez", name: "ТЕЗ", gloss: "tez — quick",
       step: 0.34,
-      weave: { depth: 0.45, start: 1.5, mid: 0.9, end: 0.5 },
+      weave: { amp: 7, start: 1.5, mid: 1.0, end: 0.5 },
       turn: { laps: 1, in: 0.10, out: 0.90 },
       note: "The same mix at pace. A lap in 1.4 s makes it feel like something is being worked on hard, which is right for a short wait and wearing for a long one.",
     },
     {
       id: "zarb", name: "ЗАРБ", gloss: "zarb — the beat",
       step: 0.46,
-      weave: { depth: 0.72, start: 1.3, mid: 0.85, end: 0.5 },
+      weave: { amp: 4, start: 1.3, mid: 0.9, end: 0.5 },
       turn: { laps: 2, in: 0.25, out: 0.85 },
-      note: "The step carries it and the other two are texture: a shallow weave and a turn slow enough to notice only if you watch for it. Closest to the original animation, without being only the original animation.",
+      note: "The step carries it and the other two are texture: a barely-there ripple and a turn slow enough to notice only if you watch for it. Closest to the original animation, without being only the original animation.",
     },
     {
       id: "bofanda", name: "БОФАНДА", gloss: "bofanda — the weaver",
       step: 0.62,
-      weave: { depth: 0.22, start: 1.95, mid: 1.25, end: 0.5 },
+      weave: { amp: 13, start: 1.95, mid: 1.2, end: 0.5 },
       turn: { laps: 2, in: 0.05, out: 0.95 },
-      note: "The weaving leads. Bars pull most of the way back and take almost two steps to return, so the mark is visibly being rebuilt and the saffron is what confirms each bar is done.",
+      note: "The weaving leads. Bars reach far enough that the gaps visibly open and close as the ripple passes, and the saffron is what confirms each one has settled.",
     },
     {
       id: "charkhish", name: "ЧАРХИШ", gloss: "charkhish — turning",
       step: 0.58,
-      weave: { depth: 0.62, start: 1.5, mid: 0.95, end: 0.5 },
+      weave: { amp: 5, start: 1.5, mid: 1.0, end: 0.5 },
       turn: { laps: 1, in: 0.34, out: 0.76 },
       note: "The turn concentrated into a sweep in the middle of each lap instead of spread across it. It is the only preset where the rotation is an event you can point at, which is either the interesting one or the restless one.",
     },
@@ -517,7 +523,7 @@
   // different animation. What made the original read as a puzzle game was never
   // the step; it was that the step was the *only* thing happening. Four states
   // and nothing else is a board game. The same step over a weave that is
-  // re-laying itself and a mark that is turning is a beat over a phrase.
+  // shifting under it and a mark that is turning is a beat over a phrase.
   //
   // SOFT is kept only so the two can be compared on the page. It is off.
   let SOFT = false;
@@ -528,24 +534,29 @@
     return d >= SOFT_WIDTH ? 0 : smoothstep(0, 1, 1 - d / SOFT_WIDTH);
   }
 
-  // Retimed so a bar finishes re-laying itself at the exact moment the saffron
-  // arrives — the step lights at u = 0.5, so the weave completes there and not
-  // at u = 0. Finishing at 0 meant the bar lit while still half its length, and
-  // a half-length saffron bar reads as an error rather than as a beat.
+  // Timed so a bar is back in place at the exact moment the saffron arrives —
+  // the step lights at u = 0.5, so the weave settles there. This is what ties
+  // the two channels together: the weaving is not happening near the highlight,
+  // it is happening ahead of it, and the highlight lands on what it just
+  // settled. Same beat, one cause.
   //
-  // This is what ties the two channels together: the weaving is not happening
-  // near the highlight, it is happening ahead of it, and the highlight lands on
-  // what it just finished. Same beat, one cause.
+  // БОФТ, rebuilt. It used to shorten a bar and grow it back, and however the
+  // numbers were tuned that reads as a bar that is broken rather than a bar that
+  // is being worked on — a length that changes looks like a rendering fault, not
+  // like loading.
   //
-  // How far back it pulls decides whether this reads as work or as damage. At
-  // 0.16 the bar became a stub and the mark spent every frame looking like a
-  // broken letter C, which is why no preset goes below 0.22.
-  function extentOf(u, pr) {
+  // Now the bar keeps its length and slides along the line it runs on: it
+  // reaches ahead as the light approaches and is home again as the light lands.
+  // Because the four bars are a pinwheel, one sliding closes the gap in front of
+  // it and opens the one behind, so in sequence a ripple travels round the
+  // weave. Nothing ever shortens, so nothing ever looks broken, and a ripple
+  // going somewhere is what a loading indicator is supposed to look like.
+  function slideOf(u, pr) {
     const w = pr.weave;
-    if (u > w.start || u < w.end) return 1;
+    if (u > w.start || u < w.end) return 0;
     return u > w.mid
-      ? 1 - (1 - w.depth) * ease((w.start - u) / (w.start - w.mid))
-      : w.depth + (1 - w.depth) * ease((w.mid - u) / (w.mid - w.end));
+      ? w.amp * ease((w.start - u) / (w.start - w.mid))
+      : w.amp * (1 - ease((w.mid - u) / (w.mid - w.end)));
   }
 
   // A quarter turn per lap, eased across most of it rather than fired between
@@ -563,23 +574,6 @@
     const cycles = pos / (4 * pr.turn.laps);
     const n = Math.floor(cycles);
     return (n + turnProgress(cycles - n, pr)) * (Math.PI / 2);
-  }
-
-  // A bar at a fraction of its length, measured from the end it grows out of.
-  //
-  // This used to clip a full-length bar to a shorter rectangle, which is both
-  // slower and worse: clip() forces a fresh layer per call, and with the mix
-  // cards on screen that was four clips across thirty-odd canvases every frame
-  // — enough to drop the page from 60 fps to 11. Building the short bar
-  // directly costs one path, and it keeps its rounded end instead of showing a
-  // sliced one.
-  function barPathExtent(g, u, b, extent) {
-    const w = b.dx ? b.w * extent : b.w;
-    const h = b.dy ? b.h * extent : b.h;
-    const x = b.dx < 0 ? b.x + b.w - w : b.x;
-    const y = b.dy < 0 ? b.y + b.h - h : b.y;
-    g.beginPath();
-    g.roundRect(x * u, y * u, w * u, h * u, 6 * u);
   }
 
   // The travelling band, as a five-stop gradient along a bar's own axis. Two
@@ -636,17 +630,12 @@
       });
     },
 
-    boft(g, px, t, still) {
+    boft(g, px, t, still, pr) {
       const u = px / 100;
-      // 2.0s, with all four bars down by 61% of the cycle. Slower than this and
-      // the indicator sits visibly empty at the start of every repeat, which
-      // reads as a failure rather than as a beginning.
-      const cycle = 2.0, p = (t / cycle) % 1;
+      const pos = t / pr.step;
       BARS.forEach((b, i) => {
-        const start = i * 0.13;
-        const grow = still ? 1 : Math.max(0, Math.min(1, (p - start) / 0.22));
-        if (grow <= 0) return;
-        barPathExtent(g, u, b, ease(grow));
+        const slide = still ? 0 : slideOf(offsetOf(i, pos), pr);
+        barPath(g, u, b, b.dx * slide, b.dy * slide);
         g.fillStyle = baseHex;
         g.fill();
       });
@@ -757,10 +746,9 @@
 
       BARS.forEach((b, i) => {
         const off = offsetOf(i, pos);
-        const extent = extentOf(off, pr);
+        const slide = slideOf(off, pr);
         const l = litness(off);
-        if (extent < 1) barPathExtent(g, u, b, extent);
-        else barPath(g, u, b);
+        barPath(g, u, b, b.dx * slide, b.dy * slide);
         g.fillStyle = l > 0.004 ? mix(baseHex, lit, l) : baseHex;
         g.fill();
       });
@@ -773,7 +761,7 @@
     { id: "navbat", name: "НАВБАТ", gloss: "navbat — taking turns", role: "In the loop",
       note: "The original animation, unchanged: one whole bar saffron at a time, switching rather than sliding. The button at the top swaps it for the softened version so the two can be compared." },
     { id: "boft", name: "БОФТ", gloss: "boft — the weaving", role: "In the loop",
-      note: "The bars lay themselves down along the direction they run. Inside the loop each one re-lays over the step before the light reaches it, and is whole again exactly as the light lands." },
+      note: "Each bar reaches ahead along the line it runs on and comes back, one after another, so a ripple travels round the weave. It keeps its length throughout — a bar that shortens reads as broken rather than as busy." },
     { id: "charkh", name: "ЧАРХ", gloss: "charkh — the turn", role: "In the loop",
       note: "A quarter turn per lap. The pinwheel lands on its own silhouette every time, so the mark keeps settling rather than spinning." },
     { id: "guzar", name: "ГУЗАР", gloss: "guzar — the pass", role: "Alternative",
@@ -813,7 +801,7 @@
 
   // How busy each channel is at a given point in the lap. There is no notion of
   // one being "on" any more, so this plots activity: how lit bar 0 is, how far
-  // it has been pulled back, and how fast the mark is turning. They overlap
+  // far out of place it is, and how fast the mark is turning. They overlap
   // almost everywhere, which is the difference from the version that switched.
   function activity(x, pr) {
     const off = offsetOf(0, x * 4);
@@ -828,7 +816,7 @@
     const peak = 1.5 / ((pr.turn.out - pr.turn.in) * pr.turn.laps);
     return {
       "НАВБАТ": litness(off),
-      "БОФТ": 1 - extentOf(off, pr),
+      "БОФТ": Math.abs(slideOf(off, pr)) / pr.weave.amp,
       "ЧАРХ": Math.min(1, rate / peak),
     };
   }
@@ -1067,7 +1055,7 @@
     for (const [term, value] of [
       ["Step", pr.step.toFixed(2) + " s"],
       ["Lap", lapOf(pr).toFixed(2) + " s"],
-      ["Weave", "back to " + Math.round(pr.weave.depth * 100) + "%, over " +
+      ["Weave", "slides " + pr.weave.amp + " units, over " +
         (pr.weave.start - pr.weave.end).toFixed(2) + " bars"],
       ["Turn", turn + ", eased over " + spread],
     ]) {
