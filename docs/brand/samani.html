@@ -94,13 +94,18 @@
   <p class="eyebrow">Sakina · brand</p>
   <h1>ЧАРХ<small>charkh — the turn</small></h1>
   <p class="lede">
-    The mark turns a quarter, holds, and turns again.
+    The mark turns, holds, and turns again.
   </p>
   <p>
-    A quarter is the smallest turn that lands the pinwheel back on its own
-    silhouette, so it never looks like it is spinning — it looks like it keeps
-    arriving. Two numbers describe the whole thing: how long the turn takes and
-    how long it waits before the next one.
+    Three numbers describe the whole thing: how far it turns, how long that
+    takes, and how long it waits before the next one.
+  </p>
+  <p>
+    How far matters more than it looks. The bars are a pinwheel, so a
+    multiple of 90° puts the mark back on its own silhouette — it stops
+    somewhere it has already been, and reads as arriving rather than as
+    spinning. Anything else leaves it resting at an angle it has never rested at
+    before, which is a different feeling entirely and worth trying.
   </p>
 
   <div class="stage">
@@ -112,6 +117,10 @@
   <p id="still-label" hidden>Loading</p>
 
   <div class="knobs">
+    <div class="knob">
+      <label for="deg">Each turn <output id="deg-out">90°</output></label>
+      <input type="range" id="deg" min="15" max="180" step="5" value="90">
+    </div>
     <div class="knob">
       <label for="turn">Turn <output id="turn-out">420 ms</output></label>
       <input type="range" id="turn" min="120" max="900" step="20" value="420">
@@ -154,7 +163,11 @@
     [14, 38, 20, 48],   // left, bottom to top
   ];
 
-  let turnMs = 420, holdMs = 380;
+  let turnMs = 420, holdMs = 380, stepDeg = 90;
+  // The angle is accumulated from a moving origin rather than computed straight
+  // from the clock. Without that, changing a slider rescales every turn that has
+  // already happened and the mark jumps by whatever it had built up.
+  let originMs = 0, originAngle = 0;
   let motion = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let firuza = "#32BBC8";
   let rafId = 0;
@@ -179,10 +192,19 @@
 
   function angleAt(ms) {
     const step = turnMs + holdMs;
-    const n = Math.floor(ms / step);
-    const within = ms % step;
+    const elapsed = Math.max(0, ms - originMs);
+    const n = Math.floor(elapsed / step);
+    const within = elapsed % step;
     const k = within >= turnMs ? 1 : smoothstep(within / turnMs);
-    return (n + k) * (Math.PI / 2);
+    return originAngle + (n + k) * (stepDeg * Math.PI / 180);
+  }
+
+  // Freeze where the mark is now, so the next frame carries on from here under
+  // whatever the new numbers are.
+  function reanchor() {
+    const now = performance.now();
+    originAngle = angleAt(now);
+    originMs = now;
   }
 
   function draw(cv, px, angle) {
@@ -227,8 +249,15 @@
 
   function describe() {
     const step = turnMs + holdMs;
+    const perRevolution = 360 / stepDeg;
+    const lands = 360 % stepDeg === 0 && stepDeg % 90 === 0;
     derived.textContent =
-      `A quarter every ${step} ms, so a full revolution takes ${(step * 4 / 1000).toFixed(2)} s.`;
+      `${stepDeg}° every ${step} ms — a full revolution in ` +
+      `${(step * perRevolution / 1000).toFixed(2)} s. ` +
+      (lands
+        ? "Every rest lands on the mark's own silhouette."
+        : `${stepDeg}° is not a multiple of 90°, so the mark rests at an angle ` +
+          "it has not rested at before.");
   }
 
   const toggle = document.getElementById("motion");
@@ -242,19 +271,28 @@
       : "The mark is still. The word below is what carries the state instead.";
     stillLabel.hidden = motion;
     if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    originMs = performance.now();
+    originAngle = 0;
     if (motion) { readTheme(); rafId = requestAnimationFrame(frame); }
     else paintStill();
   }
 
   toggle.addEventListener("click", () => { motion = !motion; applyMotion(); });
 
-  for (const [id, set] of [["turn", (v) => (turnMs = v)], ["hold", (v) => (holdMs = v)]]) {
+  const KNOBS = [
+    ["deg", (v) => (stepDeg = v), (v) => v + "°"],
+    ["turn", (v) => (turnMs = v), (v) => v + " ms"],
+    ["hold", (v) => (holdMs = v), (v) => v + " ms"],
+  ];
+  for (const [id, set, format] of KNOBS) {
     const input = document.getElementById(id);
     const out = document.getElementById(id + "-out");
     input.addEventListener("input", () => {
+      reanchor();
       set(Number(input.value));
-      out.textContent = input.value + " ms";
+      out.textContent = format(input.value);
       describe();
+      if (!motion) paintStill();
     });
   }
 
@@ -271,13 +309,15 @@
   // So a still of the turn can be sampled at chosen moments rather than caught
   // mid-flight. `pnpm brand:render` uses it.
   window.SakinaCharkh = {
-    paint(canvas, px, ms, turn, hold) {
-      const previous = [turnMs, holdMs];
+    paint(canvas, px, ms, turn, hold, deg) {
+      const previous = [turnMs, holdMs, stepDeg, originMs, originAngle];
       if (turn) turnMs = turn;
       if (hold) holdMs = hold;
+      if (deg) stepDeg = deg;
+      originMs = 0; originAngle = 0;
       fit(canvas, px);
       draw(canvas, px, angleAt(ms));
-      [turnMs, holdMs] = previous;
+      [turnMs, holdMs, stepDeg, originMs, originAngle] = previous;
     },
   };
 })();
