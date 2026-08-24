@@ -188,7 +188,7 @@ console.log('  docs/brand/mark-check.png');
 // One turn of ЧАРХ, sampled at fixed moments. A screenshot of a running loop
 // catches an arbitrary frame and proves nothing, so samani.html exposes its own
 // painter and this asks it for specific times.
-const CHARKH = { turn: 320, hold: 380, deg: 180, blur: 24 };
+const CHARKH = { turn: 320, hold: 380, deg: 180, blur: 30 };
 const STRIP = [0, 40, 80, 120, 160, 200, 240, 280, 320, 420, 560, 700, 740, 780, 820, 860];
 
 const strip = await browser.newPage({

@@ -138,8 +138,8 @@
       <input type="range" id="hold" min="0" max="900" step="20" value="380">
     </div>
     <div class="knob">
-      <label for="blur">Blur <output id="blur-out">24 ms</output></label>
-      <input type="range" id="blur" min="0" max="90" step="2" value="24">
+      <label for="blur">Blur <output id="blur-out">30 ms</output></label>
+      <input type="range" id="blur" min="0" max="90" step="2" value="30">
     </div>
   </div>
   <p id="derived" class="lede" style="font-size:.8125rem;margin-top:1rem"></p>
@@ -185,7 +185,7 @@
   // Shutter time, in milliseconds of travel. Purely visual: it smears the mark
   // across the angle it sweeps in this long, and changes nothing about when or
   // how far it turns.
-  let blurMs = 24;
+  let blurMs = 30;
   // The angle is accumulated from a moving origin rather than computed straight
   // from the clock. Without that, changing a slider rescales every turn that has
   // already happened and the mark jumps by whatever it had built up.
