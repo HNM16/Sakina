@@ -188,8 +188,8 @@ console.log('  docs/brand/mark-check.png');
 // One turn of ЧАРХ, sampled at fixed moments. A screenshot of a running loop
 // catches an arbitrary frame and proves nothing, so samani.html exposes its own
 // painter and this asks it for specific times.
-const CHARKH = { turn: 420, hold: 380, deg: 90 };
-const STRIP = [0, 60, 120, 190, 260, 330, 420, 560, 700, 800, 860, 920, 990, 1060, 1130, 1220];
+const CHARKH = { turn: 320, hold: 380, deg: 180, blur: 24 };
+const STRIP = [0, 40, 80, 120, 160, 200, 240, 280, 320, 420, 560, 700, 740, 780, 820, 860];
 
 const strip = await browser.newPage({
   viewport: { width: 900, height: 260 },
@@ -205,7 +205,7 @@ await strip.evaluate(({ times, cfg }) => {
     'display:flex;flex-direction:column;gap:16px;' +
     'font:13px/1.4 "Noto Sans",system-ui,sans-serif;color:#8496B3';
   const title = document.createElement('div');
-  title.textContent = `ЧАРХ — one turn and the hold after it (${cfg.deg}°, ${cfg.turn} ms turn, ${cfg.hold} ms hold)`;
+  title.textContent = `ЧАРХ — one turn and the hold after it (${cfg.deg}°, ${cfg.turn} ms turn, ${cfg.hold} ms hold, ${cfg.blur} ms shutter)`;
   title.style.cssText = 'color:#E8EEF7;font-size:16px;font-weight:700';
   board.appendChild(title);
   const row = document.createElement('div');
@@ -214,7 +214,7 @@ await strip.evaluate(({ times, cfg }) => {
     const cell = document.createElement('div');
     cell.style.cssText = 'text-align:center;font-size:10px';
     const cv = document.createElement('canvas');
-    window.SakinaCharkh.paint(cv, 46, t, cfg.turn, cfg.hold, cfg.deg);
+    window.SakinaCharkh.paint(cv, 56, t, cfg.turn, cfg.hold, cfg.deg, cfg.blur);
     const cap = document.createElement('div');
     cap.textContent = t + 'ms';
     cap.style.marginTop = '6px';

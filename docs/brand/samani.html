@@ -107,6 +107,14 @@
     spinning. Anything else leaves it resting at an angle it has never rested at
     before, which is a different feeling entirely and worth trying.
   </p>
+  <p>
+    The fourth number is not timing. <b>Blur</b> is a shutter: the mark is
+    smeared across the angle it sweeps in that many milliseconds, so it softens
+    while it is moving fastest and is perfectly sharp the moment it stops.
+    Nothing about when or how far it turns depends on it — at 0&nbsp;ms the
+    animation is identical, just hard-edged. Past about 40&nbsp;ms the mark
+    dissolves into a ring.
+  </p>
 
   <div class="stage">
     <figure><canvas id="big"></canvas><figcaption>96 px</figcaption></figure>
@@ -118,16 +126,20 @@
 
   <div class="knobs">
     <div class="knob">
-      <label for="deg">Each turn <output id="deg-out">90°</output></label>
-      <input type="range" id="deg" min="15" max="180" step="5" value="90">
+      <label for="deg">Each turn <output id="deg-out">180°</output></label>
+      <input type="range" id="deg" min="15" max="180" step="5" value="180">
     </div>
     <div class="knob">
-      <label for="turn">Turn <output id="turn-out">420 ms</output></label>
-      <input type="range" id="turn" min="120" max="900" step="20" value="420">
+      <label for="turn">Turn <output id="turn-out">320 ms</output></label>
+      <input type="range" id="turn" min="120" max="900" step="20" value="320">
     </div>
     <div class="knob">
       <label for="hold">Hold <output id="hold-out">380 ms</output></label>
       <input type="range" id="hold" min="0" max="900" step="20" value="380">
+    </div>
+    <div class="knob">
+      <label for="blur">Blur <output id="blur-out">24 ms</output></label>
+      <input type="range" id="blur" min="0" max="90" step="2" value="24">
     </div>
   </div>
   <p id="derived" class="lede" style="font-size:.8125rem;margin-top:1rem"></p>
@@ -141,6 +153,12 @@
     <p>
       Four bars, one colour, firuza at <code>#32BBC8</code>. Nothing else moves
       and nothing changes colour.
+    </p>
+    <p>
+      The blur is real angular blur — the mark drawn many times across the arc
+      it sweeps and accumulated, not a soft filter laid over the top. The number
+      of copies follows how far the outer corner actually travels, so a 20&nbsp;px
+      mark costs a handful and a 96&nbsp;px one costs a couple of dozen.
     </p>
     <p>
       Under reduced motion the mark stands still and a word carries the state,
@@ -163,7 +181,11 @@
     [14, 38, 20, 48],   // left, bottom to top
   ];
 
-  let turnMs = 420, holdMs = 380, stepDeg = 90;
+  let turnMs = 320, holdMs = 380, stepDeg = 180;
+  // Shutter time, in milliseconds of travel. Purely visual: it smears the mark
+  // across the angle it sweeps in this long, and changes nothing about when or
+  // how far it turns.
+  let blurMs = 24;
   // The angle is accumulated from a moving origin rather than computed straight
   // from the clock. Without that, changing a slider rescales every turn that has
   // already happened and the mark jumps by whatever it had built up.
@@ -199,6 +221,19 @@
     return originAngle + (n + k) * (stepDeg * Math.PI / 180);
   }
 
+  // How fast the mark is turning right now, in radians per millisecond. The
+  // eased turn is a smoothstep, whose derivative is 6x(1-x): zero at both ends,
+  // fastest in the middle. So this is zero the instant the turn starts, zero the
+  // instant it finishes, and zero for the whole hold — which is exactly when the
+  // mark should be sharp, without anything having to say so.
+  function angularSpeed(ms) {
+    const step = turnMs + holdMs;
+    const within = Math.max(0, ms - originMs) % step;
+    if (within >= turnMs) return 0;
+    const x = within / turnMs;
+    return (stepDeg * Math.PI / 180) * (6 * x * (1 - x)) / turnMs;
+  }
+
   // Freeze where the mark is now, so the next frame carries on from here under
   // whatever the new numbers are.
   function reanchor() {
@@ -207,23 +242,75 @@
     originMs = now;
   }
 
-  function draw(cv, px, angle) {
-    const g = cv.getContext("2d");
+  function bars(g, px, angle, colour) {
     const u = px / 100;
-    g.save();
-    g.setTransform(1, 0, 0, 1, 0, 0);
-    g.clearRect(0, 0, cv.width, cv.height);
-    g.restore();
     g.save();
     g.translate(px / 2, px / 2);
     g.rotate(angle);
     g.translate(-px / 2, -px / 2);
-    g.fillStyle = firuza;
+    g.fillStyle = colour;
     for (const [x, y, w, h] of BARS) {
       g.beginPath();
       g.roundRect(x * u, y * u, w * u, h * u, 6 * u);
       g.fill();
     }
+    g.restore();
+  }
+
+  const clear = (g, cv) => {
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, cv.width, cv.height); g.restore();
+  };
+
+  // One scratch canvas per size, kept rather than rebuilt: allocating a canvas
+  // per frame is the expensive way to do this.
+  const scratches = new WeakMap();
+  function scratchFor(cv, px) {
+    let o = scratches.get(cv);
+    if (!o || o.width !== cv.width) {
+      o = document.createElement("canvas");
+      o.width = cv.width; o.height = cv.height;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      o.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
+      scratches.set(cv, o);
+    }
+    return o;
+  }
+
+  // The corner of the mark, as a fraction of the box. Bars run to 86 of 100, so
+  // the far corner sits at hypot(36, 36) ≈ 51 units from the centre — that is
+  // the radius whose arc decides how many samples the smear needs.
+  const MARK_RADIUS = 0.51;
+
+  function draw(cv, px, angle, smear) {
+    const g = cv.getContext("2d");
+    clear(g, cv);
+
+    if (!(smear > 0.002)) {          // held, or at either end of the turn
+      bars(g, px, angle, firuza);
+      return;
+    }
+
+    // Real angular blur: the mark drawn many times across the angle it sweeps
+    // during one shutter, accumulated additively so k overlapping samples come
+    // out at k/n coverage. Drawing them with ordinary source-over instead would
+    // leave the solid core at about 65% opacity and the whole mark washed out.
+    const arc = px * MARK_RADIUS * smear;
+    const samples = Math.min(24, Math.max(2, Math.ceil(arc / 1.5)));
+    const o = scratchFor(cv, px);
+    const og = o.getContext("2d");
+    clear(og, o);
+    og.globalCompositeOperation = "lighter";
+    og.globalAlpha = 1 / samples;
+    for (let i = 0; i < samples; i++) {
+      bars(og, px, angle - smear / 2 + smear * (i / (samples - 1)), firuza);
+    }
+    og.globalAlpha = 1;
+    og.globalCompositeOperation = "source-over";
+
+    g.save();
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.drawImage(o, 0, 0);
     g.restore();
   }
 
@@ -235,13 +322,14 @@
   function frame(now) {
     rafId = 0;
     const angle = angleAt(now);
-    for (const [cv, px] of canvases) draw(cv, px, angle);
+    const smear = angularSpeed(now) * blurMs;
+    for (const [cv, px] of canvases) draw(cv, px, angle, smear);
     if (motion) rafId = requestAnimationFrame(frame);
   }
 
   function paintStill() {
     readTheme();
-    for (const [cv, px] of canvases) draw(cv, px, 0);
+    for (const [cv, px] of canvases) draw(cv, px, 0, 0);
   }
 
   const stillLabel = document.getElementById("still-label");
@@ -283,6 +371,7 @@
     ["deg", (v) => (stepDeg = v), (v) => v + "°"],
     ["turn", (v) => (turnMs = v), (v) => v + " ms"],
     ["hold", (v) => (holdMs = v), (v) => v + " ms"],
+    ["blur", (v) => (blurMs = v), (v) => v + " ms"],
   ];
   for (const [id, set, format] of KNOBS) {
     const input = document.getElementById(id);
@@ -309,15 +398,16 @@
   // So a still of the turn can be sampled at chosen moments rather than caught
   // mid-flight. `pnpm brand:render` uses it.
   window.SakinaCharkh = {
-    paint(canvas, px, ms, turn, hold, deg) {
-      const previous = [turnMs, holdMs, stepDeg, originMs, originAngle];
+    paint(canvas, px, ms, turn, hold, deg, blur) {
+      const previous = [turnMs, holdMs, stepDeg, blurMs, originMs, originAngle];
       if (turn) turnMs = turn;
       if (hold) holdMs = hold;
       if (deg) stepDeg = deg;
+      if (blur !== undefined) blurMs = blur;
       originMs = 0; originAngle = 0;
       fit(canvas, px);
-      draw(canvas, px, angleAt(ms));
-      [turnMs, holdMs, stepDeg, originMs, originAngle] = previous;
+      draw(canvas, px, angleAt(ms), angularSpeed(ms) * blurMs);
+      [turnMs, holdMs, stepDeg, blurMs, originMs, originAngle] = previous;
     },
   };
 })();
