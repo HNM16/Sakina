@@ -5,16 +5,17 @@
 //   docs/brand/identity.png      the identity page, exactly as identity.html says
 //   docs/brand/mark-check.png    the evidence behind the mark findings in
 //                                docs/DESIGN-AUDIT.md
-//   docs/brand/charkh-frames.png  one turn of ЧАРХ, sampled at fixed moments
+//   docs/brand/charkh-frames.png  every ЧАРХ opening and closing, sampled
+//                                across its own phase
 //
 // mark-check is drawn from geometric first principles. The shapes it puts
 // beside ours are *families* — "concentric rounded squares", "an octagram" —
 // reconstructed from their definitions. No other company's mark is reproduced
 // here, and none should be added.
 //
-// charkh-frames asks samani.html's own painter for specific moments rather than
-// screenshotting it mid-turn, because a screenshot of a running animation shows
-// one arbitrary frame and proves nothing.
+// charkh-frames asks samani.html's own painter for specific points rather than
+// screenshotting a running sequence, because that catches one arbitrary frame
+// and proves nothing.
 import { chromium } from 'playwright';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -185,45 +186,45 @@ await sheet.setContent(SHEET);
 await sheet.screenshot({ path: out('mark-check.png'), fullPage: true });
 console.log('  docs/brand/mark-check.png');
 
-// One turn of ЧАРХ, sampled at fixed moments. A screenshot of a running loop
-// catches an arbitrary frame and proves nothing, so samani.html exposes its own
-// painter and this asks it for specific times.
-const CHARKH = { turn: 320, hold: 380, deg: 180, blur: 30 };
-const STRIP = [0, 40, 80, 120, 160, 200, 240, 280, 320, 420, 560, 700, 740, 780, 820, 860];
-
+// Every opening and closing, each sampled across its own phase. A screenshot of
+// a running sequence catches one arbitrary frame and proves nothing, so
+// samani.html exposes its own painter and this asks it for specific points.
 const strip = await browser.newPage({
-  viewport: { width: 900, height: 260 },
+  viewport: { width: 1180, height: 900 },
   deviceScaleFactor: 2,
   colorScheme: 'dark',
 });
 await strip.goto(pathToFileURL(resolve(root, 'docs/brand/samani.html')).href);
-await strip.evaluate(({ times, cfg }) => {
+await strip.evaluate(() => {
+  const api = window.SakinaCharkh;
   const board = document.createElement('div');
   board.id = 'filmstrip';
   board.style.cssText =
     'position:fixed;inset:0;z-index:99;background:#0A1220;padding:28px 32px;' +
-    'display:flex;flex-direction:column;gap:16px;' +
-    'font:13px/1.4 "Noto Sans",system-ui,sans-serif;color:#8496B3';
+    'display:flex;flex-direction:column;gap:14px;' +
+    'font:12px/1.4 "Noto Sans",system-ui,sans-serif;color:#8496B3';
   const title = document.createElement('div');
-  title.textContent = `ЧАРХ — one turn and the hold after it (${cfg.deg}°, ${cfg.turn} ms turn, ${cfg.hold} ms hold, ${cfg.blur} ms shutter)`;
-  title.style.cssText = 'color:#E8EEF7;font-size:16px;font-weight:700';
+  title.textContent = 'ЧАРХ — how it finishes, and how it starts';
+  title.style.cssText = 'color:#E8EEF7;font-size:16px;font-weight:700;margin-bottom:2px';
   board.appendChild(title);
-  const row = document.createElement('div');
-  row.style.cssText = 'display:flex;gap:12px;align-items:center;flex-wrap:wrap';
-  for (const t of times) {
-    const cell = document.createElement('div');
-    cell.style.cssText = 'text-align:center;font-size:10px';
-    const cv = document.createElement('canvas');
-    window.SakinaCharkh.paint(cv, 56, t, cfg.turn, cfg.hold, cfg.deg, cfg.blur);
-    const cap = document.createElement('div');
-    cap.textContent = t + 'ms';
-    cap.style.marginTop = '6px';
-    cell.append(cv, cap);
-    row.appendChild(cell);
+  for (const [phase, ids, arrow] of [['close', api.closers, '◁'], ['open', api.openers, '▷']]) {
+    for (const id of ids) {
+      const line = document.createElement('div');
+      line.style.cssText = 'display:flex;align-items:center;gap:12px';
+      const name = document.createElement('div');
+      name.textContent = arrow + '  ' + id;
+      name.style.cssText = 'width:96px;flex:none;color:#E8EEF7;letter-spacing:.04em';
+      line.appendChild(name);
+      for (let k = 0; k <= 8; k++) {
+        const cv = document.createElement('canvas');
+        api.paintPhase(cv, 54, phase, id, k / 8);
+        line.appendChild(cv);
+      }
+      board.appendChild(line);
+    }
   }
-  board.appendChild(row);
   document.body.appendChild(board);
-}, { times: STRIP, cfg: CHARKH });
+});
 await strip.locator('#filmstrip').screenshot({ path: out('charkh-frames.png') });
 console.log('  docs/brand/charkh-frames.png');
 

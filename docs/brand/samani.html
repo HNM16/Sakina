@@ -10,6 +10,7 @@
     --muted:   #5A6C88;
     --text:    #0A1220;
     --hair:    #D7DEE9;
+    --tile:    #E4EAF3;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -19,6 +20,7 @@
       --muted:   #8496B3;
       --text:    #E8EEF7;
       --hair:    #22314B;
+      --tile:    #1E2C45;
     }
   }
   :root[data-theme="dark"] {
@@ -28,6 +30,7 @@
     --muted:   #8496B3;
     --text:    #E8EEF7;
     --hair:    #22314B;
+    --tile:    #1E2C45;
   }
 
   * { box-sizing: border-box; }
@@ -39,7 +42,7 @@
     font: 400 1rem/1.6 "Noto Sans", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 44rem; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
+  .wrap { max-width: 52rem; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
 
   .eyebrow {
     font-size: .8125rem; font-weight: 600; letter-spacing: .1em;
@@ -47,30 +50,32 @@
   }
   h1 { font-size: 2.5rem; font-weight: 700; letter-spacing: -.03em; line-height: 1.1; margin: 0 0 .8rem; }
   h1 small { display: block; font-size: .875rem; font-weight: 400; letter-spacing: .04em; color: var(--muted); margin-top: .5rem; }
-  p { max-width: 60ch; }
+  h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; margin: 0 0 .5rem; }
+  p { max-width: 62ch; }
   p.lede { font-size: 1.1875rem; color: var(--muted); margin: 0 0 1rem; }
+  section { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--hair); }
+  section > p:first-of-type { color: var(--muted); margin-top: 0; }
 
   .stage {
-    margin-top: 2.5rem; background: var(--surface); border-radius: 20px;
-    padding: 3rem 2rem; display: flex; gap: 3rem;
+    margin-top: 1.75rem; background: var(--surface); border-radius: 20px;
+    padding: 2.5rem 2rem; display: flex; gap: 3rem;
     align-items: flex-end; justify-content: center; flex-wrap: wrap;
   }
   figure { margin: 0; text-align: center; }
   figcaption { font-size: .6875rem; color: var(--muted); margin-top: .75rem; font-variant-numeric: tabular-nums; }
   canvas { display: block; }
-  #still-label { font-size: .8125rem; color: var(--muted); margin-top: 1rem; text-align: center; }
 
   .knobs {
-    margin-top: 2rem; display: grid; gap: 1.25rem;
-    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    margin-top: 1.75rem; display: grid; gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
   }
-  .knob { display: grid; gap: .5rem; }
+  .knob { display: grid; gap: .4rem; }
   .knob label { font-size: .8125rem; font-weight: 600; }
   .knob output { color: var(--firuza); font-variant-numeric: tabular-nums; font-weight: 400; }
   input[type="range"] { width: 100%; accent-color: var(--firuza); min-height: 44px; }
   input[type="range"]:focus-visible { outline: 2px solid var(--firuza); outline-offset: 4px; }
 
-  .controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.75rem; }
+  .controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
   button {
     font: 600 .8125rem/1 "Noto Sans", system-ui, sans-serif;
     color: var(--text); background: var(--surface);
@@ -80,7 +85,26 @@
   button:hover { border-color: var(--firuza); }
   button:focus-visible { outline: 2px solid var(--firuza); outline-offset: 2px; }
   button[aria-pressed="true"] { border-color: var(--firuza); color: var(--firuza); }
+  button.primary { background: var(--firuza); border-color: var(--firuza); color: var(--night); }
   .controls span { font-size: .8125rem; color: var(--muted); }
+  #phase { font-variant-numeric: tabular-nums; }
+
+  .options { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+  .option {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--hair); border-radius: 16px;
+    padding: 1.1rem; color: var(--text);
+    font: 400 .8125rem/1.5 "Noto Sans", system-ui, sans-serif; min-height: 44px;
+  }
+  .option[aria-checked="true"] { border-color: var(--firuza); border-width: 2px; padding: calc(1.1rem - 1px); }
+  .option .head { display: flex; align-items: center; gap: .8rem; }
+  .option h3 { margin: 0; font-size: 1rem; font-weight: 700; letter-spacing: -.01em; }
+  .option h3 small { display: block; font-size: .625rem; font-weight: 400; color: var(--muted); letter-spacing: .04em; }
+  .option .means {
+    display: inline-block; margin-top: .8rem; font-size: .625rem; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--firuza);
+  }
+  .option p { margin: .3rem 0 0; color: var(--muted); max-width: none; }
 
   footer {
     margin-top: 3rem; padding-top: 1.75rem; border-top: 1px solid var(--hair);
@@ -94,26 +118,26 @@
   <p class="eyebrow">Sakina · brand</p>
   <h1>ЧАРХ<small>charkh — the turn</small></h1>
   <p class="lede">
-    The mark turns, holds, and turns again.
+    Starting, turning, and finishing.
   </p>
   <p>
-    Three numbers describe the whole thing: how far it turns, how long that
-    takes, and how long it waits before the next one.
+    The gaps are the whole argument. Four bars laid in a weave with the joints
+    still open is a wall that is not finished — that is why the mark reads as
+    working rather than as a logo sitting there. So the way to say
+    <em>done</em> is to close them: the bricks slide up against each other, the
+    gaps disappear, and what is left is a solid square ring that has nothing
+    left to do.
   </p>
   <p>
-    How far matters more than it looks. The bars are a pinwheel, so a
-    multiple of 90° puts the mark back on its own silhouette — it stops
-    somewhere it has already been, and reads as arriving rather than as
-    spinning. Anything else leaves it resting at an angle it has never rested at
-    before, which is a different feeling entirely and worth trying.
+    Which makes the opening obvious too. At rest the mark is closed. Work begins
+    by breaking the joints open. Same gesture in reverse, so the two ends of the
+    loading state are one idea rather than two.
   </p>
   <p>
-    The fourth number is not timing. <b>Blur</b> is a shutter: the mark is
-    smeared across the angle it sweeps in that many milliseconds, so it softens
-    while it is moving fastest and is perfectly sharp the moment it stops.
-    Nothing about when or how far it turns depends on it — at 0&nbsp;ms the
-    animation is identical, just hard-edged. Past about 40&nbsp;ms the mark
-    dissolves into a ring.
+    One rule holds the finish together: <b>the mark always lands square.</b> The
+    close finishes whatever turn is in flight and only then locks. Stopping
+    mid-turn and closing would read as interrupted, which is the opposite of what
+    this has to say.
   </p>
 
   <div class="stage">
@@ -122,48 +146,84 @@
     <figure><canvas id="m28"></canvas><figcaption>28 px</figcaption></figure>
     <figure><canvas id="m20"></canvas><figcaption>20 px</figcaption></figure>
   </div>
-  <p id="still-label" hidden>Loading</p>
+
+  <div class="controls">
+    <button id="run" class="primary" type="button">Load something</button>
+    <button id="loop" type="button" aria-pressed="false">Repeat</button>
+    <span id="phase">at rest</span>
+  </div>
 
   <div class="knobs">
     <div class="knob">
-      <label for="deg">Each turn <output id="deg-out">180°</output></label>
-      <input type="range" id="deg" min="15" max="180" step="5" value="180">
+      <label for="work">Loading takes <output id="work-out">1400 ms</output></label>
+      <input type="range" id="work" min="300" max="4000" step="100" value="1400">
     </div>
     <div class="knob">
-      <label for="turn">Turn <output id="turn-out">320 ms</output></label>
-      <input type="range" id="turn" min="120" max="900" step="20" value="320">
+      <label for="open">Opening <output id="open-out">300 ms</output></label>
+      <input type="range" id="open" min="120" max="900" step="20" value="300">
     </div>
     <div class="knob">
-      <label for="hold">Hold <output id="hold-out">380 ms</output></label>
-      <input type="range" id="hold" min="0" max="900" step="20" value="380">
-    </div>
-    <div class="knob">
-      <label for="blur">Blur <output id="blur-out">30 ms</output></label>
-      <input type="range" id="blur" min="0" max="90" step="2" value="30">
+      <label for="close">Closing <output id="close-out">420 ms</output></label>
+      <input type="range" id="close" min="120" max="900" step="20" value="420">
     </div>
   </div>
-  <p id="derived" class="lede" style="font-size:.8125rem;margin-top:1rem"></p>
 
-  <div class="controls">
-    <button id="motion" type="button" aria-pressed="true">Motion is on</button>
-    <span id="motion-note">Turn it off to see the reduced-motion fallback.</span>
-  </div>
+  <section>
+    <h2>Five ways to finish</h2>
+    <p>
+      Each one loops its own ending so it can be judged on its own. Click to send
+      it to the top.
+    </p>
+    <div class="options" id="closers" role="radiogroup" aria-label="Closing"></div>
+  </section>
+
+  <section>
+    <h2>Three ways to begin</h2>
+    <p>
+      An opening has less to prove than an ending — it only has to say work
+      started. It should still be the same gesture family as whatever finishes.
+    </p>
+    <div class="options" id="openers" role="radiogroup" aria-label="Opening"></div>
+  </section>
+
+  <section>
+    <h2>The turn itself</h2>
+    <p>Unchanged. These are the settled values.</p>
+    <div class="knobs">
+      <div class="knob">
+        <label for="deg">Each turn <output id="deg-out">180°</output></label>
+        <input type="range" id="deg" min="15" max="180" step="5" value="180">
+      </div>
+      <div class="knob">
+        <label for="turn">Turn <output id="turn-out">320 ms</output></label>
+        <input type="range" id="turn" min="120" max="900" step="20" value="320">
+      </div>
+      <div class="knob">
+        <label for="hold">Hold <output id="hold-out">380 ms</output></label>
+        <input type="range" id="hold" min="0" max="900" step="20" value="380">
+      </div>
+      <div class="knob">
+        <label for="blur">Blur <output id="blur-out">30 ms</output></label>
+        <input type="range" id="blur" min="0" max="90" step="2" value="30">
+      </div>
+    </div>
+    <div class="controls">
+      <button id="motion" type="button" aria-pressed="true">Motion is on</button>
+      <span id="motion-note">Turn it off to see the reduced-motion fallback.</span>
+    </div>
+  </section>
 
   <footer>
     <p>
-      Four bars, one colour, firuza at <code>#32BBC8</code>. Nothing else moves
-      and nothing changes colour.
+      Closed is the resting shape, which is a change worth noticing: the mark as
+      chosen has the gaps in it. If the gaps mean unfinished, a mark sitting on a
+      splash screen should not have them — but that is a call about the identity,
+      not just about this animation.
     </p>
     <p>
-      The blur is real angular blur — the mark drawn many times across the arc
-      it sweeps and accumulated, not a soft filter laid over the top. The number
-      of copies follows how far the outer corner actually travels, so a 20&nbsp;px
-      mark costs a handful and a 96&nbsp;px one costs a couple of dozen.
-    </p>
-    <p>
-      Under reduced motion the mark stands still and a word carries the state,
-      because an indicator that neither moves nor says anything is not an
-      indicator. Nothing here has been seen on a handset.
+      Under reduced motion there is no sequence: the mark is the closed square,
+      and a word carries the state while something is loading. Nothing here has
+      been seen on a handset.
     </p>
   </footer>
 </div>
@@ -172,27 +232,214 @@
 (() => {
   "use strict";
 
-  // The Samanid bond: four bars, each stopping short of the next so the joints
-  // stay open and the weave reads. Overlapping them closes it into a plain ring.
+  // The Samanid bond. Each bar runs in a direction and stops short of the next,
+  // which is what leaves the four joints open. `dx`/`dy` is the run: closing
+  // extends every bar forward along it until the gaps are gone.
   const BARS = [
-    [14, 14, 48, 20],   // top, left to right
-    [66, 14, 20, 48],   // right, top to bottom
-    [38, 66, 48, 20],   // bottom, right to left
-    [14, 38, 20, 48],   // left, bottom to top
+    { x: 14, y: 14, w: 48, h: 20, dx:  1, dy:  0 },   // top, left to right
+    { x: 66, y: 14, w: 20, h: 48, dx:  0, dy:  1 },   // right, top to bottom
+    { x: 38, y: 66, w: 48, h: 20, dx: -1, dy:  0 },   // bottom, right to left
+    { x: 14, y: 38, w: 20, h: 48, dx:  0, dy: -1 },   // left, bottom to top
   ];
+  // 48 long with 4-unit gaps; 72 closes them exactly, and the four bars become a
+  // square ring from 14 to 86 with a 32-unit hole.
+  const GROWTH = 24;
 
-  let turnMs = 320, holdMs = 380, stepDeg = 180;
-  // Shutter time, in milliseconds of travel. Purely visual: it smears the mark
-  // across the angle it sweeps in this long, and changes nothing about when or
-  // how far it turns.
-  let blurMs = 30;
-  // The angle is accumulated from a moving origin rather than computed straight
-  // from the clock. Without that, changing a slider rescales every turn that has
-  // already happened and the mark jumps by whatever it had built up.
-  let originMs = 0, originAngle = 0;
+  let turnMs = 320, holdMs = 380, stepDeg = 180, blurMs = 30;
+  let openMs = 300, closeMs = 420, workMs = 1400;
+  let closer = "basta", opener = "kushod";
   let motion = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let repeat = false;
   let firuza = "#32BBC8";
   let rafId = 0;
+
+  const QUARTER = Math.PI / 2;
+  const rad = (deg) => (deg * Math.PI) / 180;
+  const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
+  const smoothstep = (t) => t * t * (3 - 2 * t);
+  const ease = (t) => smoothstep(clamp01(t));
+
+  /* ---- how the mark looks in any state ------------------------------------ */
+
+  // c is closedness: 0 is the weave with its joints open, 1 is the closed ring.
+  function geometry(b, c) {
+    const grown = 48 + GROWTH * c;
+    if (b.dx) {
+      const w = grown;
+      return [b.dx > 0 ? b.x : b.x + b.w - w, b.y, w, b.h];
+    }
+    const h = grown;
+    return [b.x, b.dy > 0 ? b.y : b.y + b.h - h, b.w, h];
+  }
+
+  const REST = { c: 0, scale: 1, alpha: 1, fill: 0, spread: 0, part: 0, light: -1 };
+
+  function mark(g, px, angle, st) {
+    const u = px / 100;
+    g.save();
+    g.translate(px / 2, px / 2);
+    if (angle) g.rotate(angle);
+    if (st.scale !== 1) g.scale(st.scale, st.scale);
+    g.translate(-px / 2, -px / 2);
+    if (st.alpha !== 1) g.globalAlpha = st.alpha;
+    g.fillStyle = firuza;
+    for (const b of BARS) {
+      const [x, y, w, h] = geometry(b, st.c);
+      // The outward normal of a bar running (dx, dy) is (dy, -dx): up for the
+      // top bar, right for the right one, and so on. Parting along it opens the
+      // mark like a gate rather than sliding the bricks along the wall.
+      const ox = -b.dx * st.spread + b.dy * st.part;
+      const oy = -b.dy * st.spread - b.dx * st.part;
+      g.beginPath();
+      g.roundRect((x + ox) * u, (y + oy) * u, w * u, h * u, 6 * u);
+      g.fill();
+    }
+    if (st.fill > 0) {
+      const s = 34 * st.fill;
+      g.beginPath();
+      g.roundRect((50 - s / 2) * u, (50 - s / 2) * u, s * u, s * u, 4 * u);
+      g.fill();
+    }
+    g.globalAlpha = 1;
+    g.restore();
+  }
+
+  /* ---- the endings --------------------------------------------------------- */
+  // t runs 0 to 1 across the phase. Each returns the render state at that point.
+
+  const CLOSERS = {
+    basta: {
+      name: "БАСТА", gloss: "basta — closed", means: "The wall is finished",
+      note: "The bricks slide up against each other and the gaps disappear. What is left is a closed ring with nothing still to do — the same shape, saying the opposite thing.",
+      at: (t) => ({ ...REST, c: ease(t) }),
+    },
+    tob: {
+      name: "ТОБ", gloss: "tob — the light pass", means: "Confirmed",
+      note: "The joints close, and then one band of light crosses the finished ring at 45° and is gone. This is the app's existing word for something becoming true — docs/MOTION.md defines it — so the ending is not a new idea, it is the one already used for a message arriving.",
+      at: (t) => ({ ...REST, c: ease(t / 0.5), light: t < 0.45 ? -1 : (t - 0.45) / 0.55 }),
+    },
+    darvoza: {
+      name: "ДАРВОЗА", gloss: "darvoza — the gate", means: "Out of the way",
+      note: "Two beats. The joints close, and then the whole ring parts outward and clears the frame the way a shutter opens. It finishes, then gets out of the way of the thing that just loaded — the only one of the five built to sit over content rather than beside it.",
+      at: (t) => ({
+        ...REST,
+        c: ease(t / 0.4),
+        part: t < 0.4 ? 0 : 58 * ease((t - 0.4) / 0.6),
+        alpha: t < 0.55 ? 1 : 1 - ease((t - 0.55) / 0.45),
+      }),
+    },
+    muhr: {
+      name: "МУҲР", gloss: "muhr — the seal", means: "Sealed",
+      note: "The joints close and then the opening fills in, leaving a solid tile. The strongest full stop of the four, and the only one that gives up the hole the mark is built around.",
+      at: (t) => ({ ...REST, c: ease(t / 0.55), fill: t < 0.45 ? 0 : ease((t - 0.45) / 0.55) }),
+    },
+    tah: {
+      name: "ТАҲ", gloss: "tah — folded away", means: "Put away",
+      note: "Closes, then shrinks toward the centre and goes. Right when the indicator should leave rather than resolve — a sheet being folded up, not a wall being finished.",
+      at: (t) => ({
+        ...REST,
+        c: ease(t / 0.45),
+        scale: t < 0.45 ? 1 : 1 - 0.72 * ease((t - 0.45) / 0.55),
+        alpha: t < 0.7 ? 1 : 1 - ease((t - 0.7) / 0.3),
+      }),
+    },
+  };
+
+  const OPENERS = {
+    kushod: {
+      name: "КУШОД", gloss: "kushod — opened", means: "Work has begun",
+      note: "БАСТА backwards. The mark is sitting there closed, the joints break open along the runs, and the first turn is already under way as they part.",
+      at: (t) => ({ ...REST, c: 1 - ease(t) }),
+    },
+    jam: {
+      name: "ҶАМЪ", gloss: "jam — gathered", means: "Assembling",
+      note: "The four bars come in from outside the frame along the lines they run on and take their places. Reads as being built rather than being opened.",
+      at: (t) => ({ ...REST, c: 0, spread: (1 - ease(t)) * 30 }),
+    },
+    dam: {
+      name: "ДАМ", gloss: "dam — a breath", means: "It appeared",
+      note: "Fades up slightly small and settles to size. Says almost nothing, costs almost nothing, and is the honest choice if the opening should not be an event at all.",
+      at: (t) => ({ ...REST, c: 0, scale: 0.84 + 0.16 * ease(t), alpha: ease(t) }),
+    },
+  };
+
+  /* ---- the sequence -------------------------------------------------------- */
+
+  let seq = { phase: "idle", at: 0, from: 0, to: 0 };
+
+  function turnAngle(ms) {
+    const step = turnMs + holdMs;
+    const elapsed = Math.max(0, ms - seq.at);
+    const n = Math.floor(elapsed / step);
+    const within = elapsed % step;
+    const k = within >= turnMs ? 1 : smoothstep(within / turnMs);
+    return seq.from + (n + k) * rad(stepDeg);
+  }
+
+  // Pure: everything the renderer needs at a given moment, so a frame can be
+  // asked for out of order and the blur can be measured by sampling either side.
+  function stateAt(ms) {
+    switch (seq.phase) {
+      case "opening": {
+        const t = clamp01((ms - seq.at) / openMs);
+        return { angle: turnAngle(ms), st: OPENERS[opener].at(t) };
+      }
+      case "turning":
+        return { angle: turnAngle(ms), st: REST };
+      case "closing": {
+        const t = clamp01((ms - seq.at) / closeMs);
+        // The turn resolves over the first 60%, the joints close across the
+        // whole phase. So it finishes what it was doing, then locks.
+        const angle = seq.from + (seq.to - seq.from) * ease(t / 0.6);
+        return { angle, st: CLOSERS[closer].at(t) };
+      }
+      case "done":
+        return { angle: seq.to, st: CLOSERS[closer].at(1) };
+      default:
+        return { angle: 0, st: { ...REST, c: 1 } };
+    }
+  }
+
+  const phaseLabel = document.getElementById("phase");
+
+  function setPhase(phase, now, extra) {
+    seq = { phase, at: now, from: 0, to: 0, ...extra };
+    phaseLabel.textContent =
+      phase === "idle" ? "at rest"
+      : phase === "opening" ? "opening"
+      : phase === "turning" ? "loading"
+      : phase === "closing" ? "finishing"
+      : "done";
+  }
+
+  function begin() {
+    const now = performance.now();
+    setPhase("opening", now, { from: 0 });
+  }
+
+  function finish(now) {
+    const a = stateAt(now).angle;
+    // Round up to the next square rest. If it is already square — mid-hold —
+    // this is the angle it is at, and the close is only the joints.
+    const to = Math.ceil(a / QUARTER - 1e-6) * QUARTER;
+    setPhase("closing", now, { from: a, to });
+  }
+
+  function advance(now) {
+    const t = now - seq.at;
+    if (seq.phase === "opening" && t >= openMs) {
+      const a = stateAt(now).angle;
+      setPhase("turning", now, { from: a });
+    } else if (seq.phase === "turning" && t >= workMs) {
+      finish(now);
+    } else if (seq.phase === "closing" && t >= closeMs) {
+      setPhase("done", now, { to: seq.to });
+    } else if (seq.phase === "done" && t >= 900) {
+      if (repeat) begin(); else setPhase("idle", now);
+    }
+  }
+
+  /* ---- rendering ----------------------------------------------------------- */
 
   const canvases = [
     [document.getElementById("big"), 96],
@@ -208,64 +455,13 @@
     cv.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  // Eased in and out, so the turn neither snaps away from rest nor stops dead.
-  // No overshoot: brand rule 3 says motion settles, it does not bounce.
-  const smoothstep = (t) => t * t * (3 - 2 * t);
-
-  function angleAt(ms) {
-    const step = turnMs + holdMs;
-    const elapsed = Math.max(0, ms - originMs);
-    const n = Math.floor(elapsed / step);
-    const within = elapsed % step;
-    const k = within >= turnMs ? 1 : smoothstep(within / turnMs);
-    return originAngle + (n + k) * (stepDeg * Math.PI / 180);
-  }
-
-  // How fast the mark is turning right now, in radians per millisecond. The
-  // eased turn is a smoothstep, whose derivative is 6x(1-x): zero at both ends,
-  // fastest in the middle. So this is zero the instant the turn starts, zero the
-  // instant it finishes, and zero for the whole hold — which is exactly when the
-  // mark should be sharp, without anything having to say so.
-  function angularSpeed(ms) {
-    const step = turnMs + holdMs;
-    const within = Math.max(0, ms - originMs) % step;
-    if (within >= turnMs) return 0;
-    const x = within / turnMs;
-    return (stepDeg * Math.PI / 180) * (6 * x * (1 - x)) / turnMs;
-  }
-
-  // Freeze where the mark is now, so the next frame carries on from here under
-  // whatever the new numbers are.
-  function reanchor() {
-    const now = performance.now();
-    originAngle = angleAt(now);
-    originMs = now;
-  }
-
-  function bars(g, px, angle, colour) {
-    const u = px / 100;
-    g.save();
-    g.translate(px / 2, px / 2);
-    g.rotate(angle);
-    g.translate(-px / 2, -px / 2);
-    g.fillStyle = colour;
-    for (const [x, y, w, h] of BARS) {
-      g.beginPath();
-      g.roundRect(x * u, y * u, w * u, h * u, 6 * u);
-      g.fill();
-    }
-    g.restore();
-  }
-
   const clear = (g, cv) => {
     g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
     g.clearRect(0, 0, cv.width, cv.height); g.restore();
   };
 
-  // One scratch canvas per size, kept rather than rebuilt: allocating a canvas
-  // per frame is the expensive way to do this.
   const scratches = new WeakMap();
-  function scratchFor(cv, px) {
+  function scratchFor(cv) {
     let o = scratches.get(cv);
     if (!o || o.width !== cv.width) {
       o = document.createElement("canvas");
@@ -277,41 +473,51 @@
     return o;
   }
 
-  // The corner of the mark, as a fraction of the box. Bars run to 86 of 100, so
-  // the far corner sits at hypot(36, 36) ≈ 51 units from the centre — that is
-  // the radius whose arc decides how many samples the smear needs.
   const MARK_RADIUS = 0.51;
 
-  function draw(cv, px, angle, smear) {
+  // One band crossing the mark at 45°, clipped to whatever is drawn. Used only
+  // by ТОБ, and only once the mark has stopped, so it never fights the blur.
+  function lightBand(g, px, p) {
+    const travel = px * 2, band = travel * 0.3;
+    const c = -band + p * (travel + band * 2);
+    const env = p < 0.2 ? p / 0.2 : p > 0.8 ? (1 - p) / 0.2 : 1;
+    const a = 0.6 * Math.max(0, Math.min(1, env));
+    const grad = g.createLinearGradient(c - band / 2, c - band / 2, c + band / 2, c + band / 2);
+    grad.addColorStop(0, "rgba(255,255,255,0)");
+    grad.addColorStop(0.5, "rgba(255,255,255," + a + ")");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+    g.save();
+    g.globalCompositeOperation = "source-atop";
+    g.fillStyle = grad;
+    g.fillRect(0, 0, px, px);
+    g.restore();
+  }
+
+  function draw(cv, px, angle, st, smear) {
     const g = cv.getContext("2d");
     clear(g, cv);
-
-    if (!(smear > 0.002)) {          // held, or at either end of the turn
-      bars(g, px, angle, firuza);
+    if (!(smear > 0.002)) {
+      mark(g, px, angle, st);
+      if (st.light >= 0 && st.light <= 1) lightBand(g, px, st.light);
       return;
     }
 
-    // Real angular blur: the mark drawn many times across the angle it sweeps
-    // during one shutter, accumulated additively so k overlapping samples come
-    // out at k/n coverage. Drawing them with ordinary source-over instead would
-    // leave the solid core at about 65% opacity and the whole mark washed out.
-    const arc = px * MARK_RADIUS * smear;
-    const samples = Math.min(24, Math.max(2, Math.ceil(arc / 1.5)));
-    const o = scratchFor(cv, px);
+    // Real angular blur: the mark drawn across the arc it sweeps in one shutter
+    // and accumulated additively, so k overlapping samples land at k/n coverage.
+    // Plain source-over would leave the solid core at about 65% and wash it out.
+    const samples = Math.min(24, Math.max(2, Math.ceil((px * MARK_RADIUS * smear) / 1.5)));
+    const o = scratchFor(cv);
     const og = o.getContext("2d");
     clear(og, o);
     og.globalCompositeOperation = "lighter";
     og.globalAlpha = 1 / samples;
     for (let i = 0; i < samples; i++) {
-      bars(og, px, angle - smear / 2 + smear * (i / (samples - 1)), firuza);
+      mark(og, px, angle - smear / 2 + smear * (i / (samples - 1)), st);
     }
     og.globalAlpha = 1;
     og.globalCompositeOperation = "source-over";
-
-    g.save();
-    g.setTransform(1, 0, 0, 1, 0, 0);
-    g.drawImage(o, 0, 0);
-    g.restore();
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(o, 0, 0); g.restore();
+    if (st.light >= 0 && st.light <= 1) lightBand(g, px, st.light);
   }
 
   function readTheme() {
@@ -319,55 +525,91 @@
     if (v) firuza = v;
   }
 
+  // Sampled either side rather than differentiated by hand, so every phase —
+  // including the closing ease onto a square rest — blurs by the same rule.
+  function smearAt(ms) {
+    if (seq.phase === "idle" || seq.phase === "done") return 0;
+    return Math.abs(stateAt(ms + 0.5).angle - stateAt(ms - 0.5).angle) * blurMs;
+  }
+
   function frame(now) {
     rafId = 0;
-    const angle = angleAt(now);
-    const smear = angularSpeed(now) * blurMs;
-    for (const [cv, px] of canvases) draw(cv, px, angle, smear);
+    advance(now);
+    const { angle, st } = stateAt(now);
+    const smear = motion ? smearAt(now) : 0;
+    for (const [cv, px] of canvases) draw(cv, px, angle, st, smear);
     if (motion) rafId = requestAnimationFrame(frame);
   }
 
   function paintStill() {
     readTheme();
-    for (const [cv, px] of canvases) draw(cv, px, 0, 0);
+    for (const [cv, px] of canvases) draw(cv, px, 0, { ...REST, c: 1 }, 0);
   }
 
-  const stillLabel = document.getElementById("still-label");
-  const derived = document.getElementById("derived");
+  /* ---- the option cards ---------------------------------------------------- */
 
-  function describe() {
-    const step = turnMs + holdMs;
-    const perRevolution = 360 / stepDeg;
-    const lands = 360 % stepDeg === 0 && stepDeg % 90 === 0;
-    derived.textContent =
-      `${stepDeg}° every ${step} ms — a full revolution in ` +
-      `${(step * perRevolution / 1000).toFixed(2)} s. ` +
-      (lands
-        ? "Every rest lands on the mark's own silhouette."
-        : `${stepDeg}° is not a multiple of 90°, so the mark rests at an angle ` +
-          "it has not rested at before.");
+  function buildOptions(hostId, table, selected, onPick) {
+    const host = document.getElementById(hostId);
+    const previews = [];
+    for (const [id, def] of Object.entries(table)) {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "option";
+      card.setAttribute("role", "radio");
+      card.setAttribute("aria-checked", String(id === selected));
+      card.dataset.id = id;
+
+      const head = document.createElement("div");
+      head.className = "head";
+      const cv = document.createElement("canvas");
+      fit(cv, 56);
+      previews.push([cv, def]);
+      const heading = document.createElement("h3");
+      heading.innerHTML = def.name + "<small>" + def.gloss + "</small>";
+      head.append(cv, heading);
+
+      const means = document.createElement("span");
+      means.className = "means";
+      means.textContent = def.means;
+      const note = document.createElement("p");
+      note.textContent = def.note;
+
+      card.append(head, means, note);
+      card.addEventListener("click", () => {
+        for (const el of host.children) el.setAttribute("aria-checked", String(el.dataset.id === id));
+        onPick(id);
+      });
+      host.appendChild(card);
+    }
+    return previews;
   }
 
-  const toggle = document.getElementById("motion");
-  const note = document.getElementById("motion-note");
+  const closerPreviews = buildOptions("closers", CLOSERS, closer, (id) => { closer = id; });
+  const openerPreviews = buildOptions("openers", OPENERS, opener, (id) => { opener = id; });
 
-  function applyMotion() {
-    toggle.textContent = motion ? "Motion is on" : "Motion is off";
-    toggle.setAttribute("aria-pressed", String(motion));
-    note.textContent = motion
-      ? "Turn it off to see the reduced-motion fallback."
-      : "The mark is still. The word below is what carries the state instead.";
-    stillLabel.hidden = motion;
-    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
-    originMs = performance.now();
-    originAngle = 0;
-    if (motion) { readTheme(); rafId = requestAnimationFrame(frame); }
-    else paintStill();
+  // Each card loops just its own phase, on its own clock, so the four endings
+  // can be compared without running the whole sequence four times.
+  const PREVIEW_CYCLE = 1500;
+  function paintPreviews(now, reversed) {
+    for (const [list, back] of [[closerPreviews, false], [openerPreviews, true]]) {
+      for (const [cv, def] of list) {
+        const p = (now % PREVIEW_CYCLE) / PREVIEW_CYCLE;
+        const t = motion ? clamp01((p * PREVIEW_CYCLE) / (back ? openMs : closeMs)) : 1;
+        const st = def.at(back ? (motion ? t : 0) : t);
+        const g = cv.getContext("2d");
+        clear(g, cv);
+        mark(g, 56, 0, st);
+        if (st.light >= 0 && st.light <= 1) lightBand(g, 56, st.light);
+      }
+    }
   }
 
-  toggle.addEventListener("click", () => { motion = !motion; applyMotion(); });
+  /* ---- controls ------------------------------------------------------------ */
 
   const KNOBS = [
+    ["work", (v) => (workMs = v), (v) => v + " ms"],
+    ["open", (v) => (openMs = v), (v) => v + " ms"],
+    ["close", (v) => (closeMs = v), (v) => v + " ms"],
     ["deg", (v) => (stepDeg = v), (v) => v + "°"],
     ["turn", (v) => (turnMs = v), (v) => v + " ms"],
     ["hold", (v) => (holdMs = v), (v) => v + " ms"],
@@ -377,37 +619,73 @@
     const input = document.getElementById(id);
     const out = document.getElementById(id + "-out");
     input.addEventListener("input", () => {
-      reanchor();
       set(Number(input.value));
       out.textContent = format(input.value);
-      describe();
-      if (!motion) paintStill();
     });
+  }
+
+  document.getElementById("run").addEventListener("click", () => {
+    if (!motion) return;
+    begin();
+  });
+
+  const loopBtn = document.getElementById("loop");
+  loopBtn.addEventListener("click", () => {
+    repeat = !repeat;
+    loopBtn.setAttribute("aria-pressed", String(repeat));
+    if (repeat && seq.phase === "idle") begin();
+  });
+
+  const toggle = document.getElementById("motion");
+  const note = document.getElementById("motion-note");
+
+  function applyMotion() {
+    toggle.textContent = motion ? "Motion is on" : "Motion is off";
+    toggle.setAttribute("aria-pressed", String(motion));
+    note.textContent = motion
+      ? "Turn it off to see the reduced-motion fallback."
+      : "No sequence at all: the mark is the closed square, and a word says what is happening.";
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    if (motion) {
+      readTheme();
+      rafId = requestAnimationFrame(tick);
+    } else {
+      setPhase("idle", performance.now());
+      phaseLabel.textContent = "Loading";
+      paintStill();
+      paintPreviews(0);
+    }
+  }
+  toggle.addEventListener("click", () => { motion = !motion; applyMotion(); });
+
+  function tick(now) {
+    frame(now);
+    paintPreviews(now);
   }
 
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
     readTheme();
-    if (!motion) paintStill();
+    if (!motion) { paintStill(); paintPreviews(0); }
   });
 
   for (const [cv, px] of canvases) fit(cv, px);
   readTheme();
-  describe();
+  setPhase("idle", performance.now());
   applyMotion();
 
-  // So a still of the turn can be sampled at chosen moments rather than caught
-  // mid-flight. `pnpm brand:render` uses it.
+  // So a phase can be sampled at chosen moments rather than caught in passing.
+  // `pnpm brand:render` uses it.
   window.SakinaCharkh = {
-    paint(canvas, px, ms, turn, hold, deg, blur) {
-      const previous = [turnMs, holdMs, stepDeg, blurMs, originMs, originAngle];
-      if (turn) turnMs = turn;
-      if (hold) holdMs = hold;
-      if (deg) stepDeg = deg;
-      if (blur !== undefined) blurMs = blur;
-      originMs = 0; originAngle = 0;
+    closers: Object.keys(CLOSERS),
+    openers: Object.keys(OPENERS),
+    paintPhase(canvas, px, phase, id, t) {
       fit(canvas, px);
-      draw(canvas, px, angleAt(ms), angularSpeed(ms) * blurMs);
-      [turnMs, holdMs, stepDeg, blurMs, originMs, originAngle] = previous;
+      const table = phase === "open" ? OPENERS : CLOSERS;
+      const g = canvas.getContext("2d");
+      clear(g, canvas);
+      const st = table[id].at(t);
+      mark(g, px, 0, st);
+      if (st.light >= 0 && st.light <= 1) lightBand(g, px, st.light);
     },
   };
 })();
