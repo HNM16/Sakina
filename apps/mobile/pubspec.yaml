@@ -19,7 +19,9 @@ dependencies:
   path: ^1.9.0
   shared_preferences: ^2.3.3
   uuid: ^4.5.1
-  intl: ^0.19.0
+  # Pinned by flutter_localizations, which requires ^0.20.3 on the current
+  # stable. We use exactly one thing from it, DateFormat.Hm().
+  intl: ^0.20.3
   # Push. firebase_messaging covers Android (FCM) and iOS (APNs via FCM), which
   # is one integration instead of two — worth the dependency weight given push
   # is the difference between a messenger and a demo.

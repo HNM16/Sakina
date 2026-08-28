@@ -1,5 +1,5 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 /// Strings, Russian first.
@@ -155,7 +155,6 @@ class L10n {
       'en': 'Saved messages',
     },
 
-    'new_chat': {'ru': 'Новый чат', 'tg': 'Сӯҳбати нав', 'en': 'New chat'},
     'new_group': {'ru': 'Новая группа', 'tg': 'Гурӯҳи нав', 'en': 'New group'},
     'new_channel': {'ru': 'Новый канал', 'tg': 'Шабакаи нав', 'en': 'New channel'},
     'join_channel': {

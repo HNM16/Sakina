@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import '../api_client.dart';
 import '../l10n.dart';
 import '../layout.dart';
-import '../models.dart';
 import '../theme.dart';
 
 /// Creating a group or a channel.

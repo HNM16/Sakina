@@ -102,9 +102,10 @@ What changed:
 | List items | no keys → **`ValueKey(clientId)`**, so elements are reused rather than rebuilt |
 | `DateFormat` | constructed per bubble per rebuild → **hoisted** |
 
-**These are not measured.** There is no Dart SDK in this environment, so the
-Flutter changes are reasoned from the same profile the browser client made
-visible, not verified on a device. Run `flutter run --profile` with the
+**These are not measured.** The Dart analyzes clean, which says nothing at all
+about how fast it is — an analyzer is not a profiler. The Flutter changes are
+reasoned from the same profile the browser client made visible, not verified on
+a device. Run `flutter run --profile` with the
 performance overlay on a real cheap Android before believing any of it.
 
 A review pass over the uncompiled Dart found three bugs the first version

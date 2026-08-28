@@ -193,42 +193,46 @@ Future<void> showLanguageSheet(
       final l10n = L10n.of(sheetContext);
       final layout = SakinaLayout.of(sheetContext);
 
+      Future<void> choose(String? value) async {
+        await onChanged(value);
+        if (sheetContext.mounted) Navigator.of(sheetContext).pop();
+      }
+
       return SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: layout.gutter),
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(
-                  l10n.t('language'),
-                  style: Theme.of(sheetContext).textTheme.titleMedium,
+        // The selection lives on the group rather than on each tile: a Radio
+        // that carries its own groupValue is deprecated, and one source of
+        // truth for "which is chosen" was always the right shape anyway.
+        child: RadioGroup<String?>(
+          groupValue: current,
+          onChanged: choose,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: layout.gutter),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    l10n.t('language'),
+                    style: Theme.of(sheetContext).textTheme.titleMedium,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: layout.gap),
-            for (final code in L10n.supportedLocales.map((l) => l.languageCode))
+              SizedBox(height: layout.gap),
+              for (final code in L10n.supportedLocales.map((l) => l.languageCode))
+                RadioListTile<String?>(
+                  value: code,
+                  title: Text(L10n.languageNames[code] ?? code),
+                ),
+              // Null is "follow the phone", which is a real choice and not the
+              // absence of one — so it gets a row like any other.
               RadioListTile<String?>(
-                value: code,
-                groupValue: current,
-                title: Text(L10n.languageNames[code] ?? code),
-                onChanged: (value) async {
-                  await onChanged(value);
-                  if (sheetContext.mounted) Navigator.of(sheetContext).pop();
-                },
+                value: null,
+                title: Text(l10n.t('language_system')),
               ),
-            RadioListTile<String?>(
-              value: null,
-              groupValue: current,
-              title: Text(l10n.t('language_system')),
-              onChanged: (value) async {
-                await onChanged(value);
-                if (sheetContext.mounted) Navigator.of(sheetContext).pop();
-              },
-            ),
-            SizedBox(height: layout.gap),
-          ],
+              SizedBox(height: layout.gap),
+            ],
+          ),
         ),
       );
     },

@@ -1,7 +1,3 @@
-// Not reliably re-exported by material.dart across Flutter versions, and a
-// missing export is a compile error rather than a fallback.
-import 'dart:ui' show FontFeature;
-
 import 'package:flutter/material.dart';
 
 import '../motion.dart';

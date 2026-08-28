@@ -44,6 +44,7 @@ console.log(`${entries.length} strings, ${LANGS.length} languages`);
 console.log("");
 
 const missing = [];
+const duplicates = [];
 const values = new Map();
 
 for (const [, key, langBlock] of entries) {
@@ -57,8 +58,19 @@ for (const [, key, langBlock] of entries) {
     if (!match) missing.push(`${key} is missing ${lang}`);
     else perLang[lang] = match[1];
   }
+  if (values.has(key)) duplicates.push(key);
   values.set(key, perLang);
 }
+
+// Dart will not accept two equal keys in a const map — it is a compile error,
+// not a warning. This check exists because JavaScript *will*: `values` is a
+// Map, so before this the second `new_chat` quietly replaced the first and the
+// tree looked healthy right up until something tried to compile it. That is
+// the failure this whole script is supposed to prevent, so it is worth the
+// four lines even now that `pnpm test:flutter` would also catch it — that one
+// needs an SDK, and this one runs anywhere in a second.
+check("no key is defined twice", duplicates.length === 0,
+  duplicates.length ? `duplicated: ${duplicates.join(", ")}` : `${values.size} distinct`);
 
 check("every string exists in all three languages", missing.length === 0,
   missing.length ? `${missing.length} gaps, first: ${missing[0]}` : `${entries.length} complete`);

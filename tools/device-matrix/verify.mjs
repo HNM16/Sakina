@@ -13,9 +13,9 @@
  *      disagree eventually.
  *
  *   2. ARITHMETIC — run the layout rules at all 31 device widths and assert the
- *      invariants hold. Pure maths, no Flutter needed, which is the point:
- *      there is no Flutter SDK on this machine and there does not need to be
- *      for this class of bug.
+ *      invariants hold. Pure maths, no Flutter needed, which is the point: a
+ *      layout arithmetic bug does not need an SDK, an emulator or a phone to
+ *      find, and waiting for one is how it ships.
  *
  *   3. RENDERING — put a real browser at each device viewport and check for
  *      horizontal overflow, undersized tap targets, and Tajik strings that do

@@ -56,10 +56,16 @@ Two things that look like tells and are not:
   `pnpm test:motion` fails if an animating file never reaches the reduce-motion
   gate, or if a `duration:` is written at the call site instead of named in the
   vocabulary. Adding a looping indicator means adding its period there too.
-- **`pnpm test:dart` is not a compiler.** There is no Flutter SDK in this
-  environment and none of `apps/mobile` has ever been compiled. The script checks
-  imports, declared packages, bracket balance and undefined Sakina-named symbols.
-  Say so when reporting Flutter work.
+- **There is a Flutter SDK now, so use it.** `.claude/hooks/session-start.sh`
+  installs a pinned Flutter into every web session, and **`pnpm test:flutter`**
+  runs the real analyzer. Run it before reporting any Dart work — the first time
+  it ran it found five compile errors and a dependency constraint that could
+  never have resolved. `pnpm test:dart` still exists and still runs everywhere
+  without an SDK, but it is not a compiler and never was.
+- **Be precise about what "verified" means for `apps/mobile`.** It analyzes
+  clean and its dependencies resolve. It has never been built for Android or
+  iOS — no Android SDK or Xcode here — and no human has ever watched it run. Say
+  which of those you mean.
 
 ## Language
 

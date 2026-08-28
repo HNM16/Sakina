@@ -159,9 +159,10 @@ along with the animation is a worse bug than the animation was.
 
 ## The honest part
 
-None of this has been seen on a handset. There is no Flutter SDK in the
-environment it was built in, so the values were chosen by eye in a browser
-specimen and are read-checked and machine-checked in Dart, never watched.
+None of this has been seen on a handset. The Dart analyzes clean now that the
+environment has a Flutter SDK — `pnpm test:flutter` — but analysing is not
+running: every value here was chosen by eye in a browser specimen, and no human
+has watched a single one of them on a phone.
 
 The numbers most likely to want adjusting on real hardware, in order: ТОБ's
 320ms (probably wants to be slightly slower on a cheap screen), НАФАС's 0.55

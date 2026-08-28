@@ -648,8 +648,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--page-l
       <strong>This is a design prototype, not the app.</strong> It is HTML
       rendering the same palette, strings and layout rules the Flutter client
       uses — so what you see is accurate — but the Flutter app has never been
-      compiled, because there is no Flutter SDK in the environment it was built
-      in. To run the real thing, see <a href="#running" style="color:var(--page-accent)">Running it for real</a> below.
+      built for a phone and nobody has watched it run. To run the real thing,
+      see <a href="#running" style="color:var(--page-accent)">Running it for real</a> below.
     </span>
   </div>
 </header>
@@ -749,9 +749,10 @@ STORAGE_PROVIDER=local pnpm dev</pre>
   <h3>3. The Flutter app — the real client, and the honest caveat</h3>
   <p>
     Every screen in this prototype exists as Dart in <code>apps/mobile</code>.
-    None of it has ever been compiled. That is not a figure of speech: there is
-    no Flutter SDK in the environment this was built in, so the code is
-    read-checked and machine-checked but never once run.
+    That Dart analyzes clean — <code>pnpm test:flutter</code> runs the real
+    analyzer over it — but none of it has ever been built for a phone or run.
+    Analysing is a type checker agreeing with you; it is not evidence that
+    anything works.
   </p>
 <pre>cd apps/mobile
 flutter create .          # generates android/ ios/ — they are gitignored

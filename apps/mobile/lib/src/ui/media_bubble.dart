@@ -1,8 +1,4 @@
 import 'dart:io';
-// FontFeature is not reliably re-exported by material.dart across Flutter
-// versions, and a missing export here is a compile error rather than a
-// fallback. Imported explicitly.
-import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
@@ -86,7 +82,7 @@ class _MediaAttachmentState extends State<MediaAttachment> {
       // The user gets a translated sentence and a retry; the exception goes to
       // the log, because "ClientException: Connection closed" in a chat bubble
       // helps nobody who is not us.
-      debugPrint('attachment download failed: ' + err.toString());
+      debugPrint('attachment download failed: $err');
       if (!mounted) return;
       setState(() => _stage = _Stage.failed);
     }

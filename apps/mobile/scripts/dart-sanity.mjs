@@ -4,11 +4,11 @@
  *
  *   node apps/mobile/scripts/dart-sanity.mjs
  *
- * There is no Flutter SDK in this environment, so none of `apps/mobile` can be
- * compiled or run here. That is a real limitation and this script does not
- * pretend otherwise — `dart analyze` would catch strictly more. What it does
- * catch is the class of mistake that comes from editing Dart without a compiler
- * in the loop:
+ * This is the check that needs no toolchain. `pnpm test:flutter` runs the real
+ * analyzer and catches strictly more; this one runs anywhere, in about a
+ * second, on a machine with no SDK at all — which for most of this project's
+ * life was the only machine there was. It catches the class of mistake that
+ * comes from editing Dart without a compiler in the loop:
  *
  *   - an import pointing at a file that does not exist, usually after a rename;
  *   - a `package:` import whose package is not in pubspec.yaml, which fails at
@@ -211,9 +211,10 @@ check("every Sakina-named symbol used is defined", missingWidgets.length === 0,
     : `${referencedWidgets.size} referenced`);
 
 console.log(
-  "\n  This is not a compiler. `dart analyze` catches strictly more, and none of",
+  "\n  This is not a compiler, and it does not pretend to be. `pnpm test:flutter`",
 );
-console.log("  apps/mobile has been compiled — there is no Flutter SDK here.\n");
+console.log("  runs the real analyzer and catches strictly more — this one exists");
+console.log("  because it needs no SDK and finishes in about a second.\n");
 
 console.log(failures === 0 ? "All checks passed.\n" : `${failures} check(s) failed.\n`);
 process.exit(failures === 0 ? 0 : 1);

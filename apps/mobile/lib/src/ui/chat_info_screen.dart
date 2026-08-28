@@ -185,7 +185,7 @@ class _ChatInfoScreenState extends State<ChatInfoScreen> {
           padding: layout.screenPadding,
           children: [
             if (chat != null) ...[
-              Center(child: ChorkhonaMark(size: 56)),
+              const Center(child: ChorkhonaMark(size: 56)),
               SizedBox(height: layout.gap),
               Text(
                 chat.displayTitle(

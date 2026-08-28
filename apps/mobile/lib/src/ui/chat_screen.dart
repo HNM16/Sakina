@@ -12,6 +12,7 @@ import '../media_service.dart';
 import '../models.dart';
 import '../motion.dart';
 import '../theme.dart';
+import 'chat_avatar.dart';
 import 'chat_info_screen.dart';
 import 'indicators.dart';
 import 'media_bubble.dart';
@@ -554,7 +555,6 @@ class _MaybeSendEntrance extends StatelessWidget {
 
 class _Bubble extends StatelessWidget {
   const _Bubble({
-    super.key,
     required this.message,
     required this.isMine,
     required this.media,

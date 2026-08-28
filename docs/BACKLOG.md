@@ -22,9 +22,9 @@ Everything below is implemented. Kept in full rather than deleted, because the
 argument for each one is the record of why it exists — and because the next
 person to change an animation should be able to read what it was for.
 
-One thing to keep in mind while reading: **none of it has been run.** There is
-no Flutter SDK in this environment, so the motion is read-checked and
-machine-checked but never once watched. Durations and curves are the values
+One thing to keep in mind while reading: **none of it has been run.** The Dart
+analyzes clean — `pnpm test:flutter` — but analysing is not running, so the
+motion is read-checked and machine-checked and never once watched. Durations and curves are the values
 most likely to want adjusting the first time somebody sees them on a real
 phone.
 
