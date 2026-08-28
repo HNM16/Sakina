@@ -79,6 +79,12 @@ The heuristic that catches the worst bugs.
   system share sheet, standard text selection.
 - **Telegram's spatial conventions**: chat list → chat, back returns to the list,
   own messages right and others left, composer at the bottom.
+- **And its transition too.** A chat arrives across the full width from the
+  trailing edge, the list parallaxes a third as far behind it, an arrow sits in
+  the leading corner, and a drag from the leading edge returns — on Android as
+  well as iOS, because Telegram does it on both and the gesture was never
+  platform-specific. See [`MOTION.md`](MOTION.md#navigation-is-the-fourth-thing-and-it-is-not-ours)
+  and the draggable specimen at [`brand/navigation.html`](brand/navigation.html).
 - One meaning per icon across the app. A tick always means delivered.
 
 ### 5. Error prevention

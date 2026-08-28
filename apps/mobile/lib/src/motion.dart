@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -190,18 +192,47 @@ abstract final class SakinaHaptics {
   }
 }
 
-/// Forward slides in from the trailing edge; back slides out to it.
+/// Telegram's page transition: the incoming screen slides the **full width**
+/// in from the trailing edge, the outgoing one parallaxes a third of the way
+/// out behind it under a soft edge shadow, and a drag from the leading edge
+/// takes it back.
 ///
-/// Flutter's default builders use the same animation in both directions, which
-/// leaves the app without a spatial model — nothing tells you whether you went
-/// deeper or came back. Direction is the cheapest way to make an interface feel
-/// navigable rather than teleported.
+/// This delegates to [CupertinoPageTransitionsBuilder] rather than
+/// reproducing it. Three reasons, heaviest first:
 ///
-/// Direction-aware rather than left-to-right hardcoded, because the same code
-/// has to be right if Sakina ever ships an RTL language. Perso-Arabic is
-/// already listed as an open question in `docs/BRAND.md`.
+///  1. **The back-swipe is the point, and it is not a curve.** It is a drag
+///     that takes the route's animation over from the controller, hands it
+///     back on release, flies the heroes in whichever direction the finger
+///     settles on, and cancels cleanly if it changes its mind. Flutter already
+///     ships that, correct, and installs it from this builder on *every*
+///     platform — the gesture is not iOS-gated, only the habit of registering
+///     the builder is. Rewriting it would mean shipping a worse version of
+///     something people already have muscle memory for.
+///  2. **G10, convention.** `docs/UX.md` copies Telegram's chrome because
+///     familiarity is free adoption, and Telegram's own transition on both
+///     platforms *is* this one: full-width slide, parallax underneath, edge
+///     drag to return.
+///  3. What it replaces was an 18% slide, which read as a twitch rather than
+///     as arriving from somewhere.
+///
+/// What stays ours is the gate. Cupertino's builder has no reduce-motion path,
+/// so registering it raw — which is what iOS and macOS did until now — meant
+/// the platform whose users are most likely to have the setting switched on
+/// was the one platform that ignored it.
+///
+/// Direction comes from [Directionality], not from a hardcoded left, so this
+/// is already right if Sakina ships a Perso-Arabic script — an open question
+/// in `docs/BRAND.md`. Cupertino handles that itself; [_EdgeFlingBack] has to
+/// be told.
 class SakinaPageTransitions extends PageTransitionsBuilder {
   const SakinaPageTransitions();
+
+  /// The width of the strip that a back drag can start in.
+  ///
+  /// Matches Cupertino's own `_kBackGestureWidth`, so the target does not move
+  /// under someone's thumb when reduce-motion changes which implementation is
+  /// in play.
+  static const double edgeWidth = 20;
 
   @override
   Widget buildTransitions<T>(
@@ -211,34 +242,112 @@ class SakinaPageTransitions extends PageTransitionsBuilder {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    // Under reduce-motion, the route swaps with no movement at all. Returning
-    // the child unwrapped is the only way to be sure of that — a zero-duration
-    // controller still rebuilds through the tween.
-    if (SakinaMotion.reduced(context)) return child;
+    if (SakinaMotion.reduced(context)) {
+      // No movement at all: the route swaps. Returning the child unwrapped is
+      // the only way to be sure of that — a zero-duration controller still
+      // rebuilds through the tween.
+      //
+      // Except that swiping back is navigation, not decoration. Someone who
+      // asked for less movement did not ask to lose a way out of a screen, so
+      // the edge keeps working — as a discrete fling rather than a drag that
+      // follows the finger, since following the finger is the motion that was
+      // turned off.
+      //
+      // Not on a fullscreen dialog: that route has no back-swipe on the
+      // animated path either, and the two paths disagreeing about which
+      // gestures exist is how a setting turns into a different app.
+      return route.fullscreenDialog ? child : _EdgeFlingBack(child: child);
+    }
 
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-    final enter = Offset(isRtl ? -0.18 : 0.18, 0);
-    // The outgoing page moves a third as far. Parallax: the thing being covered
-    // should feel further away than the thing covering it.
-    final exit = Offset(isRtl ? 0.06 : -0.06, 0);
-
-    return SlideTransition(
-      position: Tween(begin: enter, end: Offset.zero)
-          .chain(CurveTween(curve: SakinaMotion.settle))
-          .animate(animation),
-      child: SlideTransition(
-        position: Tween(begin: Offset.zero, end: exit)
-            .chain(CurveTween(curve: SakinaMotion.both))
-            .animate(secondaryAnimation),
-        child: FadeTransition(
-          // Fades in over the first half only, so the page is solid well before
-          // it stops moving. A fade that runs the whole way reads as sluggish.
-          opacity: CurvedAnimation(parent: animation, curve: const Interval(0, 0.5)),
-          child: child,
-        ),
-      ),
+    return const CupertinoPageTransitionsBuilder().buildTransitions<T>(
+      route,
+      context,
+      animation,
+      secondaryAnimation,
+      child,
     );
   }
+}
+
+/// A leading-edge strip that pops the route on a decisive outward fling.
+///
+/// The reduce-motion stand-in for the interactive back gesture. Deliberately
+/// discrete: nothing tracks the finger and nothing animates. The fling either
+/// clears the threshold and the route is gone, or it does not and nothing at
+/// all happened — which is the honest reduce-motion reading of a gesture whose
+/// whole feedback is normally movement.
+class _EdgeFlingBack extends StatelessWidget {
+  const _EdgeFlingBack({required this.child});
+
+  final Widget child;
+
+  /// Logical pixels per second, measured on the horizontal axis.
+  ///
+  /// Higher than Flutter's own ~365 fling boundary on purpose: this strip
+  /// overlaps where a swipe-to-reply on the leftmost bubbles begins, and
+  /// between the two mistakes, a gesture that does nothing is much cheaper
+  /// than one that leaves the chat.
+  static const double _flingVelocity = 700;
+
+  @override
+  Widget build(BuildContext context) {
+    // +1 when back is to the right of the start edge, -1 when the language
+    // runs the other way.
+    final outward = Directionality.of(context) == TextDirection.rtl ? -1 : 1;
+
+    return Stack(
+      // The page must keep the tight constraints the navigator gave it; a
+      // loose Stack would let a Scaffold size itself to its own content.
+      fit: StackFit.expand,
+      children: [
+        child,
+        PositionedDirectional(
+          start: 0,
+          top: 0,
+          bottom: 0,
+          width: SakinaPageTransitions.edgeWidth,
+          child: GestureDetector(
+            // Invisible and unlabelled by design. The route carries a back
+            // button in the corner, and that is the affordance a screen reader
+            // should find — a 20px strip announcing itself would be noise.
+            excludeFromSemantics: true,
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragEnd: (details) {
+              final velocity = (details.primaryVelocity ?? 0) * outward;
+              if (velocity > _flingVelocity) {
+                unawaited(Navigator.of(context).maybePop());
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A page route timed from the vocabulary instead of from Flutter's defaults.
+///
+/// [MaterialPageRoute] hardcodes 300ms and Cupertino's route uses considerably
+/// more; neither number is in `docs/MOTION.md`, and that document is only true
+/// if the timings it names are the timings that actually run. 320ms is exactly
+/// what [SakinaMotion.long] is for — "the longest thing we do, a full-screen
+/// transition on a slow device".
+///
+/// Only the timing. Which transition, the parallax, the shadow and the gesture
+/// all still come from the theme, so no single route gets to disagree with the
+/// app about how navigation looks.
+class SakinaPageRoute<T> extends MaterialPageRoute<T> {
+  SakinaPageRoute({
+    required super.builder,
+    super.settings,
+    super.fullscreenDialog,
+  });
+
+  @override
+  Duration get transitionDuration => SakinaMotion.long;
+
+  @override
+  Duration get reverseTransitionDuration => SakinaMotion.long;
 }
 
 /// Fades and slides a child in once, on first build.

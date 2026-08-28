@@ -7,15 +7,17 @@
 //                                docs/DESIGN-AUDIT.md
 //   docs/brand/charkh-frames.png  every ЧАРХ opening and closing, sampled
 //                                across its own phase
+//   docs/brand/nav-frames.png    the chat transition, sampled across its own
+//                                progress
 //
 // mark-check is drawn from geometric first principles. The shapes it puts
 // beside ours are *families* — "concentric rounded squares", "an octagram" —
 // reconstructed from their definitions. No other company's mark is reproduced
 // here, and none should be added.
 //
-// charkh-frames asks samani.html's own painter for specific points rather than
-// screenshotting a running sequence, because that catches one arbitrary frame
-// and proves nothing.
+// charkh-frames and nav-frames ask their pages' own painters for specific
+// points rather than screenshotting a running sequence, because that catches
+// one arbitrary frame and proves nothing.
 import { chromium } from 'playwright';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -227,5 +229,54 @@ await strip.evaluate(() => {
 });
 await strip.locator('#filmstrip').screenshot({ path: out('charkh-frames.png') });
 console.log('  docs/brand/charkh-frames.png');
+
+// The chat transition at five points. The number worth reading off it is the
+// ratio: the incoming page crosses the whole screen while the one it covers
+// moves a third as far.
+const nav = await browser.newPage({
+  viewport: { width: 1240, height: 900 },
+  deviceScaleFactor: 2,
+  colorScheme: 'dark',
+});
+await nav.goto(pathToFileURL(resolve(root, 'docs/brand/navigation.html')).href);
+await nav.evaluate(() => {
+  const SCALE = 0.6;
+  const board = document.createElement('div');
+  board.id = 'navstrip';
+  // Top-anchored rather than inset:0, so the board is as tall as its contents
+  // and the screenshot has no dead space under the phones.
+  board.style.cssText =
+    'position:fixed;top:0;left:0;right:0;z-index:99;background:#070D17;padding:26px 30px;' +
+    'display:flex;flex-direction:column;gap:12px;' +
+    'font:12px/1.4 "Noto Sans",system-ui,sans-serif;color:#8496B3';
+  const title = document.createElement('div');
+  title.textContent = 'Opening a chat — the incoming page crosses the screen, the list moves a third as far';
+  title.style.cssText = 'color:#E7EDF7;font-size:16px;font-weight:700';
+  board.appendChild(title);
+
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:14px;align-items:flex-start';
+  for (const v of [0, 0.25, 0.5, 0.75, 1]) {
+    const cell = document.createElement('div');
+    cell.style.cssText = 'display:flex;flex-direction:column;gap:8px;align-items:center';
+    // The clone keeps its own inner transforms, so it is scaled from outside
+    // rather than resized — a resize would change what the percentages mean.
+    const box = document.createElement('div');
+    box.style.cssText =
+      `width:${320 * SCALE}px;height:${560 * SCALE}px;overflow:hidden`;
+    const holder = document.createElement('div');
+    holder.style.cssText = `transform:scale(${SCALE});transform-origin:top left`;
+    holder.appendChild(window.SakinaNav.frameAt(v));
+    box.appendChild(holder);
+    const cap = document.createElement('div');
+    cap.textContent = v === 0 ? 'list' : v === 1 ? 'chat' : v.toFixed(2);
+    cell.append(box, cap);
+    row.appendChild(cell);
+  }
+  board.appendChild(row);
+  document.body.appendChild(board);
+});
+await nav.locator('#navstrip').screenshot({ path: out('nav-frames.png') });
+console.log('  docs/brand/nav-frames.png');
 
 await browser.close();

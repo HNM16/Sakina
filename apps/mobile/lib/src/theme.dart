@@ -291,22 +291,26 @@ abstract final class SakinaTheme {
             displayColor: text,
           ),
 
-      // A1/A12: forward slides in from the trailing edge, back slides out to
-      // it, and the page underneath moves a third as far so being covered
-      // reads as depth. Flutter's own builders animate both directions
-      // identically, which leaves the app without a spatial model.
+      // A1/A12: opening a chat slides the whole screen in from the trailing
+      // edge, going back slides it out the same way, the list underneath
+      // parallaxes a third as far so being covered reads as depth, and a drag
+      // from the leading edge returns. Telegram's spatial model, which
+      // docs/UX.md adopts on purpose.
       //
-      // iOS keeps Cupertino's transition. It carries the interactive
-      // back-swipe, and reimplementing that to gain a slightly different curve
-      // would be replacing something people already know with something they
-      // do not — the same convention argument as docs/UX.md.
+      // One builder on every platform, where iOS and macOS used to get
+      // Cupertino's raw. The argument that put Cupertino on iOS — it carries
+      // the interactive back-swipe, and people already know it — was never an
+      // iOS argument; the gesture is not platform-gated, and Telegram on
+      // Android swipes back too. SakinaPageTransitions now delegates to it,
+      // which is how the Android side gets the gesture and how the Apple side
+      // finally gets the reduce-motion path it never had.
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: SakinaPageTransitions(),
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: SakinaPageTransitions(),
           TargetPlatform.linux: SakinaPageTransitions(),
           TargetPlatform.windows: SakinaPageTransitions(),
-          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: SakinaPageTransitions(),
         },
       ),
     );

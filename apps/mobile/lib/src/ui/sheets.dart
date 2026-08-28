@@ -5,6 +5,7 @@ import '../api_client.dart';
 import '../l10n.dart';
 import '../layout.dart';
 import '../models.dart';
+import '../motion.dart';
 import '../theme.dart';
 import 'create_chat_screen.dart';
 
@@ -31,7 +32,7 @@ Future<ChatSummary?> showNewChatSheet(
 
       Future<void> push(Widget screen) async {
         final result = await Navigator.of(sheetContext).push<ChatSummary>(
-          MaterialPageRoute(builder: (_) => screen),
+          SakinaPageRoute<ChatSummary>(builder: (_) => screen),
         );
         if (sheetContext.mounted) Navigator.of(sheetContext).pop(result);
       }

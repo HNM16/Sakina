@@ -164,7 +164,7 @@ class ChatListScreen extends StatelessWidget {
 
   void _openChat(BuildContext context, String chatId) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
+      SakinaPageRoute<void>(
         builder: (_) => ChatScreen(
           repository: repository,
           chatId: chatId,

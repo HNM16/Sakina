@@ -96,6 +96,32 @@ because the screen felt flat — it stops meaning "delivered" and the whole
 vocabulary is worth nothing. Same discipline the palette already has: one
 accent, and saffron only for rare warmth.
 
+## Navigation is the fourth thing, and it is not ours
+
+The three primitives are about *state*. Moving between screens is about
+*place*, and it takes a different answer: not light, but Telegram's slide.
+Live specimen, draggable: [`docs/brand/navigation.html`](brand/navigation.html).
+
+![The chat transition sampled at five points](brand/nav-frames.png)
+
+Opening a chat brings it the full width of the screen from the trailing edge
+in **320ms** (`SakinaMotion.long`), while the list it covers moves a third as
+far — that ratio is the whole reason being covered reads as depth rather than
+as sideways. Going back reverses it, and a drag from the leading 20px takes the
+route over from the controller and hands it back on release.
+
+`SakinaPageTransitions` delegates the lot to Flutter's
+`CupertinoPageTransitionsBuilder`, on **every** platform. The slide is
+arithmetic; the gesture is not, and the gesture is the part people feel — it
+runs linearly under the finger, settles by velocity or by position, and flies
+the hero either way. That gesture was never iOS-only. Only the habit of
+registering the builder on iOS was.
+
+What stays ours is the gate, and it matters more than it sounds: Cupertino's
+builder has no reduce-motion path, so registering it raw — which iOS and macOS
+did until this was written — meant the platform whose users most often have the
+setting on was the one platform ignoring it.
+
 ## Reduce motion
 
 Every primitive has a path that removes it, not one that shortens it.
@@ -107,6 +133,7 @@ checks that the gate returns exactly `Duration.zero`.
 | ТОБ | Does not run. The tick simply appears — the information was never in the motion |
 | НАФАС | A single dimmed opacity, so "waiting" stays legible with nothing moving |
 | ЧАРХ | The mark stands still and a text label carries the state |
+| Page transition | The route swaps with nothing moving. The edge still returns you — as a discrete fling, since a drag that follows your finger *is* the motion that was switched off |
 
 **Reduced motion is not reduced information.** Each fallback still says the same
 thing; it just stops saying it with movement. A fallback that drops the meaning

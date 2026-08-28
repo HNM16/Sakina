@@ -163,6 +163,13 @@ class _ChatInfoScreenState extends State<ChatInfoScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        // Same reason as chat_screen.dart: the automatic back button's tooltip
+        // comes from MaterialLocalizations, which has no Tajik to give it.
+        leading: IconButton(
+          icon: const BackButtonIcon(),
+          tooltip: l10n.t('back'),
+          onPressed: () => Navigator.maybePop(context),
+        ),
         title: Text(l10n.t(chat?.isChannel ?? false ? 'subscribers' : 'members')),
       ),
       floatingActionButton: (chat?.isAdmin ?? false)

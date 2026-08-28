@@ -101,6 +101,7 @@ class L10n {
       'en': 'Enter the 6-digit code',
     },
     'chats': {'tg': 'Сӯҳбатҳо', 'ru': 'Чаты', 'en': 'Chats'},
+    'back': {'ru': 'Назад', 'tg': 'Бозгашт', 'en': 'Back'},
     'no_chats': {
       'tg': 'Ҳанӯз сӯҳбате нест',
       'ru': 'Пока нет чатов',

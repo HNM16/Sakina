@@ -11,6 +11,7 @@ import '../l10n.dart';
 import '../layout.dart';
 import '../media_service.dart';
 import '../models.dart';
+import '../motion.dart';
 import '../theme.dart';
 
 /// An attachment inside a message bubble.
@@ -267,7 +268,10 @@ class _MediaAttachmentState extends State<MediaAttachment> {
 
   void _openFullScreen(BuildContext context, File file, String kind) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      SakinaPageRoute<void>(
+        // A viewer is not somewhere you navigated to, so it rises from the
+        // bottom and has no back-swipe — the transition builder branches on
+        // this flag, and dismissing is the close button's job.
         fullscreenDialog: true,
         builder: (_) => _MediaViewer(file: file, isVideo: kind == 'video'),
       ),

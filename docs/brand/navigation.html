@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-motion="on">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sakina Navigation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================================
+   Same tokens as motion.html and identity.html. Dark-first, because the app is,
+   but light is a complete second set rather than an inversion.
+   =========================================================================== */
+:root {
+  color-scheme: dark light;
+  --bg:      #070D17;
+  --panel:   #0F1A29;
+  --raised:  #18243A;
+  --line:    #22314B;
+  --ink:     #E7EDF7;
+  --ink-2:   #B4C2D8;
+  --muted:   #8496B3;
+  --firuza:  #32BBC8;
+  --saffron: #E3AC55;
+  --anor:    #D25A54;
+  --mine:    #14504A;
+}
+:root[data-theme="light"] {
+  --bg:      #F4F7FB;
+  --panel:   #FFFFFF;
+  --raised:  #FFFFFF;
+  --line:    #DFE7F1;
+  --ink:     #0C1524;
+  --ink-2:   #33435C;
+  --muted:   #5A6C88;
+  --firuza:  #127D87;
+  --saffron: #B07A1E;
+  --anor:    #B23B36;
+  --mine:    #D2EEE9;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Noto Sans", system-ui, sans-serif;
+  font-size: 15.5px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: clamp(30px, 6vw, 68px) clamp(16px, 4vw, 32px) 90px; }
+
+.eyebrow { font-size: 11.5px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+
+h1 {
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: clamp(32px, 5.6vw, 50px);
+  line-height: 1.08; letter-spacing: -0.02em;
+  margin: 14px 0 18px; text-wrap: balance;
+}
+.standfirst {
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: clamp(17px, 2.3vw, 20px);
+  color: var(--ink-2); max-width: 58ch; margin: 0 0 10px;
+}
+.standfirst em { color: var(--ink); }
+
+h2 {
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: clamp(22px, 3.2vw, 30px);
+  letter-spacing: -0.018em; margin: 0 0 6px; text-wrap: balance;
+}
+h3 { font-size: 17px; margin: 26px 0 6px; }
+p { max-width: 66ch; margin: 0 0 14px; }
+.lede { color: var(--ink-2); }
+ul { max-width: 66ch; padding-left: 20px; } li { margin-bottom: 6px; }
+a { color: var(--firuza); }
+strong { font-weight: 600; }
+hr.rule { border: 0; border-top: 1px solid var(--line); margin: 46px 0 0; }
+
+/* ------------------------------------------------------------------ toolbar */
+.toolbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  margin: 26px 0 0; padding: 11px 14px;
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line); border-radius: 7px;
+}
+.toolbar .lbl { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.toolbar button {
+  min-height: 36px; padding: 6px 13px;
+  border: 1px solid var(--line); border-radius: 5px;
+  background: transparent; color: var(--ink); font: inherit; font-size: 13.5px; cursor: pointer;
+}
+.toolbar button:hover { border-color: var(--firuza); }
+.toolbar button:focus-visible { outline: 2px solid var(--firuza); outline-offset: 1px; }
+.toolbar button[aria-pressed="true"] { background: var(--firuza); border-color: var(--firuza); color: var(--bg); font-weight: 600; }
+.toolbar .sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }
+
+/* ------------------------------------------------------------------ specimen */
+.specimen {
+  display: grid; grid-template-columns: minmax(0, 1fr) 268px; gap: 26px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--panel);
+  margin: 20px 0 8px; overflow: hidden;
+}
+@media (max-width: 820px) { .specimen { grid-template-columns: minmax(0, 1fr); } }
+
+.stage {
+  padding: 30px 28px;
+  display: flex; align-items: center; justify-content: center;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 11px, color-mix(in oklab, var(--line) 26%, transparent) 11px 12px),
+    var(--bg);
+}
+.spec { border-left: 1px solid var(--line); padding: 20px; font-size: 13px; color: var(--ink-2); }
+@media (max-width: 820px) { .spec { border-left: 0; border-top: 1px solid var(--line); } }
+.spec dl { margin: 0 0 14px; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+.spec dt { color: var(--muted); font-size: 12px; }
+.spec dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); font-size: 12.5px; text-align: end; }
+.spec .note { margin-top: 14px; font-size: 12.5px; line-height: 1.5; }
+.replay {
+  margin-top: 6px; width: 100%; min-height: 38px;
+  border: 1px solid var(--firuza); border-radius: 5px;
+  background: transparent; color: var(--firuza); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer;
+}
+.replay + .replay { margin-top: 8px; }
+.replay:hover { background: color-mix(in oklab, var(--firuza) 14%, transparent); }
+.replay:focus-visible { outline: 2px solid var(--firuza); outline-offset: 2px; }
+
+/* --------------------------------------------------------------------- phone
+   320px wide because that is the floor of the range in
+   tools/device-matrix/devices.json — if the chrome works here it works
+   everywhere we ship. */
+.phone {
+  position: relative; width: 320px; height: 560px; flex: none;
+  border-radius: 26px; border: 1px solid var(--line);
+  background: var(--panel); overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+  touch-action: pan-y;               /* horizontal drags are ours, not the browser's */
+  user-select: none; -webkit-user-select: none;
+}
+.page {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  background: var(--panel);
+  will-change: transform;            /* the transform is the whole demo */
+}
+/* Cupertino paints a narrow gradient off the leading edge of the incoming page,
+   which is what makes the covered page read as *underneath* rather than beside. */
+.page.chat::before {
+  content: ""; position: absolute; top: 0; bottom: 0;
+  inset-inline-start: -12px; width: 12px;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0));
+  pointer-events: none;
+}
+[dir="rtl"] .page.chat::before { background: linear-gradient(to right, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0)); }
+
+.bar {
+  flex: none; display: flex; align-items: center; gap: 10px;
+  padding: 13px 14px; min-height: 56px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.bar .title { font-weight: 600; font-size: 16px; }
+.bar .sub { font-size: 11.5px; color: var(--muted); line-height: 1.2; }
+.chev {
+  flex: none; width: 34px; height: 34px; padding: 0;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%; background: transparent;
+  color: var(--ink); cursor: pointer;
+}
+.chev:hover { background: color-mix(in oklab, var(--firuza) 16%, transparent); }
+.chev:focus-visible { outline: 2px solid var(--firuza); outline-offset: 1px; }
+.chev svg { width: 20px; height: 20px; }
+[dir="rtl"] .chev svg { transform: scaleX(-1); }
+
+.rows { flex: 1; overflow: hidden; }
+.row {
+  display: flex; align-items: center; gap: 11px; width: 100%;
+  padding: 11px 14px; border: 0; background: transparent;
+  color: var(--ink); font: inherit; text-align: start; cursor: pointer;
+}
+.row:hover { background: color-mix(in oklab, var(--firuza) 10%, transparent); }
+.row:focus-visible { outline: 2px solid var(--firuza); outline-offset: -2px; }
+.av {
+  flex: none; width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: color-mix(in oklab, var(--firuza) 26%, var(--raised));
+  color: var(--ink); font-weight: 600; font-size: 15px;
+}
+.bar .av { width: 32px; height: 32px; font-size: 13px; }
+.row .who { flex: 1; min-width: 0; }
+.row .who b { display: block; font-weight: 600; font-size: 14.5px; }
+.row .who span { display: block; font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row time { flex: none; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.thread { flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 9px; overflow: hidden; }
+.msg {
+  max-width: 78%; padding: 8px 12px; border-radius: 15px;
+  background: var(--raised); border: 1px solid var(--line); font-size: 14px;
+}
+.msg.mine { align-self: flex-end; background: var(--mine); border-color: transparent; }
+.composer {
+  flex: none; display: flex; align-items: center; gap: 9px;
+  padding: 10px 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px;
+}
+.composer .field { flex: 1; padding: 8px 13px; border-radius: 999px; background: var(--raised); }
+
+/* The strip the back gesture owns. Twenty logical pixels, the same number
+   SakinaPageTransitions.edgeWidth carries in the app. */
+.edge {
+  position: absolute; top: 0; bottom: 0; inset-inline-start: 0; width: 20px;
+  z-index: 5; cursor: grab;
+}
+.edge.showing { background: linear-gradient(to right, color-mix(in oklab, var(--saffron) 40%, transparent), transparent); }
+[dir="rtl"] .edge.showing { background: linear-gradient(to left, color-mix(in oklab, var(--saffron) 40%, transparent), transparent); }
+
+/* ------------------------------------------------------------------ misc */
+.callout {
+  border: 1px solid var(--line); border-left: 3px solid var(--saffron);
+  border-radius: 4px; background: var(--panel); padding: 15px 17px; margin: 22px 0;
+}
+[dir="rtl"] .callout { border-left: 1px solid var(--line); border-right: 3px solid var(--saffron); }
+.callout .tag { font-size: 10.5px; letter-spacing: 0.11em; text-transform: uppercase; font-weight: 700; color: var(--muted); display: block; margin-bottom: 5px; }
+.callout p:last-child { margin-bottom: 0; }
+
+table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 14px 0; }
+th, td { text-align: start; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+code { font-family: ui-monospace, Menlo, monospace; font-size: 0.9em; background: color-mix(in oklab, var(--firuza) 14%, transparent); padding: 1px 5px; border-radius: 3px; }
+
+footer { margin-top: 54px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+
+<div class="eyebrow">Sakina · navigation</div>
+<h1>Going in, and getting back out.</h1>
+<p class="standfirst">
+  A chat arrives from the trailing edge across the <em>whole</em> screen, the
+  list slides a third of the way out behind it, and dragging from the leading
+  edge takes it back. Telegram's spatial model, on every platform we ship.
+</p>
+
+<div class="toolbar" role="group" aria-label="Demo controls">
+  <span class="lbl">Theme</span>
+  <button data-theme-set="dark" aria-pressed="true">Шаб</button>
+  <button data-theme-set="light" aria-pressed="false">Рӯз</button>
+  <span class="sep"></span>
+  <span class="lbl">Motion</span>
+  <button data-motion-set="on" aria-pressed="true">On</button>
+  <button data-motion-set="off" aria-pressed="false">Reduced</button>
+  <span class="sep"></span>
+  <span class="lbl">Script</span>
+  <button data-dir-set="ltr" aria-pressed="true">LTR</button>
+  <button data-dir-set="rtl" aria-pressed="false">RTL</button>
+</div>
+
+<hr class="rule">
+
+<section>
+  <h2>The specimen</h2>
+  <p class="lede">
+    Open a chat, come back with the button, then come back with the gesture:
+    press inside the highlighted strip and drag across. Release past halfway,
+    or fling, and it goes; release short of it and it snaps home. The strip is
+    tinted here only so you can find it — in the app it is invisible.
+  </p>
+
+  <div class="specimen">
+    <div class="stage">
+      <div class="phone" id="phone">
+        <div class="page list" id="pageList">
+          <div class="bar"><span class="title">Чатҳо</span></div>
+          <div class="rows">
+            <button class="row" data-open="Нозанин">
+              <span class="av">Н</span>
+              <span class="who"><b>Нозанин</b><span>Ба хона кай меоӣ?</span></span>
+              <time>19:42</time>
+            </button>
+            <button class="row" data-open="Оила">
+              <span class="av">О</span>
+              <span class="who"><b>Оила</b><span>Фаррух: расмҳоро фиристодам</span></span>
+              <time>18:07</time>
+            </button>
+            <button class="row" data-open="Далер">
+              <span class="av">Д</span>
+              <span class="who"><b>Далер</b><span>Пулро гирифтам, раҳмат</span></span>
+              <time>16:55</time>
+            </button>
+            <button class="row" data-open="Гулнора">
+              <span class="av">Г</span>
+              <span class="who"><b>Гулнора</b><span>Хуб, пагоҳ мебинем</span></span>
+              <time>Дина</time>
+            </button>
+          </div>
+        </div>
+
+        <div class="page chat" id="pageChat" aria-hidden="true">
+          <div class="bar">
+            <button class="chev" id="back" aria-label="Бозгашт" title="Бозгашт" tabindex="-1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M19 12H5M12 19l-7-7 7-7"></path>
+              </svg>
+            </button>
+            <span class="av" id="chatAv">Н</span>
+            <span>
+              <span class="title" id="chatName">Нозанин</span>
+              <span class="sub">дар шабака</span>
+            </span>
+          </div>
+          <div class="thread">
+            <div class="msg">Салом! Ту дар кучоӣ?</div>
+            <div class="msg mine">Дар роҳам, бист дақиқа</div>
+            <div class="msg">Ба хона кай меоӣ?</div>
+            <div class="msg mine">Соати ҳашт</div>
+          </div>
+          <div class="composer"><span class="field">Паём…</span><span>➤</span></div>
+        </div>
+
+        <div class="edge showing" id="edge" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <dl>
+        <dt>Duration</dt><dd id="sDur">320 ms</dd>
+        <dt>Incoming</dt><dd>100% → 0</dd>
+        <dt>Covered page</dt><dd>0 → −33.3%</dd>
+        <dt>Edge strip</dt><dd>20 px</dd>
+        <dt>State</dt><dd id="sState">list</dd>
+        <dt>Progress</dt><dd id="sProg">0.00</dd>
+        <dt>Frame rate</dt><dd id="sFps">—</dd>
+        <dt>Worst frame</dt><dd id="sWorst">—</dd>
+      </dl>
+      <button class="replay" id="doPush">Open a chat</button>
+      <button class="replay" id="doPop">Go back</button>
+      <p class="note">
+        Frame rate is measured across the last run only, so a number here is
+        about this transition and not about the page sitting still.
+      </p>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>Why this is Flutter's transition and not ours</h2>
+  <p class="lede">
+    The slide is four lines of arithmetic. The gesture is not, and the gesture is
+    the part people feel.
+  </p>
+  <p>
+    Dragging back has to take the route animation over from its controller
+    mid-flight, run <em>linearly</em> while the finger is down — a curve applied
+    to a drag is the thing that makes a swipe feel like it is arguing with you —
+    hand control back on release, decide by velocity or by position which end to
+    settle at, and fly the avatar to whichever screen wins. Flutter already ships
+    that, correct, and it installs from the same builder on every platform. The
+    gesture was never iOS-only; only the habit of registering the builder on iOS
+    was.
+  </p>
+  <p>
+    So <code>SakinaPageTransitions</code> delegates to
+    <code>CupertinoPageTransitionsBuilder</code> and keeps exactly one thing of
+    its own: the reduce-motion gate. That is not a small keep. Registering
+    Cupertino raw is what iOS and macOS did until now, and Cupertino has no
+    reduce-motion path — so the platform whose users are likeliest to have the
+    setting switched on was the one platform ignoring it.
+  </p>
+
+  <div class="callout">
+    <span class="tag">Guardrail G10 — convention</span>
+    <p>
+      <code>docs/UX.md</code> copies Telegram's chrome because familiarity is
+      free adoption, and this is that argument at its strongest: navigation is
+      the one interaction where being surprising is only ever a cost.
+    </p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>The corner and the edge</h2>
+  <p class="lede">A gesture nobody has discovered yet is not a way back.</p>
+  <p>
+    So there are two, as in Telegram: an arrow in the leading corner of the bar,
+    and the edge drag. The arrow is written out rather than left to the app bar's
+    automatic one, because the automatic one takes its tooltip from
+    <code>MaterialLocalizations</code> — and Flutter ships no Tajik, so a phone
+    set to Tajik would be told <b>Назад</b>. Ours says <b>Бозгашт</b>.
+  </p>
+  <p>
+    The edge costs something, and it is worth saying which: a swipe-to-reply
+    that starts in the leftmost 20&nbsp;px is now a back gesture instead. Both
+    are horizontal drags on the same bubble, so one of them has to yield, and
+    leaving it to the gesture arena resolves it by tree depth — meaning reply
+    wins and the back swipe silently does not work. Telegram gives the edge to
+    navigation. So do we.
+  </p>
+
+  <h3>Under reduce-motion</h3>
+  <p>
+    The transition disappears entirely: the route swaps with nothing moving,
+    because <a href="../MOTION.md">shortening an animation is not disabling it</a>.
+    But a drag that follows your finger <em>is</em> the motion that was turned
+    off, and losing a way out of a screen is not what anyone asked for when they
+    turned it off. So the edge keeps working as a discrete fling — over the
+    threshold and the screen is simply gone, under it and nothing happened.
+    Switch <b>Motion → Reduced</b> above and try the strip.
+  </p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>The numbers</h2>
+  <table>
+    <thead><tr><th>What</th><th class="num">Value</th><th>Where it comes from</th></tr></thead>
+    <tbody>
+      <tr><td>Push and pop</td><td class="num">320 ms</td><td><code>SakinaMotion.long</code> — "the longest thing we do, a full-screen transition on a slow device"</td></tr>
+      <tr><td>Incoming page</td><td class="num">100% → 0</td><td>Full width. The 18% slide it replaces read as a twitch, not as arrival</td></tr>
+      <tr><td>Covered page</td><td class="num">−33.3%</td><td>Cupertino's parallax. Being covered has to read as depth</td></tr>
+      <tr><td>Edge strip</td><td class="num">20 px</td><td><code>SakinaPageTransitions.edgeWidth</code>, matching Cupertino's own</td></tr>
+      <tr><td>Release decision</td><td class="num">50% / 1.0 w·s⁻¹</td><td>Position, unless the fling beats one screen-width per second</td></tr>
+      <tr><td>Fling, reduced</td><td class="num">700 px·s⁻¹</td><td>Above Flutter's ~365 fling floor, because a gesture that does nothing is cheaper than one that leaves the chat</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  Live specimen for <code>apps/mobile/lib/src/motion.dart</code>. The app itself
+  has never been compiled — there is no Flutter SDK in this environment — so the
+  curves and thresholds here are transcribed from Flutter's source rather than
+  captured from a running build. Sister pages:
+  <a href="motion.html">motion.html</a>, <a href="identity.html">identity.html</a>,
+  <a href="samani.html">samani.html</a>.
+</footer>
+
+</div>
+
+<script>
+"use strict";
+
+const root = document.documentElement;
+
+function segmented(attr, apply) {
+  const buttons = [...document.querySelectorAll(`[${attr}]`)];
+  for (const button of buttons) {
+    button.addEventListener("click", () => {
+      for (const other of buttons) other.setAttribute("aria-pressed", String(other === button));
+      apply(button.getAttribute(attr));
+    });
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Curves, transcribed from Flutter.
+
+   linearToEaseOut / easeInToLinear drive the push and the pop.
+   fastLinearToSlowEaseIn settles a released drag.
+   ------------------------------------------------------------------------- */
+function cubic(x1, y1, x2, y2) {
+  const bez = (t, a, b) => 3 * a * (1 - t) * (1 - t) * t + 3 * b * (1 - t) * t * t + t * t * t;
+  return (x) => {
+    // Bisection on the x polynomial. Twenty steps puts the error well under a
+    // pixel at any size we render, and never fails to converge the way Newton
+    // can on these control points.
+    let lo = 0, hi = 1, t = x;
+    for (let i = 0; i < 20; i++) {
+      t = (lo + hi) / 2;
+      if (bez(t, x1, x2) < x) lo = t; else hi = t;
+    }
+    return bez(t, y1, y2);
+  };
+}
+const LINEAR_TO_EASE_OUT = cubic(0.35, 0.91, 0.33, 0.97);
+const EASE_IN_TO_LINEAR  = cubic(0.67, 0.03, 0.65, 0.09);
+const FAST_LINEAR_SLOW   = cubic(0.18, 1.00, 0.04, 1.00);
+
+const PUSH_MS = 320;               // SakinaMotion.long
+const EDGE_PX = 20;                // SakinaPageTransitions.edgeWidth
+const MAX_DROPPED_FORWARD_MS = 800;  // Cupertino's _kMaxDroppedSwipePageForwardAnimationTime
+const MAX_PAGE_BACK_MS = 300;        // Cupertino's _kMaxPageBackAnimationTime
+const MIN_FLING_W_PER_S = 1.0;       // Cupertino's _kMinFlingVelocity, in widths per second
+const REDUCED_FLING_PX_PER_S = 700;  // _EdgeFlingBack._flingVelocity
+
+const phone   = document.getElementById("phone");
+const pageList = document.getElementById("pageList");
+const pageChat = document.getElementById("pageChat");
+const edge    = document.getElementById("edge");
+const back    = document.getElementById("back");
+const chatAv  = document.getElementById("chatAv");
+const chatName = document.getElementById("chatName");
+const sState  = document.getElementById("sState");
+const sProg   = document.getElementById("sProg");
+const sFps    = document.getElementById("sFps");
+const sWorst  = document.getElementById("sWorst");
+const sDur    = document.getElementById("sDur");
+
+/** 0 = the list is showing, 1 = the chat is showing. The route's own value. */
+let t = 0;
+let raf = 0;
+let dragging = false;
+/** The controller-driven part of a transition, or null while a finger has it. */
+let anim = null;
+
+const reduced = () =>
+  root.getAttribute("data-motion") === "off" ||
+  matchMedia("(prefers-reduced-motion: reduce)").matches;
+const rtl = () => root.getAttribute("dir") === "rtl";
+
+function paint() {
+  const sign = rtl() ? -1 : 1;
+  // Under reduce-motion nothing is ever part-way: the route is here or it is not.
+  const v = reduced() ? Math.round(t) : t;
+  pageChat.style.transform = `translate3d(${sign * (1 - v) * 100}%, 0, 0)`;
+  pageList.style.transform = `translate3d(${sign * v * -100 / 3}%, 0, 0)`;
+  pageChat.style.opacity = v > 0 ? "1" : "0";
+  pageChat.setAttribute("aria-hidden", String(v < 1));
+  back.tabIndex = v < 1 ? -1 : 0;
+  for (const row of document.querySelectorAll(".row")) row.tabIndex = v < 1 ? 0 : -1;
+  sProg.textContent = v.toFixed(2);
+  sState.textContent = v === 0 ? "list" : v === 1 ? "chat" : dragging ? "dragging" : "moving";
+}
+
+/* -------------------------------------------------------------------------
+   Frame accounting, so "perfectly smooth" is a number rather than an
+   impression. Counted on the frame, never on the input event: a drag samples
+   the pointer at whatever rate the device feels like, and counting those would
+   report the mouse instead of the animation.
+   ------------------------------------------------------------------------- */
+let frames = 0, worst = 0, runStart = 0, lastFrame = 0;
+function beginRun() { frames = 0; worst = 0; runStart = performance.now(); lastFrame = runStart; }
+function tickRun(now) {
+  const dt = now - lastFrame;
+  lastFrame = now;
+  frames++;
+  if (frames > 1 && dt > worst) worst = dt;   // the first gap is the scheduling delay, not a frame
+}
+function endRun(now) {
+  if (reduced()) { sFps.textContent = "—"; sWorst.textContent = "—"; return; }
+  const elapsed = now - runStart;
+  if (elapsed > 0 && frames > 1) {
+    sFps.textContent = `${Math.round((frames - 1) / (elapsed / 1000))} fps`;
+    sWorst.textContent = `${worst.toFixed(1)} ms`;
+  }
+}
+
+/**
+ * One loop for both halves of the transition. A drag only moves `t`; this is
+ * what puts it on the screen — which is also how Flutter does it, and why a
+ * finger that outruns the display does not tear the page.
+ */
+function frame(now) {
+  tickRun(now);
+  if (anim) {
+    const x = Math.min(1, (now - anim.start) / anim.ms);
+    t = anim.from + (anim.to - anim.from) * anim.curve(x);
+    if (x >= 1) { t = anim.to; anim = null; }
+  }
+  paint();
+  if (anim || dragging) raf = requestAnimationFrame(frame);
+  else { raf = 0; endRun(now); }
+}
+function ensureLoop() { if (!raf) raf = requestAnimationFrame(frame); }
+
+/** Hand `t` to the controller. `keepRun` continues a run a finger started. */
+function animateTo(target, ms, curve, keepRun = false) {
+  if (reduced() || ms <= 0) {
+    anim = null; t = target; paint();
+    sFps.textContent = "—"; sWorst.textContent = "—";
+    return;
+  }
+  if (!keepRun) beginRun();
+  anim = { from: t, to: target, ms, curve, start: performance.now() };
+  ensureLoop();
+}
+
+function push(name) {
+  chatName.textContent = name;
+  chatAv.textContent = name[0];
+  animateTo(1, PUSH_MS, LINEAR_TO_EASE_OUT);
+}
+function pop() { animateTo(0, PUSH_MS, EASE_IN_TO_LINEAR); }
+
+for (const row of document.querySelectorAll(".row")) {
+  row.addEventListener("click", () => { if (t === 0) push(row.dataset.open); });
+}
+back.addEventListener("click", () => { if (t === 1) pop(); });
+document.getElementById("doPush").addEventListener("click", () => { if (t === 0) push(chatName.textContent); });
+document.getElementById("doPop").addEventListener("click", () => { if (t === 1) pop(); });
+
+/* ---------------------------------------------------------------- the drag */
+let startX = 0;
+/** Recent pointer positions. A velocity read from the last event alone would
+    call a finger that stopped and rested a fling. */
+const samples = [];
+
+function velocityAt(now) {
+  const recent = samples.filter((s) => now - s.now <= 100);
+  if (recent.length < 2) return 0;
+  const a = recent[0], b = recent[recent.length - 1];
+  return b.now > a.now ? ((b.x - a.x) / (b.now - a.now)) * 1000 : 0;   // px per second
+}
+
+edge.addEventListener("pointerdown", (e) => {
+  if (t !== 1) return;                       // nothing to come back from
+  edge.setPointerCapture(e.pointerId);
+  dragging = true;
+  anim = null;                               // the finger takes the route over
+  startX = e.clientX;
+  samples.length = 0;
+  samples.push({ now: performance.now(), x: e.clientX });
+  beginRun();
+  ensureLoop();
+  e.preventDefault();
+});
+
+edge.addEventListener("pointermove", (e) => {
+  if (!dragging) return;
+  samples.push({ now: performance.now(), x: e.clientX });
+  if (samples.length > 24) samples.shift();
+  // Linear while the finger is down. Cupertino does the same, and it is the
+  // reason a swipe feels like it is carrying the page rather than arguing.
+  if (!reduced()) {
+    const sign = rtl() ? -1 : 1;
+    t = Math.max(0, Math.min(1, 1 - ((e.clientX - startX) * sign) / phone.clientWidth));
+  }
+});
+
+function releaseDrag() {
+  if (!dragging) return;
+  dragging = false;
+  const now = performance.now();
+  const sign = rtl() ? -1 : 1;
+  const pixels = velocityAt(now) * sign;     // positive when heading for the pop
+
+  if (reduced()) {
+    if (pixels > REDUCED_FLING_PX_PER_S) { t = 0; }
+    paint();
+    sFps.textContent = "—"; sWorst.textContent = "—";
+    return;
+  }
+
+  // Cupertino's rule, in Cupertino's units: screen widths per second, and
+  // position only when the release was not a fling.
+  const widths = pixels / phone.clientWidth;
+  const stayInChat = Math.abs(widths) >= MIN_FLING_W_PER_S ? widths <= 0 : t > 0.5;
+
+  if (stayInChat) {
+    animateTo(1, Math.min(Math.floor(MAX_DROPPED_FORWARD_MS * (1 - t)), MAX_PAGE_BACK_MS), FAST_LINEAR_SLOW, true);
+  } else {
+    animateTo(0, Math.floor(MAX_DROPPED_FORWARD_MS * t), FAST_LINEAR_SLOW, true);
+  }
+  ensureLoop();
+}
+edge.addEventListener("pointerup", releaseDrag);
+edge.addEventListener("pointercancel", releaseDrag);
+
+/* ------------------------------------------------------------------ toggles */
+segmented("data-theme-set", (v) => root.setAttribute("data-theme", v));
+segmented("data-motion-set", (v) => {
+  root.setAttribute("data-motion", v);
+  sDur.textContent = reduced() ? "0 ms" : "320 ms";
+  sFps.textContent = "—"; sWorst.textContent = "—";
+  paint();
+});
+segmented("data-dir-set", (v) => {
+  root.setAttribute("dir", v);
+  phone.setAttribute("dir", v);
+  paint();
+});
+
+/* -------------------------------------------------------------------------
+   Exposed for tools/brand-render.mjs, which asks for exact points in the
+   transition rather than screenshotting a running one — a screenshot of a
+   running animation catches one arbitrary frame and proves nothing.
+   ------------------------------------------------------------------------- */
+window.SakinaNav = {
+  /** Freeze the live specimen at a point. */
+  setProgress(v) {
+    anim = null; dragging = false;
+    t = Math.max(0, Math.min(1, v));
+    paint();
+  },
+  /** A detached copy of the phone frozen at `v`, for the filmstrip. */
+  frameAt(v) {
+    const clone = phone.cloneNode(true);
+    clone.querySelector(".edge").remove();
+    const sign = rtl() ? -1 : 1;
+    const chat = clone.querySelector(".page.chat");
+    chat.style.transform = `translate3d(${sign * (1 - v) * 100}%, 0, 0)`;
+    chat.style.opacity = v > 0 ? "1" : "0";
+    clone.querySelector(".page.list").style.transform =
+      `translate3d(${sign * v * -100 / 3}%, 0, 0)`;
+    return clone;
+  },
+};
+
+paint();
+</script>

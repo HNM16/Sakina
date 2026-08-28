@@ -232,6 +232,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
         return Scaffold(
           appBar: AppBar(
+            // The way back is a button in the corner as well as a gesture,
+            // because a gesture nobody has discovered yet is not a way back.
+            //
+            // Explicit rather than the AppBar's automatic one, which reads its
+            // tooltip from MaterialLocalizations — and Flutter ships no Tajik,
+            // so a Tajik phone would be told "Назад" (see the delegates in
+            // l10n.dart). This is the one string on the screen that our own
+            // table can fix.
+            leading: IconButton(
+              icon: const BackButtonIcon(),
+              tooltip: l10n.t('back'),
+              onPressed: () => Navigator.maybePop(context),
+            ),
             titleSpacing: 0,
             title: Row(
               children: [
@@ -297,7 +310,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   icon: const Icon(Icons.info_outline),
                   tooltip: l10n.t(chat.isChannel ? 'subscribers' : 'members'),
                   onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
+                    SakinaPageRoute<void>(
                       builder: (_) => ChatInfoScreen(
                         repository: widget.repository,
                         chatId: widget.chatId,

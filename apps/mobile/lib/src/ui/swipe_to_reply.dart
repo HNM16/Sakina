@@ -47,13 +47,35 @@ class _SwipeToReplyState extends State<SwipeToReply> with SingleTickerProviderSt
   double _offset = 0;
   bool _passed = false;
 
+  /// True when this drag began in the strip the back gesture owns.
+  ///
+  /// The two gestures are the same gesture — a horizontal drag on a bubble —
+  /// and in the leftmost 20px they both want it. Telegram resolves this the
+  /// same way: the edge belongs to navigation, and a reply started there is
+  /// not started at all. Leaving it to the arena would resolve it by tree
+  /// depth, which means this widget wins and the user swipes at the edge to
+  /// go back and gets a reply arrow instead.
+  bool _fromBackEdge = false;
+
   @override
   void dispose() {
     _settle.dispose();
     super.dispose();
   }
 
+  void _onStart(DragStartDetails details) {
+    final width = MediaQuery.of(context).size.width;
+    final x = details.globalPosition.dx;
+    // The back edge is the leading one, which is the right-hand side of the
+    // screen in an RTL layout.
+    _fromBackEdge = Directionality.of(context) == TextDirection.rtl
+        ? x >= width - SakinaPageTransitions.edgeWidth
+        : x <= SakinaPageTransitions.edgeWidth;
+  }
+
   void _onUpdate(DragUpdateDetails details) {
+    if (_fromBackEdge) return;
+
     // Direction-aware: in an RTL layout the reply gesture pulls the other way,
     // and hardcoding "drag right" would make it feel backwards.
     final sign = Directionality.of(context) == TextDirection.rtl ? -1.0 : 1.0;
@@ -79,6 +101,11 @@ class _SwipeToReplyState extends State<SwipeToReply> with SingleTickerProviderSt
   }
 
   void _onEnd(DragEndDetails details) {
+    if (_fromBackEdge) {
+      _fromBackEdge = false;
+      return;
+    }
+
     final fire = _passed;
     final from = _offset;
 
@@ -117,11 +144,13 @@ class _SwipeToReplyState extends State<SwipeToReply> with SingleTickerProviderSt
     return GestureDetector(
       // Horizontal only, and the vertical drag falls through to the list, so
       // scrolling a conversation never accidentally arms a reply.
+      onHorizontalDragStart: _onStart,
       onHorizontalDragUpdate: _onUpdate,
       onHorizontalDragEnd: _onEnd,
       onHorizontalDragCancel: () => setState(() {
         _offset = 0;
         _passed = false;
+        _fromBackEdge = false;
       }),
       behavior: HitTestBehavior.opaque,
       child: Stack(
