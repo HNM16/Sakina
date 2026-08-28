@@ -3,10 +3,10 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../l10n.dart';
-import '../layout.dart';
-import '../motion.dart';
-import '../theme.dart';
+import '../../../l10n.dart';
+import '../../../layout.dart';
+import '../../../motion.dart';
+import '../../../theme.dart';
 
 /// What a long press on a message offers.
 ///

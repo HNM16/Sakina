@@ -10,11 +10,13 @@ import 'src/l10n.dart';
 import 'src/local_store.dart';
 import 'src/media_service.dart';
 import 'src/push_service.dart';
+import 'src/motion.dart';
 import 'src/session.dart';
 import 'src/socket_client.dart';
 import 'src/theme.dart';
 import 'src/ui/auth_screen.dart';
-import 'src/ui/chat_list_screen.dart';
+import 'src/ui/sections/section.dart';
+import 'src/ui/shell.dart';
 
 /// Endpoints are compile-time so a release build cannot be pointed at a dev
 /// server by accident:
@@ -173,19 +175,34 @@ class _SakinaAppState extends State<SakinaApp> {
       // null hands resolution back to the phone, which falls through to the
       // first supported locale — Russian.
       locale: _locale,
-      home: repository == null
-          ? AuthScreen(
-              api: _api,
-              session: widget.session,
-              onSignedIn: _startSession,
-            )
-          : ChatListScreen(
-              repository: repository,
-              media: _media,
-              onSignOut: _signOut,
-              language: widget.session.language,
-              onLanguageChanged: _setLanguage,
-            ),
+      // Signing in is not a push and not a tab change: it replaces the whole
+      // world. So it gets its own motion, and the vocabulary already had the
+      // right one — see _SignedInTransition.
+      home: AnimatedSwitcher(
+        duration: SakinaMotion.duration(context, SakinaMotion.long),
+        switchInCurve: SakinaMotion.settle,
+        switchOutCurve: SakinaMotion.leave,
+        transitionBuilder: (child, animation) =>
+            FadeTransition(opacity: animation, child: child),
+        child: repository == null
+            ? AuthScreen(
+                key: const ValueKey('auth'),
+                api: _api,
+                session: widget.session,
+                onSignedIn: _startSession,
+              )
+            : SakinaShell(
+                key: const ValueKey('shell'),
+                scope: SectionScope(
+                  repository: repository,
+                  media: _media,
+                  selfName: widget.session.displayName,
+                  language: widget.session.language,
+                  onLanguageChanged: _setLanguage,
+                  onSignOut: _signOut,
+                ),
+              ),
+      ),
     );
   }
 }

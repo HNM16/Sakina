@@ -5,22 +5,22 @@ import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
-import '../api_client.dart';
-import '../chat_repository.dart';
-import '../l10n.dart';
-import '../layout.dart';
-import '../media_service.dart';
-import '../models.dart';
-import '../motion.dart';
-import '../theme.dart';
+import '../../../api_client.dart';
+import '../../../chat_repository.dart';
+import '../../../l10n.dart';
+import '../../../layout.dart';
+import '../../../media_service.dart';
+import '../../../models.dart';
+import '../../../motion.dart';
+import '../../../theme.dart';
 import 'chat_avatar.dart';
 import 'chat_info_screen.dart';
-import 'indicators.dart';
+import '../../indicators.dart';
 import 'media_bubble.dart';
 import 'message_actions.dart';
-import 'motion_primitives.dart';
-import 'sheets.dart';
-import 'skeletons.dart';
+import '../../motion_primitives.dart';
+import 'chat_sheets.dart';
+import '../../skeletons.dart';
 import 'swipe_to_reply.dart';
 
 class ChatScreen extends StatefulWidget {

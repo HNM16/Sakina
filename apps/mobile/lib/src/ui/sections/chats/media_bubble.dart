@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
-import '../l10n.dart';
-import '../layout.dart';
-import '../media_service.dart';
-import '../models.dart';
-import '../motion.dart';
-import '../theme.dart';
+import '../../../l10n.dart';
+import '../../../layout.dart';
+import '../../../media_service.dart';
+import '../../../models.dart';
+import '../../../motion.dart';
+import '../../../theme.dart';
 
 /// An attachment inside a message bubble.
 ///

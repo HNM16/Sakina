@@ -101,6 +101,49 @@ class L10n {
       'en': 'Enter the 6-digit code',
     },
     'chats': {'tg': 'Сӯҳбатҳо', 'ru': 'Чаты', 'en': 'Chats'},
+    // The four sections. Short by necessity — a bottom bar gives a label about
+    // eleven characters before it starts eliding, and Tajik is the longest of
+    // the three, so it is what the width is checked against.
+    'calls': {'ru': 'Звонки', 'tg': 'Зангҳо', 'en': 'Calls'},
+    'explore': {'ru': 'Обзор', 'tg': 'Кашф', 'en': 'Explore'},
+    'profile': {'ru': 'Профиль', 'tg': 'Профил', 'en': 'Profile'},
+    'calls_empty_title': {
+      'ru': 'Звонков пока нет',
+      'tg': 'Ҳанӯз зангҳо нестанд',
+      'en': 'No calls yet',
+    },
+    // Says what it is rather than pretending: calls are designed in
+    // docs/CALLS.md and not built. An invented call log would be a lie.
+    'calls_empty_body': {
+      'ru': 'Звонки появятся здесь, когда мы их включим.',
+      'tg': 'Зангҳо баъди фаъол шуданашон дар ин ҷо пайдо мешаванд.',
+      'en': 'Calls will appear here once they are switched on.',
+    },
+    'explore_empty_title': {
+      'ru': 'Обзор скоро откроется',
+      'tg': 'Кашф ба зудӣ кушода мешавад',
+      'en': 'Explore is on its way',
+    },
+    'explore_empty_body': {
+      'ru': 'Каналы, публикации и видео — в одном месте.',
+      'tg': 'Шабакаҳо, паёмҳо ва видео — дар як ҷо.',
+      'en': 'Channels, posts and video, in one place.',
+    },
+    'profile_unnamed': {
+      'ru': 'Без имени',
+      'tg': 'Бе ном',
+      'en': 'Unnamed',
+    },
+    'profile_copy_id': {
+      'ru': 'Скопировать ID',
+      'tg': 'Нусхаи ID',
+      'en': 'Copy ID',
+    },
+    'profile_id_copied': {
+      'ru': 'ID скопирован',
+      'tg': 'ID нусха шуд',
+      'en': 'ID copied',
+    },
     'back': {'ru': 'Назад', 'tg': 'Бозгашт', 'en': 'Back'},
     'no_chats': {
       'tg': 'Ҳанӯз сӯҳбате нест',

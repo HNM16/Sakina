@@ -16,6 +16,7 @@ import 'package:sakina/src/l10n.dart';
 import 'package:sakina/src/motion.dart';
 import 'package:sakina/src/theme.dart';
 import 'package:sakina/src/ui/indicators.dart';
+import 'package:sakina/src/ui/sections/sections.dart';
 
 /// The app's own chrome, so tests exercise the real theme rather than Material
 /// defaults. `home` is supplied per test.
@@ -156,6 +157,51 @@ void main() {
       expect(tester.getTopLeft(page).dx, 0);
       await tester.pump(const Duration(milliseconds: 160));
       expect(tester.getTopLeft(page).dx, 0);
+    });
+  });
+
+  group('Sections', () {
+    test('every section declares a distinct id and a label key', () {
+      final ids = sakinaSections.map((s) => s.id).toList();
+      expect(ids.toSet().length, ids.length,
+          reason: 'ids key the navigators and the page storage; a collision '
+              'would hand one section another\'s stack');
+      for (final section in sakinaSections) {
+        expect(section.id, isNotEmpty);
+        expect(section.labelKey, isNotEmpty);
+        expect(section.icon, isNot(section.selectedIcon),
+            reason: 'selection has to read without relying on the accent colour');
+      }
+    });
+
+    test('chats is first, because back falls through to it', () {
+      expect(sakinaSections.first.id, 'chats');
+    });
+
+    testWidgets('every section label is translated in all three languages',
+        (tester) async {
+      for (final code in ['ru', 'tg', 'en']) {
+        await tester.pumpWidget(host(
+          Builder(
+            builder: (context) => Scaffold(
+              body: Column(
+                children: [
+                  for (final section in sakinaSections)
+                    Text(L10n.of(context).t(section.labelKey)),
+                ],
+              ),
+            ),
+          ),
+          locale: Locale(code),
+        ));
+        await tester.pumpAndSettle();
+        for (final section in sakinaSections) {
+          // t() returns the key itself on a miss, so a missing translation
+          // shows up as a tab labelled `explore`.
+          expect(find.text(section.labelKey), findsNothing,
+              reason: '${section.id} is untranslated in $code');
+        }
+      }
     });
   });
 }

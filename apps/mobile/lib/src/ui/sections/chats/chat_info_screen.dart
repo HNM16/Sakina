@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../api_client.dart';
-import '../chat_repository.dart';
-import '../l10n.dart';
-import '../layout.dart';
-import '../models.dart';
-import '../theme.dart';
+import '../../../api_client.dart';
+import '../../../chat_repository.dart';
+import '../../../l10n.dart';
+import '../../../layout.dart';
+import '../../../models.dart';
+import '../../../theme.dart';
 
 /// Who is in this chat, and what you are allowed to do about it.
 ///

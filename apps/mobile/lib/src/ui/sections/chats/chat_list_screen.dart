@@ -1,37 +1,29 @@
 import 'package:flutter/material.dart';
 
-import '../chat_repository.dart';
-import '../l10n.dart';
-import '../layout.dart';
-import '../media_service.dart';
-import '../models.dart';
-import '../motion.dart';
-import '../socket_client.dart';
-import '../theme.dart';
+import '../../../chat_repository.dart';
+import '../../../l10n.dart';
+import '../../../layout.dart';
+import '../../../media_service.dart';
+import '../../../models.dart';
+import '../../../motion.dart';
+import '../../../socket_client.dart';
+import '../../../theme.dart';
 import 'chat_avatar.dart';
 import 'chat_screen.dart';
-import 'chorkhona_refresh.dart';
-import 'indicators.dart';
-import 'sheets.dart';
-import 'skeletons.dart';
+import '../../chorkhona_refresh.dart';
+import '../../indicators.dart';
+import 'chat_sheets.dart';
+import '../../skeletons.dart';
 
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({
     super.key,
     required this.repository,
     required this.media,
-    required this.onSignOut,
-    required this.language,
-    required this.onLanguageChanged,
   });
 
   final ChatRepository repository;
   final MediaService media;
-  final VoidCallback onSignOut;
-
-  /// The language the user picked, or null to follow the phone.
-  final String? language;
-  final Future<void> Function(String? code) onLanguageChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -71,22 +63,9 @@ class ChatListScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.language),
-                tooltip: l10n.t('language'),
-                onPressed: () => showLanguageSheet(
-                  context,
-                  current: language,
-                  onChanged: onLanguageChanged,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout),
-                tooltip: l10n.t('sign_out'),
-                onPressed: onSignOut,
-              ),
-            ],
+            // No actions: the language picker and sign-out moved to Profile
+            // when the app grew a bottom bar. Settings in the chat list's app
+            // bar is what an app does when it has nowhere else to put them.
           ),
           body: repository.loading
               // Not the empty state: an empty screen while SQLite opens reads

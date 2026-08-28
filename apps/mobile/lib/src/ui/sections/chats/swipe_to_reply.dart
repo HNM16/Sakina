@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../motion.dart';
-import '../theme.dart';
+import '../../../motion.dart';
+import '../../../theme.dart';
 
 /// Drag a bubble sideways to reply to it.
 ///

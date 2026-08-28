@@ -84,6 +84,24 @@ abstract final class SakinaMotion {
   /// How much of a step is spent turning rather than held.
   static const double charkhTurnFraction = 110 / 230;
 
+  // Section changes. A tab is a *sibling*, not somewhere deeper, so it must
+  // not travel sideways — horizontal travel already means "in" and "back", and
+  // one motion cannot mean two things. This is Material's fade-through: the
+  // outgoing section leaves quickly, the incoming one arrives from slightly
+  // small. The two do not overlap, which is what stops the crossfade mush of
+  // two screens visible at once.
+
+  /// A section leaving under a tab change.
+  static const sectionOut = Duration(milliseconds: 110);
+
+  /// A section arriving. Longer than it leaves: arrivals are read, departures
+  /// are not.
+  static const sectionIn = Duration(milliseconds: 190);
+
+  /// How small an arriving section starts. Small enough to read as arriving,
+  /// far short of a zoom — brand rule 3, motion settles rather than performs.
+  static const double sectionScaleFrom = 0.94;
+
   /// How long a staggered list takes in total, however many rows it has.
   ///
   /// Bounded on purpose: a per-row delay makes a twelve-row list elegant and a
