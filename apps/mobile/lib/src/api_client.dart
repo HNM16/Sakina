@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'models.dart';
@@ -37,6 +39,32 @@ class ApiClient {
 
   set accessToken(String? token) => _accessToken = token;
 
+  /// The long-lived half of the pair. Needed here rather than only in
+  /// [Session] because rotating is this client's job — every call site would
+  /// otherwise have to know how to recover from a 401, and they would each get
+  /// it slightly wrong.
+  String? refreshToken;
+
+  /// Called with the rotated pair so it can be written to disk.
+  ///
+  /// Not optional in practice: the server **rotates** the refresh token on
+  /// every use, so a pair that is not persisted works exactly once and then
+  /// locks the account out until the next sign-in.
+  Future<void> Function(AuthTokens tokens)? onTokensRotated;
+
+  /// Called when the refresh token itself is refused. That is a real end of
+  /// session — the only honest response is to sign out.
+  Future<void> Function()? onSessionExpired;
+
+  /// The rotation in flight, if any.
+  ///
+  /// Single-flight on purpose. Opening the app fires several authenticated
+  /// requests at once; without this each 401 would start its own refresh, and
+  /// because the server rotates on every use, the second one would invalidate
+  /// the token the first had just been granted. The bug that produces — signed
+  /// out at random, only when the network is busy — is close to unfindable.
+  Future<bool>? _rotating;
+
   Future<Map<String, dynamic>> _send(
     String method,
     String path, {
@@ -52,7 +80,19 @@ class ApiClient {
     if (body != null) request.body = jsonEncode(body);
 
     final streamed = await _client.send(request);
-    final response = await http.Response.fromStream(streamed);
+    var response = await http.Response.fromStream(streamed);
+
+    // A 401 on an authenticated call means the access token aged out — they
+    // last fifteen minutes — not that the user is signed out. Rotate and try
+    // the request once more. Unauthenticated calls, refresh included, fall
+    // straight through, which is what keeps this from recursing.
+    if (response.statusCode == 401 && authenticated && await _rotateTokens()) {
+      final retry = http.Request(method, Uri.parse('$baseUrl$path'))
+        ..headers['content-type'] = 'application/json'
+        ..headers['authorization'] = 'Bearer $_accessToken';
+      if (body != null) retry.body = jsonEncode(body);
+      response = await http.Response.fromStream(await _client.send(retry));
+    }
 
     if (response.statusCode == 204) return const {};
 
@@ -69,6 +109,45 @@ class ApiClient {
     }
 
     return decoded;
+  }
+
+  /// Rotates on demand, for a caller that saw the rejection somewhere this
+  /// client cannot — the websocket gateway refuses a stale token with an error
+  /// frame, not an HTTP status.
+  Future<bool> rotateTokensNow() => _rotateTokens();
+
+  /// Rotates the token pair, at most one rotation at a time.
+  ///
+  /// Returns whether the caller now holds a usable access token.
+  Future<bool> _rotateTokens() {
+    final existing = _rotating;
+    if (existing != null) return existing;
+
+    final started = _performRotation();
+    _rotating = started;
+    unawaited(started.whenComplete(() => _rotating = null));
+    return started;
+  }
+
+  Future<bool> _performRotation() async {
+    final token = refreshToken;
+    if (token == null) {
+      await onSessionExpired?.call();
+      return false;
+    }
+    try {
+      final rotated = await refresh(token);
+      _accessToken = rotated.accessToken;
+      refreshToken = rotated.refreshToken;
+      await onTokensRotated?.call(rotated);
+      return true;
+    } catch (err) {
+      // The refresh token is dead, revoked or already spent. Nothing left to
+      // try, and retrying is how a broken session becomes a request loop.
+      debugPrint('token refresh failed, ending session: $err');
+      await onSessionExpired?.call();
+      return false;
+    }
   }
 
   /// Returns the dev code when the API runs a stub provider, so the app is

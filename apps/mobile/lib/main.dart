@@ -87,13 +87,56 @@ class _SakinaAppState extends State<SakinaApp> {
     final saved = widget.session.language;
     if (saved != null) _locale = Locale(saved);
     if (widget.session.isAuthenticated) {
-      _api.accessToken = widget.session.accessToken;
       _startSession();
     }
   }
 
+  /// Teaches the API client how to keep itself signed in.
+  ///
+  /// Access tokens last fifteen minutes. Before this existed, minute sixteen
+  /// turned every request into a 401 and the socket into a reconnect loop
+  /// against a token the gateway had already refused — and the only way out
+  /// was for the user to sign out and back in. `ApiClient.refresh` and
+  /// `Session.updateTokens` were both already written; nothing called either.
+  void _armTokenRotation() {
+    _api.accessToken = widget.session.accessToken;
+    _api.refreshToken = widget.session.refreshToken;
+
+    // The server rotates the refresh token on every use, so persisting the new
+    // pair is not bookkeeping — a pair that is not saved works exactly once.
+    _api.onTokensRotated = (tokens) async {
+      await widget.session.updateTokens(
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      );
+      // The socket authenticates once, at hello, so it is holding the old
+      // token until it is told otherwise.
+      await _socket?.updateToken(tokens.accessToken);
+    };
+
+    _api.onSessionExpired = () async {
+      if (!mounted) return;
+      await _signOut();
+    };
+  }
+
   Future<void> _startSession() async {
+    // Here rather than in initState, because there are two ways to reach a
+    // signed-in app and only one of them goes through initState. Arming this
+    // on the resume path alone left every *fresh* sign-in with no refresh
+    // token on the client, so the first expiry after signing in threw an
+    // unauthorized exception instead of rotating — which is exactly what
+    // running it showed.
+    _armTokenRotation();
+
     final socket = SocketClient(wsUrl: wsUrl);
+
+    // When the gateway refuses the token, ask the API client to rotate. A
+    // successful rotation calls onTokensRotated above, which hands the socket
+    // its new token and reconnects it; a failed one signs out.
+    socket.onUnauthorized = () async {
+      await _api.rotateTokensNow();
+    };
     final repository = ChatRepository(
       api: _api,
       store: widget.store,

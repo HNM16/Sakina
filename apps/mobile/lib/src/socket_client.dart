@@ -28,6 +28,18 @@ class SocketClient {
   int _attempt = 0;
   bool _closedByUser = false;
 
+  /// True once the gateway has refused our token and before a new one arrives.
+  ///
+  /// Reconnecting is suspended while it is set. The backoff would otherwise
+  /// keep presenting the same rejected token every few seconds forever — a
+  /// slower way to fail, and one that burns the radio on a metered connection
+  /// doing it.
+  bool _awaitingToken = false;
+
+  /// Called when the gateway rejects the token, so the owner can rotate it and
+  /// hand a new one back through [updateToken].
+  Future<void> Function()? onUnauthorized;
+
   final _frames = StreamController<Map<String, dynamic>>.broadcast();
   final _state = StreamController<SocketStatus>.broadcast();
 
@@ -50,6 +62,20 @@ class SocketClient {
     _token = token;
     _deviceId = deviceId;
     _closedByUser = false;
+    _awaitingToken = false;
+    await _open();
+  }
+
+  /// Hands the socket a freshly rotated token and resumes.
+  ///
+  /// The backoff is reset with it: the previous failures were about the token,
+  /// not about the network, so making the user wait out a 30-second backoff
+  /// for a problem that is already fixed would be punishing them for it.
+  Future<void> updateToken(String token) async {
+    _token = token;
+    _awaitingToken = false;
+    _attempt = 0;
+    if (_closedByUser) return;
     await _open();
   }
 
@@ -83,6 +109,16 @@ class SocketClient {
   void _onData(dynamic raw) {
     final frame = jsonDecode(raw as String) as Map<String, dynamic>;
 
+    // The gateway refuses a stale token with an error frame rather than by
+    // closing, so this is the only place it can be seen.
+    if (frame['t'] == 'error' &&
+        (frame['d'] as Map?)?['code'] == 'unauthorized' &&
+        !_awaitingToken) {
+      _awaitingToken = true;
+      _reconnectTimer?.cancel();
+      unawaited(onUnauthorized?.call());
+    }
+
     if (frame['t'] == 'ready') {
       _attempt = 0;
       _setState(SocketStatus.connected);
@@ -106,6 +142,8 @@ class SocketClient {
   }
 
   void _scheduleReconnect() {
+    // Nothing to gain from presenting a token the server has already refused.
+    if (_awaitingToken) return;
     _reconnectTimer?.cancel();
 
     // 1s, 2s, 4s … capped at 30s, each with up to 30% jitter so a cell tower
