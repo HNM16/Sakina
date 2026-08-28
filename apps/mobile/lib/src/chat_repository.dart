@@ -63,7 +63,31 @@ class ChatRepository extends ChangeNotifier {
   /// chats nobody is looking at.
   String? _activeChatId;
 
-  /// Called when a chat screen opens. Loads its history if it is not in memory.
+  /// Chats whose server history has been asked for at least once this run.
+  ///
+  /// Reopening a chat should not re-fetch what is already in memory; the socket
+  /// keeps it current after the first load.
+  final Set<String> _historyFetched = {};
+
+  /// Chats with a history request in flight. Guards against a rebuild, a
+  /// reopen and a scroll all starting the same request.
+  final Set<String> _historyLoading = {};
+
+  /// False once the server has said there is nothing older. Absent means "we
+  /// have not asked yet", which is optimistic on purpose — the alternative is
+  /// hiding the scroll-back affordance from someone who does have history.
+  final Map<String, bool> _hasMoreHistory = {};
+
+  bool historyLoading(String chatId) => _historyLoading.contains(chatId);
+  bool hasMoreHistory(String chatId) => _hasMoreHistory[chatId] ?? true;
+
+  /// Called when a chat screen opens.
+  ///
+  /// Local first, network second, and the order is the whole design: the
+  /// cached conversation paints on the first frame with the radio off, and the
+  /// server's copy merges in behind it. A messenger that shows a spinner where
+  /// the conversation was is a messenger that feels broken on a bad connection,
+  /// which in this market is most connections.
   Future<void> openChat(String chatId) async {
     _activeChatId = chatId;
     if (!_messages.containsKey(chatId)) {
@@ -71,6 +95,98 @@ class ChatRepository extends ChangeNotifier {
       if (_disposed) return;
       notifyListeners();
     }
+
+    // The socket only ever carries what happened while this device was
+    // listening. Everything said before it first connected — which on a new
+    // install is the entire conversation — only exists on the server until
+    // somebody asks for it. Nothing used to.
+    if (_historyFetched.add(chatId)) {
+      await _fetchHistory(chatId);
+    }
+  }
+
+  /// Scroll-back: the page before the oldest message currently loaded.
+  ///
+  /// Safe to call on every scroll frame — it returns immediately when a
+  /// request is already running or the server has said there is no more.
+  Future<void> loadOlderMessages(String chatId) async {
+    if (!hasMoreHistory(chatId) || _historyLoading.contains(chatId)) return;
+
+    // Only acked messages have a seq, and only a seq can anchor a page. A chat
+    // holding nothing but unsent drafts has no server history to page into.
+    int? oldest;
+    for (final message in _messages[chatId] ?? const <Message>[]) {
+      final seq = message.seq;
+      if (seq != null && (oldest == null || seq < oldest)) oldest = seq;
+    }
+    if (oldest == null) return;
+
+    await _fetchHistory(chatId, beforeSeq: oldest);
+  }
+
+  Future<void> _fetchHistory(String chatId, {int? beforeSeq}) async {
+    if (_historyLoading.contains(chatId)) return;
+    _historyLoading.add(chatId);
+    _scheduleNotify();
+
+    try {
+      final page = await api.history(chatId, beforeSeq: beforeSeq);
+      if (_disposed) return;
+
+      _hasMoreHistory[chatId] = page.hasMore;
+      if (page.messages.isNotEmpty) {
+        // Written to disk before it is shown, so the next cold start has it
+        // even if the app dies in the meantime.
+        await store.putMessages(page.messages);
+        if (_disposed) return;
+        _mergeHistory(chatId, page.messages);
+      }
+    } catch (err) {
+      // Offline, or the server refused. The cached conversation stays on
+      // screen and stays correct: a chat that empties itself because the radio
+      // is off is a worse answer than a slightly stale one.
+      debugPrint('history fetch failed for $chatId: $err');
+    } finally {
+      _historyLoading.remove(chatId);
+      if (!_disposed) _scheduleNotify();
+    }
+  }
+
+  /// Folds a page of server history into what is already in memory.
+  ///
+  /// Deduplicated on clientId, the same key [_applyMessage] uses, because that
+  /// is the id that survives a retry. Where both sides have a message the
+  /// server's copy wins: it carries the id and seq that the local one is still
+  /// waiting for.
+  void _mergeHistory(String chatId, List<Message> incoming) {
+    final list = _messages[chatId] ??= <Message>[];
+    final indexOf = <String, int>{
+      for (var i = 0; i < list.length; i++) list[i].clientId: i,
+    };
+
+    var added = false;
+    for (final message in incoming) {
+      final at = indexOf[message.clientId];
+      if (at == null) {
+        list.add(message);
+        added = true;
+      } else {
+        list[at] = message;
+      }
+    }
+
+    // A page arrives in one lump rather than one message at a time, so a sort
+    // is cheaper and simpler than [_applyMessage]'s insertion scan — and the
+    // comparator is the same rule: seq order, unsent last, ties by clock.
+    if (added) {
+      list.sort((a, b) {
+        final bySeq = (a.seq ?? _pendingSortKey).compareTo(b.seq ?? _pendingSortKey);
+        return bySeq != 0 ? bySeq : a.createdAt.compareTo(b.createdAt);
+      });
+    }
+
+    _chatListDirty = true;
+    _scheduleNotify();
   }
 
   void closeChat(String chatId) {

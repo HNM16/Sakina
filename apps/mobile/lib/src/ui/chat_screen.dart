@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
@@ -59,19 +60,119 @@ class _ChatScreenState extends State<ChatScreen> {
   /// person is talking, which is motion nobody asked for.
   String? _justSent;
 
+  /// How many messages were on screen at the last build, so an arrival can be
+  /// told apart from a rebuild.
+  int _lastCount = 0;
+
+  /// True while a scroll-back page is being folded in. Growth from the *top*
+  /// must not be mistaken for a new message arriving at the bottom.
+  bool _loadingOlder = false;
+
+  /// Whether the newest message should stay in view.
+  ///
+  /// True until the reader scrolls away from the bottom themselves, and true
+  /// again when they come back. Deliberately *not* derived from the current
+  /// offset on every frame: the socket's catch-up inserts older messages
+  /// **above** the viewport, which moves the bottom away without the reader
+  /// touching anything. Reading that as "they have scrolled up" is what left a
+  /// 64-message chat opening at message 11.
+  bool _pinnedToEnd = true;
+
   @override
   void initState() {
     super.initState();
     // Tells the repository which chat is on screen, so it only keeps this
     // chat's history in memory and loads it if this is the first open.
     unawaited(widget.repository.openChat(widget.chatId));
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) => _markRead());
+  }
+
+  /// Near the top means the reader is asking for older messages.
+  ///
+  /// Cheap to call on every scroll frame: the repository returns immediately
+  /// when a page is already in flight or the server has said there is no more.
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+
+    // Only a drag the reader made re-decides this. Programmatic jumps and
+    // content arriving above them do not.
+    if (position.userScrollDirection != ScrollDirection.idle) {
+      _pinnedToEnd = position.maxScrollExtent - position.pixels < 160;
+    }
+
+    if (position.pixels <= 160) unawaited(_loadOlder());
+  }
+
+  Future<void> _loadOlder() async {
+    final repository = widget.repository;
+    if (_loadingOlder ||
+        repository.historyLoading(widget.chatId) ||
+        !repository.hasMoreHistory(widget.chatId) ||
+        !_scrollController.hasClients) {
+      return;
+    }
+
+    _loadingOlder = true;
+    final extentBefore = _scrollController.position.maxScrollExtent;
+    final offsetBefore = _scrollController.position.pixels;
+
+    try {
+      await repository.loadOlderMessages(widget.chatId);
+    } finally {
+      _keepPlaceAfterOlderPage(extentBefore, offsetBefore);
+    }
+  }
+
+  /// Puts the reader back where they were after a page lands above them.
+  ///
+  /// Separate from [_loadOlder] only so that method's `finally` contains a
+  /// call and not a `return` — control flow in a finally clause swallows
+  /// whatever the try was throwing.
+  void _keepPlaceAfterOlderPage(double extentBefore, double offsetBefore) {
+    if (!mounted) {
+      _loadingOlder = false;
+      return;
+    }
+    // The conversation grew *above* them, so holding the same pixel offset
+    // would throw them backwards through the history they just asked for.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _scrollController.hasClients) {
+        final grew = _scrollController.position.maxScrollExtent - extentBefore;
+        if (grew > 0) _scrollController.jumpTo(offsetBefore + grew);
+      }
+      _loadingOlder = false;
+    });
+  }
+
+  /// Keeps the newest message in view.
+  ///
+  /// A chat opens at the bottom, because the last thing said is the thing you
+  /// came to read — and history arrives after the first paint, so this has to
+  /// run when the list grows rather than once on init. It only follows a
+  /// reader who was already at the bottom: yanking someone back down while
+  /// they are reading upwards is the single rudest thing a message list can
+  /// do.
+  void _stickToEnd(int count) {
+    if (count <= _lastCount) {
+      _lastCount = count;
+      return;
+    }
+    _lastCount = count;
+    if (_loadingOlder || !_pinnedToEnd) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
   }
 
   @override
   void dispose() {
     widget.repository.closeChat(widget.chatId);
     _controller.dispose();
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
@@ -226,6 +327,15 @@ class _ChatScreenState extends State<ChatScreen> {
         final chat = matching.isEmpty ? null : matching.first;
         final messages = widget.repository.messagesFor(widget.chatId);
         final typing = widget.repository.isTyping(widget.chatId);
+        // Scheduled from build rather than a callback because the list grows
+        // for three different reasons — cache read, history page, socket
+        // frame — and this is the one place all three are visible.
+        _stickToEnd(messages.length);
+        // Only while paging backwards. On the very first load the cached
+        // conversation is already on screen, and a spinner above it would say
+        // "nothing here yet" about content the reader can see.
+        final loadingOlder =
+            widget.repository.historyLoading(widget.chatId) && messages.isNotEmpty;
         // Only built when something in this chat actually quotes something.
         final bySeq = messages.any((m) => m.replyToSeq != null)
             ? _indexBySeq(messages)
@@ -329,13 +439,17 @@ class _ChatScreenState extends State<ChatScreen> {
                     : ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: messages.length,
+                  itemCount: messages.length + (loadingOlder ? 1 : 0),
                   // Keeping offscreen bubbles alive costs memory on a device
                   // that has little of it, and buys nothing — they are cheap to
                   // rebuild from a list already in memory.
                   addAutomaticKeepAlives: false,
                   addRepaintBoundaries: true,
-                  itemBuilder: (context, index) {
+                  itemBuilder: (context, rawIndex) {
+                    if (loadingOlder && rawIndex == 0) {
+                      return const _OlderHistoryLoading();
+                    }
+                    final index = loadingOlder ? rawIndex - 1 : rawIndex;
                     final message = messages[index];
                     final isMine = message.senderId == selfId;
                     final replyTo = message.replyToSeq;
@@ -526,6 +640,33 @@ class _ChatScreenState extends State<ChatScreen> {
 /// Hoisted: `DateFormat` parses its pattern on construction, and building one
 /// per bubble per rebuild was measurable work for a string that never changes.
 final _timeFormat = DateFormat.Hm();
+
+/// The strip at the top of the list while an older page is being fetched.
+///
+/// НАФАС, not a spinner: the vocabulary in docs/MOTION.md says the object in
+/// doubt expresses its own state, and what is in doubt here is whether there is
+/// more conversation above this line.
+class _OlderHistoryLoading extends StatelessWidget {
+  const _OlderHistoryLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = SakinaLayout.of(context);
+    final palette = SakinaPalette.of(context);
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: layout.gap),
+      child: Center(
+        child: Breathing(
+          waiting: true,
+          child: Text(
+            L10n.of(context).t('loading'),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: palette.muted),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// Runs the A2 entrance for exactly one bubble.
 ///
