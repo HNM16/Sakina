@@ -143,12 +143,20 @@ class UnreadBadge extends StatelessWidget {
               constraints: const BoxConstraints(minWidth: 20),
               height: 20,
               padding: const EdgeInsets.symmetric(horizontal: 6),
-              alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: scheme.primary,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Text(
+              // `widthFactor: 1` is load-bearing. Container's own `alignment`
+              // was here instead, and Container with an alignment expands to
+              // whatever it is offered — which in a ListTile's trailing slot is
+              // the entire width of the row, so every badge rendered as a
+              // firuza bar across the chat name. Centering with a width factor
+              // sizes the badge to its own digits, which is what minWidth: 20
+              // was always assuming.
+              child: Center(
+                widthFactor: 1,
+                child: Text(
                 shown > 999 ? '999+' : '$shown',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: scheme.onPrimary,
@@ -157,6 +165,7 @@ class UnreadBadge extends StatelessWidget {
                       // mid-count and nudge the row it sits in.
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
+                ),
               ),
             ),
           ),

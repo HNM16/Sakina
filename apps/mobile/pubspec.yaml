@@ -42,6 +42,10 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
+  # Desktop-only, and a dev dependency so it never reaches a phone: sqflite is
+  # an Android/iOS plugin, and tool/desktop_harness.dart needs the same API
+  # backed by the machine's own sqlite3 to run the app on a desktop.
+  sqflite_common_ffi: ^2.3.4
 
 flutter:
   uses-material-design: true
