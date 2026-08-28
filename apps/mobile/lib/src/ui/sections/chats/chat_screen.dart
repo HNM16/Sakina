@@ -1,3 +1,6 @@
+// MOTION: ENTRANCE — the one bubble the user just sent lifts out of the
+// composer. Exactly one, never every arriving message.
+// MOTION: НАФАС — the strip that breathes while an older page loads.
 import 'dart:async';
 
 import 'package:flutter/material.dart';

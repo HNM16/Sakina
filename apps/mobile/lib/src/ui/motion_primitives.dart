@@ -1,3 +1,9 @@
+// MOTION: ТОБ — the light pass, once, when something becomes true.
+// MOTION: НАФАС — the breath, while something is in doubt.
+// MOTION: ЧАРХ — the turn, while something is working.
+//
+// The three primitives themselves. docs/MOTION.md is the argument for why
+// these and not others; this file is what they are.
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 

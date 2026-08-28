@@ -1,3 +1,4 @@
+// MOTION: НАФАС — a skeleton breathes while content is being read.
 import 'package:flutter/material.dart';
 
 import '../layout.dart';

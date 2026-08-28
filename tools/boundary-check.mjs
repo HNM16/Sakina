@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Do the sections stay out of each other's way?
+ * Does every part of the app stay out of every other part's way?
  *
- *   node tools/section-check.mjs
+ *   node tools/boundary-check.mjs
  *
  * The app is four sections — Chats, Calls, Explore, Profile — and the point of
  * splitting them was that each one can grow, be redesigned, or be rewritten
@@ -14,10 +14,21 @@
  *
  * So it is checked.
  *
- * ## The rule
+ * The deeper reason, which is worth writing down because it is not the usual
+ * one: this codebase is edited by people and by models, and a model that has
+ * misread a prompt does not fail loudly — it produces plausible code in the
+ * wrong place. A boundary that is only a convention gives it nothing to hit. A
+ * boundary that is checked turns "quietly broke something that worked" into a
+ * failed build with a filename in it.
+ *
+ * ## The rules
  *
  *   ui/sections/<name>/   is owned by that section. Nothing else may import it,
  *                         and it may not import a sibling.
+ *   ui/auth/              is the way in. Only main.dart may import it, and it
+ *                         may not import a section — signing in must not be
+ *                         able to break Chats, and Chats must not be able to
+ *                         break signing in.
  *   ui/*.dart             is shared vocabulary — motion primitives, skeletons,
  *                         indicators, the empty state, the mark. Any section
  *                         may use it. It may not reach into a section.
@@ -61,7 +72,7 @@ function sectionOf(file) {
   return parts.length > 1 ? parts[0] : null; // section.dart / sections.dart are shared
 }
 
-console.log("\nSakina sections\n");
+console.log("\nSakina boundaries\n");
 
 const sections = readdirSync(sectionsDir).filter((entry) =>
   statSync(join(sectionsDir, entry)).isDirectory(),
@@ -109,6 +120,40 @@ check(
   reachIns.length
     ? `${reachIns.join("; ")} — go through sections.dart instead`
     : "only the registry and the contract are public",
+);
+
+// --- auth ----------------------------------------------------------------
+// The sign-in flow is the one path every user takes before anything else
+// exists. It is kept sealed in both directions.
+const authDir = join(lib, "src/ui/auth");
+const authOutward = [];
+const authInward = [];
+
+for (const file of dartFiles(lib)) {
+  const from = relative(lib, file);
+  const inAuth = from.startsWith("src/ui/auth/");
+  const source = readFileSync(file, "utf8");
+
+  for (const [, target] of source.matchAll(/^import\s+'([^']+)'/gm)) {
+    if (target.startsWith("package:") || target.startsWith("dart:")) continue;
+    const to = relative(lib, resolve(dirname(file), target));
+
+    if (inAuth && to.startsWith("src/ui/sections/")) authOutward.push(`${from} -> ${to}`);
+    if (!inAuth && to.startsWith("src/ui/auth/") && from !== "main.dart") {
+      authInward.push(`${from} -> ${to}`);
+    }
+  }
+}
+
+check(
+  "the sign-in flow does not reach into a section",
+  authOutward.length === 0,
+  authOutward.length ? authOutward.join("; ") : "sealed outward",
+);
+check(
+  "nothing but main.dart reaches into the sign-in flow",
+  authInward.length === 0,
+  authInward.length ? authInward.join("; ") : "sealed inward",
 );
 
 // A section that is not in the registry is a section nobody can reach.

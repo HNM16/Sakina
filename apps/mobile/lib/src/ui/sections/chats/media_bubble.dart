@@ -170,7 +170,7 @@ class _MediaAttachmentState extends State<MediaAttachment> {
         if (kind == 'video') {
           return frame(
             Container(
-              color: Colors.black,
+              color: palette.mediaGround,
               alignment: Alignment.center,
               child: Icon(Icons.play_circle_outline, size: 48, color: palette.bubbleTheirs),
             ),
@@ -317,11 +317,13 @@ class _MediaViewerState extends State<_MediaViewer> {
   Widget build(BuildContext context) {
     final controller = _controller;
 
+    final palette = SakinaPalette.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: palette.mediaGround,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
+        foregroundColor: palette.mediaChrome,
         elevation: 0,
       ),
       extendBodyBehindAppBar: true,

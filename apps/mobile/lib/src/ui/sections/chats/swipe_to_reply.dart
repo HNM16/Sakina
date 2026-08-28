@@ -1,3 +1,4 @@
+// MOTION: GESTURE — the bubble follows the finger and settles when let go.
 import 'package:flutter/material.dart';
 
 import '../../../motion.dart';

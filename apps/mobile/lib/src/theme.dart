@@ -20,6 +20,11 @@ import 'motion.dart';
 ///  - **Tajik decides the sizing.** Tajik strings run roughly a third longer
 ///    than their English equivalents, so nothing is measured against English.
 abstract final class SakinaColors {
+  // The full-screen media viewer. The same in both themes on purpose: a photo
+  // sits on nothing, and "nothing" does not have a day and a night version.
+  static const mediaGround = Color(0xFF000000);
+  static const mediaChrome = Color(0xFFFFFFFF);
+
   // Шаб — night. The ground, and the reason the system is dark-first: the sky
   // over the Pamirs, and the cheapest thing a screen can display.
   static const nightGround = Color(0xFF0A1220);
@@ -75,6 +80,8 @@ class SakinaPalette extends ThemeExtension<SakinaPalette> {
     required this.saffron,
     required this.anor,
     required this.line,
+    required this.mediaGround,
+    required this.mediaChrome,
   });
 
   final Color bubbleMine;
@@ -84,6 +91,19 @@ class SakinaPalette extends ThemeExtension<SakinaPalette> {
   final Color anor;
   final Color line;
 
+  /// Behind a photo or a video, full screen.
+  ///
+  /// Black in both themes, and named here rather than typed into the viewer,
+  /// because "the ground the content sits on" is a design decision even when
+  /// the answer is the obvious one. It is deliberately *not* the app's own
+  /// background: docs/BRAND.md's quiet-chrome rule stops being a metaphor on
+  /// this screen, and a photo has to sit on nothing at all.
+  final Color mediaGround;
+
+  /// The close button and the bar over [mediaGround]. White in both themes for
+  /// the same reason — it is contrast against the ground, not brand colour.
+  final Color mediaChrome;
+
   static const night = SakinaPalette(
     bubbleMine: SakinaColors.bubbleMineNight,
     bubbleTheirs: SakinaColors.bubbleTheirsNight,
@@ -91,6 +111,8 @@ class SakinaPalette extends ThemeExtension<SakinaPalette> {
     saffron: SakinaColors.saffronNight,
     anor: SakinaColors.anorNight,
     line: SakinaColors.nightLine,
+    mediaGround: SakinaColors.mediaGround,
+    mediaChrome: SakinaColors.mediaChrome,
   );
 
   static const day = SakinaPalette(
@@ -100,6 +122,8 @@ class SakinaPalette extends ThemeExtension<SakinaPalette> {
     saffron: SakinaColors.saffronDay,
     anor: SakinaColors.anorDay,
     line: SakinaColors.dayLine,
+    mediaGround: SakinaColors.mediaGround,
+    mediaChrome: SakinaColors.mediaChrome,
   );
 
   static SakinaPalette of(BuildContext context) =>
@@ -113,6 +137,8 @@ class SakinaPalette extends ThemeExtension<SakinaPalette> {
     Color? saffron,
     Color? anor,
     Color? line,
+    Color? mediaGround,
+    Color? mediaChrome,
   }) {
     return SakinaPalette(
       bubbleMine: bubbleMine ?? this.bubbleMine,
@@ -121,6 +147,8 @@ class SakinaPalette extends ThemeExtension<SakinaPalette> {
       saffron: saffron ?? this.saffron,
       anor: anor ?? this.anor,
       line: line ?? this.line,
+      mediaGround: mediaGround ?? this.mediaGround,
+      mediaChrome: mediaChrome ?? this.mediaChrome,
     );
   }
 
@@ -134,6 +162,8 @@ class SakinaPalette extends ThemeExtension<SakinaPalette> {
       saffron: Color.lerp(saffron, other.saffron, t)!,
       anor: Color.lerp(anor, other.anor, t)!,
       line: Color.lerp(line, other.line, t)!,
+      mediaGround: Color.lerp(mediaGround, other.mediaGround, t)!,
+      mediaChrome: Color.lerp(mediaChrome, other.mediaChrome, t)!,
     );
   }
 }

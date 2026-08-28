@@ -29,6 +29,26 @@ Two things that look like tells and are not:
 - **`tools/dev-client/` is an internal test harness**, not a product surface.
   G10 bucket: convention. Fix integrity findings there, leave the rest.
 
+## Boundaries are enforced, not suggested
+
+Read `docs/BOUNDARIES.md` before moving code between directories, adding a
+colour, or adding an animation. The short version:
+
+- **Sections do not know about each other.** `ui/sections/<name>/` is owned by
+  that section; `ui/auth/` is sealed both ways; `ui/*.dart` is shared
+  vocabulary. Cross a boundary by moving the thing into `ui/` deliberately, not
+  by importing sideways. `pnpm test:boundaries`.
+- **Colour lives in `theme.dart`.** No `Color(0x…)` or `Colors.<name>` anywhere
+  else — a hex in a widget stops tracking the theme forever and nobody finds
+  out from the code. `pnpm test:design`.
+- **Every animating file declares `MOTION: <kind>`** from a fixed list of
+  seven. This is what stops a new animation borrowing ТОБ's meaning, after
+  which "delivered" means nothing anywhere. `pnpm test:motion`.
+
+Each rule has been verified against a real violation. If a check blocks you, it
+is almost certainly right — the fix is to cross the boundary deliberately, not
+to loosen the rule.
+
 ## Which bucket is which
 
 | Surface | Bucket | What the skill should do |

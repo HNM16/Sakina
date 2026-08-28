@@ -1,3 +1,5 @@
+// MOTION: SECTION — the fade-through between tabs. Siblings do not travel
+// sideways; horizontal travel is PAGE's meaning and cannot also be this.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

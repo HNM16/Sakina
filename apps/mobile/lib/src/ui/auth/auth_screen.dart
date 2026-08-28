@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../api_client.dart';
-import '../l10n.dart';
-import '../session.dart';
-import '../theme.dart';
+import '../../api_client.dart';
+import '../../l10n.dart';
+import '../../session.dart';
+import '../../theme.dart';
 
 /// Two steps: address, then the six-digit code.
 ///

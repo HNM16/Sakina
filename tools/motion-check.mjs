@@ -21,6 +21,21 @@
  *   2. A `duration:` argument must come from the vocabulary, not from a
  *      hand-written Duration — otherwise rule 1 is satisfied by a file that
  *      gates one animation and hardcodes the next.
+ *   3. A file that animates must declare *which* motion it is, with a
+ *      `MOTION:` line naming one of the kinds below.
+ *
+ * Rule 3 is about a different failure from the other two, and a worse one.
+ * `docs/MOTION.md` says the light pass fires once, on success, and never while
+ * waiting — that is the whole reason it means "delivered". Nothing stopped a
+ * new animation from using it as a loading shimmer, at which point it means
+ * nothing anywhere, including in the places that were right. The same goes for
+ * horizontal travel, which means "deeper" and "back" and must not also mean
+ * "next tab".
+ *
+ * So an animation has to say what it is. Adding one is then a choice between
+ * declaring an existing kind — and inheriting its rules — or adding a kind to
+ * the list, which is a deliberate act visible in the diff rather than a
+ * meaning quietly borrowed.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -89,6 +104,25 @@ const ALLOWED_DURATION = [
   /_duration\b/,
 ];
 
+/**
+ * The kinds of motion this app has, and what each one means.
+ *
+ * Keep it short. A vocabulary of seven is a vocabulary; a vocabulary of twenty
+ * is a synonym list, and synonyms are how a motion language stops meaning
+ * anything.
+ */
+const MOTION_KINDS = {
+  "ТОБ": "the light pass — fires once when something becomes true, never loops",
+  "НАФАС": "the breath — the object in doubt expresses its own waiting",
+  "ЧАРХ": "the turn — the mark stepping while something works",
+  PAGE: "hierarchical navigation — full-width travel meaning deeper, or back",
+  SECTION: "lateral navigation — a fade-through between siblings, no travel",
+  ENTRANCE: "a one-shot arrival of a row or a bubble",
+  GESTURE: "motion that tracks a finger and settles when released",
+};
+
+const DECLARATION = /MOTION:\s*([^\n—-]+)/g;
+
 /** The gate itself, in any of its forms. */
 const GATE = /SakinaMotion\.(reduced|duration|curve|staggerFor)\s*\(|\.motion\s*\(|animationsDisabled|disableAnimations/;
 
@@ -106,6 +140,8 @@ console.log("\nSakina motion\n");
 const files = dartFiles(lib);
 const ungated = [];
 const rawDurations = [];
+const undeclared = [];
+const unknownKinds = [];
 let animatingFiles = 0;
 
 for (const file of files) {
@@ -123,6 +159,19 @@ for (const file of files) {
 
   if (!EXEMPT.has(short) && !GATE.test(code)) {
     ungated.push(short);
+  }
+
+  // Rule 3. Read from `source`, not `code`: the declaration is a comment, and
+  // stripping comments is exactly what would hide it.
+  if (!EXEMPT.has(short)) {
+    const declared = [...source.matchAll(DECLARATION)].map((m) => m[1].trim());
+    if (declared.length === 0) {
+      undeclared.push(short);
+    } else {
+      for (const kind of declared) {
+        if (!(kind in MOTION_KINDS)) unknownKinds.push(`${short}: ${kind}`);
+      }
+    }
   }
 
   // Rule 2. Every `duration:` argument, wherever it appears.
@@ -145,6 +194,22 @@ check("every duration comes from the motion vocabulary", rawDurations.length ===
 
 // The vocabulary has to actually exist and export what the rules assume.
 const motionSource = readFileSync(join(lib, "src/motion.dart"), "utf8");
+check(
+  "every animating file declares which motion it is",
+  undeclared.length === 0,
+  undeclared.length
+    ? `${undeclared.join(", ")} — add a "MOTION: <kind>" line`
+    : `${animatingFiles} files declared`,
+);
+
+check(
+  "every declared motion is one of the known kinds",
+  unknownKinds.length === 0,
+  unknownKinds.length
+    ? `${unknownKinds.join("; ")} — known: ${Object.keys(MOTION_KINDS).join(", ")}`
+    : Object.keys(MOTION_KINDS).join(", "),
+);
+
 for (const symbol of ["SakinaMotion", "SakinaHaptics", "reduced(", "staggerFor("]) {
   check(`motion.dart defines ${symbol.replace("(", "")}`, motionSource.includes(symbol));
 }

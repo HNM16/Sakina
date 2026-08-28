@@ -37,7 +37,7 @@ configuring to sign in.**
 pnpm test
 ```
 
-Nine suites, 134 checks:
+Eleven suites:
 
 | Suite | What it proves |
 | --- | --- |
@@ -48,6 +48,8 @@ Nine suites, 134 checks:
 | `pnpm test:l10n` | 8 checks. Every user-facing string exists in all three languages; every key the UI asks for is defined — `t()` returns the key itself on a miss, so a typo ships as a button labelled `chanel_name`; the six Tajik characters appear in real copy; no key is defined twice — a duplicate is a Dart compile error but a silent overwrite in the JavaScript that reads the table, which is exactly how one shipped. |
 | `pnpm test:motion` | 7 checks. Every animating file reaches the reduce-motion gate; every duration comes from the vocabulary in `motion.dart` rather than being written at the call site; the gate returns exactly `Duration.zero`, because shortening an animation is not disabling it. Verified to catch both failure modes by deliberately introducing each. |
 | `pnpm test:dart` | 4 checks. Imports resolve, packages are declared, brackets balance, no Sakina-named symbol is referenced but undefined. Runs anywhere in about a second with no toolchain. Not a compiler — that is `test:flutter`'s job. |
+| `pnpm test:boundaries` | 5 checks. No section imports a sibling; nothing outside the sections tree reaches into one; the sign-in flow is sealed in both directions; every section directory is in the registry. See `docs/BOUNDARIES.md` for why this is checked rather than agreed. |
+| `pnpm test:design` | 2 checks. Colour literals appear only in `theme.dart`, and the palette is reachable from the context. Catches the quiet permanent failure where a hex typed into a widget stops tracking the theme. |
 | `pnpm test:flutter` | The real thing: `flutter analyze` over `apps/mobile`, which sees types, lints, deprecations and per-file imports. Skips with a loud banner and exit 0 where there is no SDK, because a missing toolchain is a fact about the machine and a suite that goes red for that teaches people to ignore red. |
 | `pnpm test:push` | 17 checks. A device with the app **closed** gets a notification; a device with it **open** does not; the sender is never notified of their own message; no message text appears in the payload; a dead token is retired rather than retried forever. Needs the worker running with `PUSH_PROVIDER=console`. |
 

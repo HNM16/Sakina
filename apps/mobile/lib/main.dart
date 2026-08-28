@@ -1,3 +1,6 @@
+// MOTION: SECTION — signing in replaces the whole world, so it fades rather
+// than travels. It is not somewhere deeper, and it is not a sibling tab
+// either; the fade is what those two have in common.
 import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -14,7 +17,7 @@ import 'src/motion.dart';
 import 'src/session.dart';
 import 'src/socket_client.dart';
 import 'src/theme.dart';
-import 'src/ui/auth_screen.dart';
+import 'src/ui/auth/auth_screen.dart';
 import 'src/ui/sections/section.dart';
 import 'src/ui/shell.dart';
 

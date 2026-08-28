@@ -1,3 +1,5 @@
+// MOTION: НАФАС — the typing dots breathe while someone is writing.
+// MOTION: ENTRANCE — the unread badge arrives and leaves with its count.
 import 'package:flutter/material.dart';
 
 import '../motion.dart';
