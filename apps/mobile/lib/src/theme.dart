@@ -169,13 +169,26 @@ class SakinaPalette extends ThemeExtension<SakinaPalette> {
 }
 
 abstract final class SakinaTheme {
-  /// Noto Sans, because coverage is its entire reason for existing.
+  /// IBM Plex Sans, bundled with the app rather than borrowed from the phone.
   ///
-  /// Tajik Cyrillic needs ғ ӣ қ ӯ ҳ ҷ. A face without them falls back mid-word,
-  /// which is the fastest possible way for the app to look foreign. Noto ships
-  /// with Android, so there is nothing to download on a metered connection.
-  static const fontFamily = 'Noto Sans';
-  static const fontFallback = <String>['Roboto'];
+  /// Bundled is the part that matters. This used to name a face the app never
+  /// shipped, so Flutter asked the platform for it and rendered in whatever
+  /// came back — a different typeface on every Android skin, and no guarantee
+  /// of the glyphs the app needs.
+  ///
+  /// Plex over the obvious alternatives for two reasons. It sets about 5%
+  /// narrower than Noto Sans on this app's own longest strings, measured, and
+  /// narrower is worth real money on a 320px screen. And it is not Inter,
+  /// which is the face every product reaches for when it has not decided —
+  /// the design-tells guidance names it as a tell for exactly that reason.
+  ///
+  /// See assets/fonts/ and tools/build-fonts.mjs.
+  static const fontFamily = 'IBM Plex Sans';
+
+  /// For anything outside the bundled subset — emoji, CJK, Perso-Arabic — the
+  /// platform still answers. A messenger cannot subset its way out of
+  /// receiving a script it did not plan for.
+  static const fontFallback = <String>['Roboto', 'Noto Sans'];
 
   /// Short and soft. Motion should settle, never bounce — no springs, no
   /// overshoot. It reads as calm, and it costs a budget phone nothing, so the

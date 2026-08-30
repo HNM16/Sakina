@@ -49,3 +49,25 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # Bundled rather than borrowed from the phone. `fontFamily` used to name a
+  # face that was never shipped with the app, so Flutter asked the platform for
+  # it and took whatever came back — SamsungOne on a Samsung, MiSans on a
+  # Xiaomi. The app looked different on every skin and nothing guaranteed the
+  # glyphs it needs.
+  #
+  # Subset to Latin, Latin Extended-A and the whole Cyrillic block: a messenger
+  # receives text nobody planned for, and a name in Ukrainian falling back to a
+  # system face mid-word is the exact failure this is here to prevent.
+  # Regenerate with tools/build-fonts.mjs.
+  fonts:
+    - family: IBM Plex Sans
+      fonts:
+        - asset: assets/fonts/IBMPlexSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/IBMPlexSans-Bold.ttf
+          weight: 700

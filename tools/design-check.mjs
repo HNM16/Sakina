@@ -120,6 +120,44 @@ check(
     : `${scanned} files clean`,
 );
 
+// --- the typeface ---------------------------------------------------------
+// `fontFamily` named a face the app never shipped, so Flutter asked the
+// platform for it and rendered in whatever came back — a different typeface on
+// every Android skin. It is a silent failure: the app looks fine to whoever is
+// holding it, and wrong to everybody else.
+const pubspec = readFileSync(join(lib, "..", "pubspec.yaml"), "utf8");
+const declared = (readFileSync(join(lib, "src/theme.dart"), "utf8")
+  .match(/static const fontFamily = '([^']+)'/) ?? [])[1];
+
+check(
+  "the typeface the theme names is actually bundled",
+  Boolean(declared) && new RegExp(`family:\\s*${declared}\\b`).test(pubspec),
+  declared
+    ? `${declared} — declared in theme.dart and ${
+        new RegExp(`family:\\s*${declared}\\b`).test(pubspec) ? "shipped" : "NOT in pubspec"
+      }`
+    : "theme.dart names no fontFamily",
+);
+
+// Every weight the app asks for has to exist as a real file. Flutter will
+// happily synthesise a missing one by smearing the nearest, which looks like a
+// rendering fault rather than a design.
+const usedWeights = new Set(["400"]);
+for (const file of dartFiles(lib)) {
+  for (const [, w] of readFileSync(file, "utf8").matchAll(/FontWeight\.w(\d00)/g)) {
+    usedWeights.add(w);
+  }
+}
+const shipped = new Set([...pubspec.matchAll(/weight:\s*(\d+)/g)].map((m) => m[1]));
+const unshipped = [...usedWeights].filter((w) => !shipped.has(w));
+check(
+  "every weight the app asks for is shipped, not synthesised",
+  unshipped.length === 0,
+  unshipped.length
+    ? `missing ${unshipped.join(", ")} — Flutter would smear the nearest`
+    : `${[...shipped].sort().join(", ")}`,
+);
+
 // The palette has to actually be reachable, or the rule above just pushes
 // people to Theme.of(context) for everything and the palette rots.
 const theme = readFileSync(join(lib, "src/theme.dart"), "utf8");

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../api_client.dart';
 import '../../l10n.dart';
+import '../../layout.dart';
 import '../../session.dart';
 import '../../theme.dart';
 
@@ -25,24 +26,42 @@ import '../../theme.dart';
 ///  - **Error prevention** (#5). The address is checked for shape before the
 ///    request goes out, so the common mistake is caught without a round trip.
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key, required this.api, required this.session, required this.onSignedIn});
+  const AuthScreen({
+    super.key,
+    required this.api,
+    required this.session,
+    required this.onSignedIn,
+    required this.onLanguageChanged,
+  });
 
   final ApiClient api;
   final Session session;
   final VoidCallback onSignedIn;
 
+  /// Applied immediately, so the rest of sign-up is already in the language
+  /// the user just picked. Persisted by the app, and changeable afterwards in
+  /// Profile.
+  final Future<void> Function(String? code) onLanguageChanged;
+
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-enum _Step { address, code }
+enum _Step { language, address, code }
 
 class _AuthScreenState extends State<AuthScreen> {
   final _emailController = TextEditingController();
   final _codeController = TextEditingController();
   final _inviteController = TextEditingController();
 
-  _Step _step = _Step.address;
+  /// Asked once, before anything else.
+  ///
+  /// Everything after this screen is text the user has to read, so the language
+  /// is the first thing worth knowing. Someone who has already chosen — on this
+  /// install or a previous sign-in, since the choice survives sign-out — skips
+  /// straight past it.
+  late _Step _step =
+      widget.session.language == null ? _Step.language : _Step.address;
   bool _busy = false;
   String? _error;
   bool _needsInvite = false;
@@ -134,6 +153,12 @@ class _AuthScreenState extends State<AuthScreen> {
     });
   }
 
+  Future<void> _chooseLanguage(String code) async {
+    await widget.onLanguageChanged(code);
+    if (!mounted) return;
+    setState(() => _step = _Step.address);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = L10n.of(context);
@@ -157,7 +182,11 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: onCodeStep ? _codeStep(l10n) : _addressStep(l10n),
+                  children: switch (_step) {
+                    _Step.language => _languageStep(),
+                    _Step.address => _addressStep(l10n),
+                    _Step.code => _codeStep(l10n),
+                  },
                 ),
               ),
             ),
@@ -165,6 +194,58 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
       ),
     );
+  }
+
+  /// Pick a language, before the app has asked you to read anything.
+  ///
+  /// Three decisions here are the screen rather than decoration on it.
+  ///
+  /// **The heading is in all three languages at once.** Everywhere else in the
+  /// app a heading can assume a language; this is the one screen where it
+  /// cannot, because the person reading it has by definition not said yet.
+  ///
+  /// **No flags.** A flag is a country and this is a language: Russian is not
+  /// only Russia, and Tajik is written in Cyrillic here and in Perso-Arabic
+  /// across the border. A flag would be wrong information rather than
+  /// decoration that happens to be redundant.
+  ///
+  /// **One tap commits and moves on.** A confirm button would be a second step
+  /// asking someone to confirm that they can read — and the tap on your own
+  /// language is not an ambiguous gesture.
+  List<Widget> _languageStep() {
+    final layout = SakinaLayout.of(context);
+    final palette = SakinaPalette.of(context);
+    final text = Theme.of(context).textTheme;
+    final active = widget.session.language ??
+        Localizations.localeOf(context).languageCode;
+
+    return [
+      const Center(child: ChorkhonaMark(size: 56)),
+      SizedBox(height: layout.gap * 1.5),
+      Text(
+        // "Язык · Забон · Language", assembled from the same key resolved in
+        // each locale — so it stays correct if the wording is ever revised.
+        L10n.supportedLocales
+            .map((locale) => L10n(locale).t('language'))
+            .join('  ·  '),
+        textAlign: TextAlign.center,
+        style: text.bodyMedium?.copyWith(color: palette.muted),
+      ),
+      SizedBox(height: layout.gap * 1.5),
+      for (final locale in L10n.supportedLocales)
+        Padding(
+          padding: EdgeInsets.only(bottom: layout.gap * 0.6),
+          child: _LanguageChoice(
+            code: locale.languageCode,
+            // Endonymic: every language named in itself. "Russian" written in
+            // English is no help to somebody who only reads Tajik, which is
+            // the entire point of this screen.
+            name: L10n.languageNames[locale.languageCode] ?? locale.languageCode,
+            selected: locale.languageCode == active,
+            onTap: () => _chooseLanguage(locale.languageCode),
+          ),
+        ),
+    ];
   }
 
   List<Widget> _addressStep(L10n l10n) => [
@@ -266,4 +347,69 @@ class _AuthScreenState extends State<AuthScreen> {
               )
             : Text(label),
       );
+}
+
+
+/// One language, as a row you tap.
+///
+/// Deliberately a plain bordered row rather than a card: this screen is a list
+/// of three equal choices, and a card would imply a hierarchy among them that
+/// does not exist.
+class _LanguageChoice extends StatelessWidget {
+  const _LanguageChoice({
+    required this.code,
+    required this.name,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String code;
+  final String name;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = SakinaLayout.of(context);
+    final palette = SakinaPalette.of(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        // 12 is what the rest of the app already uses more than any other
+        // radius; matching it is the point, not a preference.
+        borderRadius: BorderRadius.circular(12),
+        child: Semantics(
+          selected: selected,
+          button: true,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: layout.gutter,
+              vertical: layout.gap,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: selected ? scheme.primary : palette.line,
+                width: selected ? 2 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    name,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                if (selected) Icon(Icons.check, size: 20, color: scheme.primary),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

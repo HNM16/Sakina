@@ -255,6 +255,7 @@ class _SakinaAppState extends State<SakinaApp> {
                 api: _api,
                 session: widget.session,
                 onSignedIn: _startSession,
+                onLanguageChanged: _setLanguage,
               )
             : SakinaShell(
                 key: const ValueKey('shell'),
