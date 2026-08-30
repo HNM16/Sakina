@@ -16,10 +16,10 @@ import 'src/push_service.dart';
 import 'src/motion.dart';
 import 'src/session.dart';
 import 'src/socket_client.dart';
-import 'src/theme.dart';
 import 'src/ui/auth/auth_screen.dart';
 import 'src/ui/sections/section.dart';
 import 'src/ui/shell.dart';
+import 'src/ui/themes/themes.dart';
 
 /// Endpoints are compile-time so a release build cannot be pointed at a dev
 /// server by accident:
@@ -75,6 +75,15 @@ class _SakinaAppState extends State<SakinaApp> {
   /// to anything we do not speak. See src/l10n.dart.
   Locale? _locale;
 
+  /// The chosen theme's id, or null to follow the phone. See src/ui/themes/.
+  String? _themeId;
+
+  Future<void> _setTheme(String? id) async {
+    await widget.session.setTheme(id);
+    if (!mounted) return;
+    setState(() => _themeId = id);
+  }
+
   Future<void> _setLanguage(String? code) async {
     await widget.session.setLanguage(code);
     if (!mounted) return;
@@ -86,6 +95,7 @@ class _SakinaAppState extends State<SakinaApp> {
     super.initState();
     final saved = widget.session.language;
     if (saved != null) _locale = Locale(saved);
+    _themeId = widget.session.theme;
     if (widget.session.isAuthenticated) {
       _startSession();
     }
@@ -205,15 +215,24 @@ class _SakinaAppState extends State<SakinaApp> {
   @override
   Widget build(BuildContext context) {
     final repository = _repository;
+    final chosenTheme = SakinaThemes.byId(_themeId);
 
     return MaterialApp(
       title: 'Sakina',
       debugShowCheckedModeBanner: false,
       // Dark by default: cheaper on battery, readable in mountain sun, and
       // honest to a name that means stillness. See src/theme.dart.
-      theme: SakinaTheme.day(),
-      darkTheme: SakinaTheme.night(),
-      themeMode: ThemeMode.dark,
+      // A chosen theme is served whatever the phone is set to; no choice hands
+      // the decision back to the phone. `themeMode` used to be pinned to dark,
+      // which made the light theme unreachable — it was fully written and no
+      // user could ever see it.
+      theme: (chosenTheme ?? SakinaThemes.systemLight).build(),
+      darkTheme: (chosenTheme ?? SakinaThemes.systemDark).build(),
+      themeMode: chosenTheme == null
+          ? ThemeMode.system
+          : (chosenTheme.brightness == Brightness.dark
+              ? ThemeMode.dark
+              : ThemeMode.light),
       // Includes the Tajik fallback delegates — Flutter has no `tg` locale of
       // its own. See lib/src/l10n.dart.
       localizationsDelegates: localizationDelegates,
@@ -245,6 +264,8 @@ class _SakinaAppState extends State<SakinaApp> {
                   selfName: widget.session.displayName,
                   language: widget.session.language,
                   onLanguageChanged: _setLanguage,
+                  themeId: _themeId,
+                  onThemeChanged: _setTheme,
                   onSignOut: _signOut,
                 ),
               ),

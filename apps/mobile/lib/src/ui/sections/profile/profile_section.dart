@@ -25,6 +25,8 @@ class ProfileSection extends SakinaSection {
         selfName: scope.selfName,
         language: scope.language,
         onLanguageChanged: scope.onLanguageChanged,
+        themeId: scope.themeId,
+        onThemeChanged: scope.onThemeChanged,
         onSignOut: scope.onSignOut,
       );
 }

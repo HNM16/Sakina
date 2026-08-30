@@ -17,6 +17,7 @@ import 'package:sakina/src/motion.dart';
 import 'package:sakina/src/theme.dart';
 import 'package:sakina/src/ui/indicators.dart';
 import 'package:sakina/src/ui/sections/sections.dart';
+import 'package:sakina/src/ui/themes/themes.dart';
 
 /// The app's own chrome, so tests exercise the real theme rather than Material
 /// defaults. `home` is supplied per test.
@@ -200,6 +201,66 @@ void main() {
           // shows up as a tab labelled `explore`.
           expect(find.text(section.labelKey), findsNothing,
               reason: '${section.id} is untranslated in $code');
+        }
+      }
+    });
+  });
+
+  group('Themes', () {
+    test('ids are distinct and stable-looking', () {
+      final ids = sakinaThemes.map((t) => t.id).toList();
+      expect(ids.toSet().length, ids.length,
+          reason: 'the id is what gets written to disk; a collision would hand '
+              'a user a different theme than the one they chose');
+      expect(ids, everyElement(isNotEmpty));
+    });
+
+    test('there is at least one light and one dark, so "match the phone" works',
+        () {
+      // SakinaThemes.systemLight/systemDark use firstWhere, which throws when
+      // a brightness is unrepresented — that would be a crash on launch for
+      // everyone following the phone.
+      expect(() => SakinaThemes.systemLight, returnsNormally);
+      expect(() => SakinaThemes.systemDark, returnsNormally);
+    });
+
+    test('an unknown id falls back to following the phone', () {
+      // A theme withdrawn in an update must not crash the app on launch for
+      // everyone who had chosen it.
+      expect(SakinaThemes.byId('a-theme-we-removed'), isNull);
+      expect(SakinaThemes.byId(null), isNull);
+      expect(SakinaThemes.byId(sakinaThemes.first.id), isNotNull);
+    });
+
+    test('every theme builds, and carries the palette every widget reads', () {
+      for (final theme in sakinaThemes) {
+        final data = theme.build();
+        expect(data.brightness, theme.brightness, reason: theme.id);
+        expect(data.extension<SakinaPalette>(), isNotNull,
+            reason: '${theme.id} must carry SakinaPalette — every widget in '
+                'the app reads colour through it, so a theme without one '
+                'renders in the fallback and looks like a different app');
+      }
+    });
+
+    testWidgets('every theme label is translated in all three languages',
+        (tester) async {
+      for (final code in ['ru', 'tg', 'en']) {
+        await tester.pumpWidget(host(
+          Builder(
+            builder: (context) => Scaffold(
+              body: Column(children: [
+                for (final theme in sakinaThemes)
+                  Text(L10n.of(context).t(theme.labelKey)),
+              ]),
+            ),
+          ),
+          locale: Locale(code),
+        ));
+        await tester.pumpAndSettle();
+        for (final theme in sakinaThemes) {
+          expect(find.text(theme.labelKey), findsNothing,
+              reason: '${theme.id} is untranslated in $code');
         }
       }
     });

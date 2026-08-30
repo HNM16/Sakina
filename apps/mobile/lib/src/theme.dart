@@ -189,7 +189,7 @@ abstract final class SakinaTheme {
 
   static final _typography = Typography.material2021(platform: TargetPlatform.android);
 
-  static ThemeData night() => _build(
+  static ThemeData night() => build(
         brightness: Brightness.dark,
         accent: SakinaColors.tileNight,
         ground: SakinaColors.nightGround,
@@ -198,7 +198,7 @@ abstract final class SakinaTheme {
         palette: SakinaPalette.night,
       );
 
-  static ThemeData day() => _build(
+  static ThemeData day() => build(
         brightness: Brightness.light,
         accent: SakinaColors.tileDay,
         ground: SakinaColors.dayGround,
@@ -207,7 +207,14 @@ abstract final class SakinaTheme {
         palette: SakinaPalette.day,
       );
 
-  static ThemeData _build({
+  /// Assembles a [ThemeData] from one theme's ingredients.
+  ///
+  /// Public because it is the seam every theme goes through — see
+  /// `ui/themes/`. Keeping the assembly here means a new theme decides its
+  /// colours and nothing else: the typography, the motion, the component
+  /// shapes and the [SakinaPalette] extension are the same in all of them, so
+  /// adding a theme cannot accidentally redesign the app.
+  static ThemeData build({
     required Brightness brightness,
     required Color accent,
     required Color ground,

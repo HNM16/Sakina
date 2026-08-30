@@ -55,8 +55,23 @@ function dartFiles(dir) {
   return out;
 }
 
-/** Where the design is allowed to be defined. */
-const OWNERS = new Set(["src/theme.dart", "src/layout.dart"]);
+/**
+ * Where the design is allowed to be defined.
+ *
+ * `src/ui/themes/` was added deliberately, which is the process BOUNDARIES.md
+ * describes for crossing a boundary rather than working around it. A theme's
+ * whole job is to decide colours; forcing every new one to add its palette to
+ * theme.dart and its wiring somewhere else would split each theme across two
+ * files, and a theme you cannot read in one place is a theme somebody gets
+ * half-right.
+ *
+ * The rule that still holds, and is the one that matters: no colour anywhere
+ * a *widget* can see it.
+ */
+const OWNER_FILES = new Set(["src/theme.dart", "src/layout.dart"]);
+const OWNER_DIRS = ["src/ui/themes/"];
+const owns = (short) =>
+  OWNER_FILES.has(short) || OWNER_DIRS.some((dir) => short.startsWith(dir));
 
 /** Shadows and scrims: absence of colour, not brand colour. */
 const ALLOWED = [
@@ -69,8 +84,13 @@ const ALLOWED = [
 // against what the code actually says. Matching the bare literal and then
 // asking whether it was followed by an opacity is a question the match cannot
 // answer, which is how the scrim in message_actions.dart got flagged.
+// The lookbehind matters: without it `Colors\.` also matches the tail of
+// `SakinaColors.tileDay`, so every legitimate reference to our own tokens gets
+// reported as a leak. It never fired while SakinaColors was only read inside
+// theme.dart; the moment themes moved into their own files it flagged all of
+// them.
 const LITERAL =
-  /(?:Color\(0x[0-9a-fA-F]{8}\)|Color\.fromARGB\(|Colors\.[a-zA-Z0-9]+)(?:\.withOpacity\()?/g;
+  /(?:Color\(0x[0-9a-fA-F]{8}\)|Color\.fromARGB\(|(?<![A-Za-z])Colors\.[a-zA-Z0-9]+)(?:\.withOpacity\()?/g;
 
 console.log("\nSakina design system\n");
 
@@ -79,7 +99,7 @@ let scanned = 0;
 
 for (const file of dartFiles(lib)) {
   const short = relative(lib, file);
-  if (OWNERS.has(short)) continue;
+  if (owns(short)) continue;
   scanned += 1;
 
   const code = readFileSync(file, "utf8")

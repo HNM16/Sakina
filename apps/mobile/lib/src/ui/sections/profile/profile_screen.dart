@@ -6,6 +6,7 @@ import '../../../layout.dart';
 import '../../../motion.dart';
 import '../../../theme.dart';
 import 'language_sheet.dart';
+import 'theme_sheet.dart';
 
 /// Who you are, and the handful of settings that are genuinely yours.
 ///
@@ -30,6 +31,8 @@ class ProfileScreen extends StatelessWidget {
     required this.selfName,
     required this.language,
     required this.onLanguageChanged,
+    required this.themeId,
+    required this.onThemeChanged,
     required this.onSignOut,
   });
 
@@ -41,6 +44,10 @@ class ProfileScreen extends StatelessWidget {
 
   final String? language;
   final Future<void> Function(String? code) onLanguageChanged;
+
+  /// The chosen theme's id, or null to follow the phone.
+  final String? themeId;
+  final Future<void> Function(String? id) onThemeChanged;
   final VoidCallback onSignOut;
 
   @override
@@ -118,6 +125,17 @@ class ProfileScreen extends StatelessWidget {
               context,
               current: language,
               onChanged: onLanguageChanged,
+            ),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.palette_outlined),
+            title: Text(l10n.t('theme')),
+            subtitle: Text(themeSubtitle(context, themeId)),
+            onTap: () => showThemeSheet(
+              context,
+              current: themeId,
+              onChanged: onThemeChanged,
             ),
           ),
           const Divider(height: 1),

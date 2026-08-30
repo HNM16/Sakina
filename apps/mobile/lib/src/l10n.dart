@@ -145,6 +145,12 @@ class L10n {
       'en': 'ID copied',
     },
     'back': {'ru': 'Назад', 'tg': 'Бозгашт', 'en': 'Back'},
+    // Themes. Шаб and Рӯз are the palette's own names for its two grounds;
+    // the picker shows them translated like everything else.
+    'theme': {'ru': 'Тема', 'tg': 'Мавзӯъ', 'en': 'Theme'},
+    'theme_night': {'ru': 'Тёмная', 'tg': 'Торик', 'en': 'Dark'},
+    'theme_day': {'ru': 'Светлая', 'tg': 'Равшан', 'en': 'Light'},
+    'theme_system': {'ru': 'Как на телефоне', 'tg': 'Мисли телефон', 'en': 'Match the phone'},
     'no_chats': {
       'tg': 'Ҳанӯз сӯҳбате нест',
       'ru': 'Пока нет чатов',

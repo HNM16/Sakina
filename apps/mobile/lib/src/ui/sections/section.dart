@@ -28,6 +28,8 @@ class SectionScope {
     required this.selfName,
     required this.language,
     required this.onLanguageChanged,
+    required this.themeId,
+    required this.onThemeChanged,
     required this.onSignOut,
   });
 
@@ -44,6 +46,10 @@ class SectionScope {
   /// The language the user picked, or null to follow the phone.
   final String? language;
   final Future<void> Function(String? code) onLanguageChanged;
+
+  /// The chosen theme's id, or null to follow the phone. See `ui/themes/`.
+  final String? themeId;
+  final Future<void> Function(String? id) onThemeChanged;
 
   /// Tears down the session. Lives on the app, not on a section, because it
   /// disposes things every section is holding.
