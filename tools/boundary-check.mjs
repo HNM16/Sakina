@@ -65,6 +65,36 @@ function dartFiles(dir) {
 }
 
 /** Which section a file belongs to, or null for shared code. */
+/**
+ * Every import in a file, however it is spelled.
+ *
+ * Three spellings got past the first version of this, all found by writing a
+ * file that deliberately broke every rule and watching the suite stay green:
+ *
+ *   - `package:sakina/src/…` — the old check skipped anything starting
+ *     `package:`, which is correct for third-party code and exactly wrong for
+ *     our own package. A section could import a sibling through the front door.
+ *   - `import "…"` — the regex matched single quotes only. `flutter_lints`
+ *     does not enable `prefer_single_quotes`, so nothing else objected.
+ *   - `export` and `part`, which were not considered at all.
+ */
+function importsOf(source) {
+  const out = [];
+  const pattern = /^\s*(?:import|export|part)\s+(?:'([^']+)'|"([^"]+)")/gm;
+  for (const match of source.matchAll(pattern)) {
+    out.push(match[1] ?? match[2]);
+  }
+  return out;
+}
+
+/** The app's own package, resolved to a path we can reason about. */
+const SELF = "package:sakina/";
+function asLibPath(target, fromFile) {
+  if (target.startsWith(SELF)) return join(lib, target.slice(SELF.length));
+  if (target.startsWith("package:") || target.startsWith("dart:")) return null;
+  return resolve(dirname(fromFile), target);
+}
+
 function sectionOf(file) {
   const rel = relative(sectionsDir, file);
   if (rel.startsWith("..")) return null;
@@ -87,10 +117,10 @@ for (const file of dartFiles(lib)) {
   const owner = sectionOf(file);
   const source = readFileSync(file, "utf8");
 
-  for (const [, target] of source.matchAll(/^import\s+'([^']+)'/gm)) {
-    if (target.startsWith("package:") || target.startsWith("dart:")) continue;
+  for (const target of importsOf(source)) {
+    const resolved = asLibPath(target, file);
+    if (resolved === null) continue;
 
-    const resolved = resolve(dirname(file), target);
     const targetOwner = sectionOf(resolved);
     if (targetOwner === null) continue; // shared vocabulary, always allowed
 
@@ -134,9 +164,10 @@ for (const file of dartFiles(lib)) {
   const inAuth = from.startsWith("src/ui/auth/");
   const source = readFileSync(file, "utf8");
 
-  for (const [, target] of source.matchAll(/^import\s+'([^']+)'/gm)) {
-    if (target.startsWith("package:") || target.startsWith("dart:")) continue;
-    const to = relative(lib, resolve(dirname(file), target));
+  for (const target of importsOf(source)) {
+    const resolvedPath = asLibPath(target, file);
+    if (resolvedPath === null) continue;
+    const to = relative(lib, resolvedPath);
 
     if (inAuth && to.startsWith("src/ui/sections/")) authOutward.push(`${from} -> ${to}`);
     if (!inAuth && to.startsWith("src/ui/auth/") && from !== "main.dart") {

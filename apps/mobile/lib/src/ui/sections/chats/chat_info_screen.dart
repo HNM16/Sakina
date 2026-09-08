@@ -1,3 +1,5 @@
+// MOTION: ЧАРХ — the mark turns while this screen waits on the network.
+// Replaces a stock spinner, which never reached the reduce-motion gate.
 import 'package:flutter/material.dart';
 
 import '../../../api_client.dart';
@@ -5,8 +7,10 @@ import '../../../chat_repository.dart';
 import '../../../l10n.dart';
 import '../../../layout.dart';
 import '../../../models.dart';
+import '../../../motion.dart';
 import '../../../theme.dart';
 
+import '../../motion_primitives.dart';
 /// Who is in this chat, and what you are allowed to do about it.
 ///
 /// One screen for groups and channels; a direct chat never opens it, because
@@ -134,7 +138,7 @@ class _ChatInfoScreenState extends State<ChatInfoScreen> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.t('left_chat')),
-        duration: const Duration(seconds: 6),
+        duration: SakinaMotion.notice,
         action: username == null
             ? null
             : SnackBarAction(
@@ -238,7 +242,7 @@ class _ChatInfoScreenState extends State<ChatInfoScreen> {
               // does not jump when the rows arrive.
               Padding(
                 padding: EdgeInsets.symmetric(vertical: layout.gap * 3),
-                child: const Center(child: CircularProgressIndicator()),
+                child: const Center(child: TurningMark()),
               )
             else if (members.isEmpty)
               Padding(

@@ -42,6 +42,16 @@ abstract final class SakinaMotion {
   /// The longest thing we do. A full-screen transition on a slow device.
   static const long = Duration(milliseconds: 320);
 
+  /// How long a notice stays on screen before it leaves on its own.
+  ///
+  /// Not an animation — a *reading* duration, and the reason it belongs here
+  /// rather than at the call site is that it is the one timing a user can
+  /// fail. Six seconds is long enough to read a sentence in Tajik, which runs
+  /// about a third longer than the English, and to reach the undo next to it.
+  /// Written inline it would drift per snackbar until one of them was too
+  /// short to act on.
+  static const notice = Duration(seconds: 6);
+
   // Loop periods. A repeating indicator's duration is one cycle, not a
   // transition — but it is still motion, and the check in tools/motion-check.mjs
   // is right to insist it be named here rather than written at the call site.

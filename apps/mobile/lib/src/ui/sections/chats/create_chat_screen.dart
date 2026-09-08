@@ -1,3 +1,5 @@
+// MOTION: ЧАРХ — the mark turns while this screen waits on the network.
+// Replaces a stock spinner, which never reached the reduce-motion gate.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -6,6 +8,7 @@ import '../../../l10n.dart';
 import '../../../layout.dart';
 import '../../../theme.dart';
 
+import '../../motion_primitives.dart';
 /// Creating a group or a channel.
 ///
 /// One screen for both, because they differ in exactly two places — a channel
@@ -291,11 +294,7 @@ class _CreateChatScreenState extends State<CreateChatScreen> {
             FilledButton(
               onPressed: _canCreate ? _create : null,
               child: _busy
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
+                  ? const TurningMark(size: 20)
                   : Text(l10n.t('create')),
             ),
             SizedBox(height: layout.gap),

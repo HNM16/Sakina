@@ -82,6 +82,29 @@ const ANIMATION_APIS = [
   ".animateTo(",
   ".repeat(",
   ".fling(",
+  ".forward(",
+  ".reverse(",
+  // All added after a deliberately illegal file passed every rule. Each one is
+  // a way to move pixels that the list did not recognise, and an unrecognised
+  // file was exempt from *all three* rules, not just this one.
+  "AnimatedScale",
+  "AnimatedRotation",
+  "AnimatedSlide",
+  "AnimatedFractionallySizedBox",
+  "AnimatedTheme",
+  "AnimatedPhysicalModel",
+  "DecoratedBoxTransition",
+  "AlignTransition",
+  "RelativePositionedTransition",
+  "AnimatedIcon",
+  "AnimatedList",
+  // The stock spinners. They are the most frequent animation in most apps and
+  // were the most frequent in this one — seven of them, none reaching the
+  // reduce-motion gate, while docs/MOTION.md said every primitive had a path
+  // that removes it.
+  "CircularProgressIndicator",
+  "LinearProgressIndicator",
+  "RefreshProgressIndicator",
 ];
 
 /**
@@ -141,6 +164,7 @@ const files = dartFiles(lib);
 const ungated = [];
 const rawDurations = [];
 const undeclared = [];
+const loopedLight = [];
 const unknownKinds = [];
 let animatingFiles = 0;
 
@@ -152,6 +176,18 @@ for (const file of files) {
   const code = source
     .replace(/\/\/[^\n]*/g, "")
     .replace(/\/\*[\s\S]*?\*\//g, "");
+
+  // Rule 2 first, and for *every* file. A hand-written duration is a hazard
+  // whether or not this script recognises what is being animated with it, and
+  // gating it behind recognition meant an unknown API bought exemption from
+  // the timing rule too.
+  if (!EXEMPT.has(short)) {
+    for (const match of code.matchAll(/\bduration:\s*([^,\n)]+)/g)) {
+      const expression = match[1].trim();
+      if (ALLOWED_DURATION.some((pattern) => pattern.test(expression))) continue;
+      rawDurations.push(`${short}: duration: ${expression}`);
+    }
+  }
 
   const animates = ANIMATION_APIS.some((api) => code.includes(api));
   if (!animates) continue;
@@ -171,15 +207,15 @@ for (const file of files) {
       for (const kind of declared) {
         if (!(kind in MOTION_KINDS)) unknownKinds.push(`${short}: ${kind}`);
       }
+      // BOUNDARIES.md says rule 3 exists because "nothing stopped a new
+      // animation from using [the light pass] as a loading shimmer". Checking
+      // the *name* never checked that. This does: a file that declares ТОБ and
+      // nothing else must not loop.
+      const onlyLight = declared.length === 1 && declared[0] === "ТОБ";
+      if (onlyLight && /\.repeat\(|repeat\s*\(\s*reverse/.test(code)) {
+        loopedLight.push(short);
+      }
     }
-  }
-
-  // Rule 2. Every `duration:` argument, wherever it appears.
-  for (const match of code.matchAll(/\bduration:\s*([^,\n)]+)/g)) {
-    const expression = match[1].trim();
-    if (EXEMPT.has(short)) continue;
-    if (ALLOWED_DURATION.some((pattern) => pattern.test(expression))) continue;
-    rawDurations.push(`${short}: duration: ${expression}`);
   }
 }
 
@@ -200,6 +236,14 @@ check(
   undeclared.length
     ? `${undeclared.join(", ")} — add a "MOTION: <kind>" line`
     : `${animatingFiles} files declared`,
+);
+
+check(
+  "the light pass never loops",
+  loopedLight.length === 0,
+  loopedLight.length
+    ? `${loopedLight.join(", ")} — ТОБ fires once, on success. A looping one is a shimmer, and a shimmer means "waiting", which is the opposite`
+    : "ТОБ stays a single crossing",
 );
 
 check(

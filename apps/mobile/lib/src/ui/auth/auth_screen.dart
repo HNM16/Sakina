@@ -1,3 +1,5 @@
+// MOTION: ЧАРХ — the mark turns while this screen waits on the network.
+// Replaces a stock spinner, which never reached the reduce-motion gate.
 import 'package:flutter/material.dart';
 
 import '../../api_client.dart';
@@ -6,6 +8,7 @@ import '../../layout.dart';
 import '../../session.dart';
 import '../../theme.dart';
 
+import '../motion_primitives.dart';
 /// Two steps: address, then the six-digit code.
 ///
 /// Email rather than phone for now, because the team cannot receive +992 SMS
@@ -340,11 +343,7 @@ class _AuthScreenState extends State<AuthScreen> {
         child: _busy
             // Visibility of system status: on a slow connection this button is
             // the only thing telling the user anything is happening.
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
+            ? const TurningMark(size: 20)
             : Text(label),
       );
 }

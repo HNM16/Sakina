@@ -1,3 +1,5 @@
+// MOTION: ЧАРХ — the mark turns while this screen waits on the network.
+// Replaces a stock spinner, which never reached the reduce-motion gate.
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -10,6 +12,7 @@ import '../../../models.dart';
 import '../../../motion.dart';
 import '../../../theme.dart';
 
+import '../../motion_primitives.dart';
 /// An attachment inside a message bubble.
 ///
 /// Three states, and all three are real work rather than a spinner standing in
@@ -127,11 +130,7 @@ class _MediaAttachmentState extends State<MediaAttachment> {
           Container(
             color: palette.line,
             alignment: Alignment.center,
-            child: const SizedBox(
-              height: 22,
-              width: 22,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
+            child: const TurningMark(size: 22),
           ),
         );
 
@@ -340,7 +339,7 @@ class _MediaViewerState extends State<_MediaViewer> {
                       ],
                     ),
                   )
-                : const CircularProgressIndicator())
+                : const TurningMark())
             : InteractiveViewer(
                 maxScale: 5,
                 child: Image.file(widget.file, fit: BoxFit.contain),

@@ -1,3 +1,5 @@
+// MOTION: ЧАРХ — the mark turns while this screen waits on the network.
+// Replaces a stock spinner, which never reached the reduce-motion gate.
 // MOTION: ENTRANCE — the one bubble the user just sent lifts out of the
 // composer. Exactly one, never every arriving message.
 // MOTION: НАФАС — the strip that breathes while an older page loads.
@@ -619,11 +621,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 minHeight: SakinaLayout.tapTarget,
                               ),
                               icon: _uploading
-                                  ? const SizedBox(
-                                      height: 18,
-                                      width: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
+                                  ? const TurningMark(size: 18)
                                   : const Icon(Icons.send),
                             ),
                           ],

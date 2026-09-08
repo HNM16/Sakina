@@ -1,3 +1,5 @@
+// MOTION: ЧАРХ — the mark turns while this screen waits on the network.
+// Replaces a stock spinner, which never reached the reduce-motion gate.
 // Bottom sheets and dialogs owned by the Chats section.
 //
 // Split out of the old shared `ui/sheets.dart` when the app grew sections: the
@@ -13,7 +15,8 @@ import '../../../layout.dart';
 import '../../../models.dart';
 import '../../../motion.dart';
 import '../../../theme.dart';
-import 'create_chat_screen.dart';
+
+import '../../motion_primitives.dart';import 'create_chat_screen.dart';
 
 /// What "new chat" offers.
 ///
@@ -170,11 +173,7 @@ class _JoinChannelDialogState extends State<_JoinChannelDialog> {
         FilledButton(
           onPressed: _busy ? null : _join,
           child: _busy
-              ? const SizedBox(
-                  height: 18,
-                  width: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
+              ? const TurningMark(size: 18)
               : Text(l10n.t('join_channel')),
         ),
       ],
