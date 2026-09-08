@@ -15,7 +15,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sakina/src/l10n.dart';
 import 'package:sakina/src/motion.dart';
 import 'package:sakina/src/theme.dart';
+import 'package:sakina/src/models.dart';
 import 'package:sakina/src/ui/indicators.dart';
+import 'package:sakina/src/ui/sections/chats/chat_screen.dart';
 import 'package:sakina/src/ui/sections/sections.dart';
 import 'package:sakina/src/ui/themes/themes.dart';
 
@@ -203,6 +205,88 @@ void main() {
               reason: '${section.id} is untranslated in $code');
         }
       }
+    });
+  });
+
+
+  group('Message bubbles', () {
+    // The bug: `Align` without a `widthFactor` expands to the width its parent
+    // offers, so every bubble was drawn at `bubbleMaxWidth` no matter how
+    // little was in it — a two-word reply arriving as a slab across most of
+    // the screen.
+    //
+    // It is the second time this exact Flutter behaviour has bitten this
+    // codebase; the first was `Container(alignment:)` in UnreadBadge. Both
+    // pass `flutter analyze`, and neither is visible in a diff.
+    //
+    // Measuring the right widget is the whole test. The outermost widget in a
+    // bubble is still the `Align`, and that one *does* fill the pane — asking
+    // it for its size reports the surface width whether or not the bug is
+    // present, so the assertion has to reach the decorated Container inside.
+    Message text(String body) => Message(
+          clientId: 'c-${body.hashCode}',
+          chatId: 'chat',
+          senderId: 'me',
+          payload: {'type': 'text', 'text': body},
+          createdAt: DateTime(2026, 1, 1, 10, 30),
+          seq: 1,
+        );
+
+    Finder body(int index) => find
+        .descendant(
+          of: find.byType(ChatBubble).at(index),
+          matching: find.byType(Container),
+        )
+        .first;
+
+    Future<void> pumpBubbles(WidgetTester tester, List<String> texts) async {
+      await tester.pumpWidget(host(Scaffold(
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final t in texts)
+              ChatBubble(key: ValueKey(t), message: text(t), isMine: true, media: null),
+          ],
+        ),
+      )));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a short message does not stretch to the maximum width',
+        (tester) async {
+      await pumpBubbles(tester, ['Салом']);
+
+      final width = tester.getSize(body(0)).width;
+      final surface = tester.getSize(find.byType(Scaffold)).width;
+
+      // A third, not a half: the ceiling lands at 397 of an 800-unit test
+      // surface, so `surface / 2` is a threshold the bug itself slips under
+      // by three units. A bound that a known defect passes is not a test.
+      expect(width, lessThan(surface / 3),
+          reason: 'a one-word bubble this wide is the bug, not a bubble');
+    });
+
+    testWidgets('a longer message gets a wider bubble than a shorter one',
+        (tester) async {
+      await pumpBubbles(tester, [
+        'Ок',
+        'Салом, чӣ хел шумо? Ман имрӯз ба кор рафта наметавонам, бубахшед.',
+      ]);
+
+      expect(tester.getSize(body(0)).width,
+          lessThan(tester.getSize(body(1)).width),
+          reason: 'bubbles that ignore their content are all the same width');
+    });
+
+    testWidgets('a long message still stops at the maximum width',
+        (tester) async {
+      await pumpBubbles(tester, [List.filled(80, 'сухан').join(' ')]);
+
+      final width = tester.getSize(body(0)).width;
+      final surface = tester.getSize(find.byType(Scaffold)).width;
+
+      expect(width, lessThan(surface),
+          reason: 'shrink-wrapping must not remove the ceiling');
     });
   });
 

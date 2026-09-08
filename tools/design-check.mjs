@@ -89,8 +89,11 @@ const ALLOWED = [
 // reported as a leak. It never fired while SakinaColors was only read inside
 // theme.dart; the moment themes moved into their own files it flagged all of
 // them.
+// `fromRGBO` was missing and is one word from `fromARGB`; `HSLColor` and
+// `HSVColor` are the other two ways to say a colour out loud in Flutter. Found
+// by writing a file that broke every rule and watching this pass it.
 const LITERAL =
-  /(?:Color\(0x[0-9a-fA-F]{8}\)|Color\.fromARGB\(|(?<![A-Za-z])Colors\.[a-zA-Z0-9]+)(?:\.withOpacity\()?/g;
+  /(?:Color\(0x[0-9a-fA-F]{8}\)|Color\.from(?:ARGB|RGBO)\(|HS[LV]Color\.from[A-Z]\w*\(|(?<![A-Za-z])Colors\.[a-zA-Z0-9]+)(?:\.withOpacity\()?/g;
 
 console.log("\nSakina design system\n");
 

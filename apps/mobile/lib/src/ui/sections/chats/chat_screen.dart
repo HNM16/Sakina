@@ -463,7 +463,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     // The two primitives that belong on a message, in the
                     // order their meanings compose: it breathes while in doubt,
                     // and light crosses it at the moment the doubt ends.
-                    final bubble = _Bubble(
+                    final bubble = ChatBubble(
                       message: message,
                       isMine: isMine,
                       media: widget.media,
@@ -695,8 +695,9 @@ class _MaybeSendEntrance extends StatelessWidget {
   }
 }
 
-class _Bubble extends StatelessWidget {
-  const _Bubble({
+class ChatBubble extends StatelessWidget {
+  const ChatBubble({
+    super.key,
     required this.message,
     required this.isMine,
     required this.media,
@@ -707,7 +708,7 @@ class _Bubble extends StatelessWidget {
 
   final Message message;
   final bool isMine;
-  final MediaService media;
+  final MediaService? media;
   final String? quotedAuthor;
   final String? quotedPreview;
   final bool quoteMissing;
@@ -753,7 +754,11 @@ class _Bubble extends StatelessWidget {
           border: isMine ? null : Border.all(color: palette.line),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+          // `end` plus a full-width child is what stretched every bubble to
+          // the maximum. `start` with `min` lets the Column be as wide as its
+          // widest child and no wider.
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             if (quotedAuthor != null)
               QuotedMessage(
@@ -766,49 +771,81 @@ class _Bubble extends StatelessWidget {
                 preview: '',
               ),
             if (message.isMedia) ...[
-              MediaAttachment(message: message, media: media),
+              if (media != null)
+                MediaAttachment(message: message, media: media!),
               if (caption != null && caption.isNotEmpty) ...[
                 SizedBox(height: layout.gap / 2),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(caption),
-                ),
+                _textWithMeta(context, caption, palette),
+              ] else ...[
+                const SizedBox(height: 2),
+                _meta(context, palette),
               ],
             ] else
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(message.text),
-              ),
-            const SizedBox(height: 2),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _timeFormat.format(message.createdAt),
-                  style: Theme.of(context).textTheme.labelSmall,
-                ),
-                if (isMine) ...[
-                  const SizedBox(width: 4),
-                  // The delivery state the whole protocol exists to make
-                  // trustworthy: a clock until the server assigns a seq.
-                  Icon(
-                    switch (message.state) {
-                      MessageState.pending => Icons.schedule,
-                      MessageState.sent => Icons.done,
-                      MessageState.failed => Icons.error_outline,
-                    },
-                    size: 14,
-                    // Muted grey lands around 3:1 on the deep tile bubble —
-                    // fine for a decorative glyph, not for the one pixel that
-                    // tells you whether your message left the phone. It keeps
-                    // the inherited text colour; only failure is coloured.
-                    color: message.state == MessageState.failed ? palette.anor : null,
-                  ),
-                ],
-              ],
-            ),
+              _textWithMeta(context, message.text, palette),
           ],
         ),
+      ),
+    );
+  }
+
+  /// The time, and for your own messages the delivery tick.
+  ///
+  /// Tabular figures because these sit in a ragged column down the edge of the
+  /// conversation: proportional digits make 11:11 visibly narrower than 10:00
+  /// and the column looks broken.
+  Widget _meta(BuildContext context, SakinaPalette palette) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          _timeFormat.format(message.createdAt),
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+        ),
+        if (isMine) ...[
+          const SizedBox(width: 4),
+          // The delivery state the whole protocol exists to make
+          // trustworthy: a clock until the server assigns a seq.
+          Icon(
+            switch (message.state) {
+              MessageState.pending => Icons.schedule,
+              MessageState.sent => Icons.done,
+              MessageState.failed => Icons.error_outline,
+            },
+            size: 14,
+            // Muted grey lands around 3:1 on the deep tile bubble — fine for a
+            // decorative glyph, not for the one pixel that tells you whether
+            // your message left the phone. It keeps the inherited text colour;
+            // only failure is coloured.
+            color: message.state == MessageState.failed ? palette.anor : null,
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Text with the timestamp set into its last line.
+  ///
+  /// A separate meta row under the text forces the bubble to the width of
+  /// whichever is wider, so a two-word message got a bubble sized for a clock
+  /// and a tick. As a trailing [WidgetSpan] the meta joins the text's own line
+  /// breaking: it sits after the final word when there is room, and wraps to
+  /// its own line when there is not, which is what Telegram does and what the
+  /// eye expects.
+  Widget _textWithMeta(BuildContext context, String text, SakinaPalette palette) {
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: text),
+          WidgetSpan(
+            alignment: PlaceholderAlignment.bottom,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(start: 8),
+              child: _meta(context, palette),
+            ),
+          ),
+        ],
       ),
     );
   }
