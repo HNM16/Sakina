@@ -1,0 +1,15 @@
+# `build/` is generated output and gitignored. Without this, the first person
+# to run `flutter build` turns `pnpm test:flutter` into a wall of complaints
+# about code nobody wrote.
+analyzer:
+  exclude:
+    - build/**
+    - linux/**
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    - prefer_const_constructors
+    - prefer_final_locals
+    - avoid_print
+    - unawaited_futures

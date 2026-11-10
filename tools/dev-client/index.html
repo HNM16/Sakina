@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Сакина — dev client</title>
+<style>
+  /* Sakina's palette — see docs/BRAND.md. Шаб (night) ground, Фирӯза
+     (turquoise) accent, Анор (pomegranate) reserved for loss. */
+  :root {
+    --bg: #0A1220; --panel: #111B2C; --line: #22314B; --text: #E7EDF7;
+    --muted: #8496B3; --mine: #14504A; --theirs: #18243A; --accent: #32BBC8;
+    --warn: #E3AC55; --err: #D25A54;
+  }
+  * { box-sizing: border-box; }
+  body {
+    /* Noto Sans first: Tajik Cyrillic needs ғ ӣ қ ӯ ҳ ҷ, and a face without
+       them falls back mid-word. */
+    margin: 0; font: 14px/1.5 "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column;
+  }
+  header {
+    display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+    background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap;
+  }
+  header strong { color: var(--accent); letter-spacing: -.02em; }
+  #status { margin-left: auto; font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--line); }
+  #status.on { background: var(--accent); }
+  #status.warn { background: var(--warn); }
+  main { flex: 1; display: flex; min-height: 0; }
+  aside { width: 260px; border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+  aside h3 { margin: 0; padding: 10px 14px; font-size: 12px; text-transform: uppercase;
+             letter-spacing: .08em; color: var(--muted); border-bottom: 1px solid var(--line); }
+  #chats { flex: 1; overflow-y: auto; }
+  .chat { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--line); }
+  .chat:hover { background: var(--panel); }
+  .chat.active { background: var(--panel); border-left: 3px solid var(--accent); }
+  .chat .who { font-weight: 600; }
+  .chat .last { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  section { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  #log { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .msg { max-width: 70%; padding: 7px 11px; border-radius: 14px; background: var(--theirs); border: 1px solid var(--line); align-self: flex-start; word-break: break-word; }
+  .msg.mine { background: var(--mine); border-color: transparent; align-self: flex-end; }
+  .msg .meta { font-size: 11px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .msg.pending { opacity: .6; }
+  .msg.failed { background: var(--err); }
+  form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--line); }
+  input, button, select {
+    font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--text);
+    /* 44px is the iOS HIG floor and hard invariant 6 in the design-tells
+       guardrails. tools/device-matrix/verify.mjs measures every control at
+       every viewport in the matrix and fails below it. */
+    min-height: 44px;
+  }
+  input { flex: 1; }
+  button { background: var(--accent); border-color: var(--accent); cursor: pointer; font-weight: 600; }
+  button.ghost { background: var(--panel); border-color: var(--line); font-weight: 400; }
+  button:disabled { opacity: .5; cursor: default; }
+  #login { margin: auto; width: min(420px, 90vw); background: var(--panel);
+           border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+  #login h1 { margin: 0 0 4px; font-size: 20px; }
+  #login p { margin: 0 0 18px; color: var(--muted); font-size: 13px; }
+  #login input { width: 100%; margin-bottom: 10px; }
+  #login button { width: 100%; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .hint { font-size: 12px; color: var(--muted); }
+  .err { color: #ff8a94; font-size: 13px; min-height: 18px; }
+  code { background: var(--line); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  .hidden { display: none !important; }
+
+  /* ---------------------------------------------------------------------
+     Responsive, to the same breakpoints as apps/mobile/lib/src/layout.dart
+     and tools/device-matrix/devices.json. This client is an internal test
+     harness, not a product surface, so this is the functional minimum: it has
+     to survive the 31 widths in the matrix so the verifier's rendering pass
+     is measuring something real.
+
+     600 is the Material 3 compact/medium boundary. Below it the chat list and
+     the conversation cannot both be on screen, so the list becomes a drawer
+     the way it does on the phone.
+     --------------------------------------------------------------------- */
+  @media (max-width: 599px) {
+    aside {
+      position: absolute; inset: 0 auto 0 0; z-index: 5;
+      width: min(300px, 84vw);
+      background: var(--bg); border-right: 1px solid var(--line);
+      transform: translateX(-100%);
+      transition: transform 180ms ease-out;
+    }
+    body.list-open aside { transform: translateX(0); }
+    main { position: relative; }
+    #drawer-toggle { display: inline-flex; }
+    /* A narrow screen spends its width on the message, not on the margin. */
+    .msg { max-width: 86%; }
+    #log { padding: 10px; }
+    header { padding: 8px 10px; gap: 8px; }
+  }
+
+  /* Guardrail G2: motion needs a path that removes it, not one that shortens
+     it. The drawer still opens — it just arrives. */
+  @media (prefers-reduced-motion: reduce) {
+    aside { transition: none; }
+  }
+
+  #drawer-toggle { display: none; }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <h1>Sakina dev client</h1>
+  <p>Sign in with any email. The server is in dev mode, so the code comes back
+     in the response and is filled in for you — no real mail is sent.</p>
+  <input id="email" type="email" placeholder="you@example.com" autocomplete="off" />
+  <input id="code" type="text" placeholder="code (auto-filled)" autocomplete="off" />
+  <input id="invite" type="text" placeholder="invite code (only if invite-only)" autocomplete="off" />
+  <button id="go">Continue</button>
+  <p class="err" id="loginErr"></p>
+  <p class="hint">Open this page in a second tab (or a private window) with a
+     different email to talk to yourself.</p>
+</div>
+
+<header class="hidden" id="bar">
+  <button class="ghost" id="drawer-toggle" aria-label="Chats" aria-expanded="false">☰</button>
+  <strong>Sakina</strong>
+  <span id="me" class="hint"></span>
+  <button class="ghost" id="copyId">copy my id</button>
+  <span id="status">offline</span>
+</header>
+
+<main class="hidden" id="app">
+  <aside>
+    <h3>Chats</h3>
+    <div id="chats"></div>
+    <form id="newChat">
+      <input id="peer" placeholder="paste a user id" autocomplete="off" />
+      <button class="ghost">+</button>
+    </form>
+  </aside>
+  <section>
+    <div id="log"></div>
+    <form id="send">
+      <input id="text" placeholder="Паём..." autocomplete="off" disabled />
+      <button id="sendBtn" disabled>Send</button>
+    </form>
+  </section>
+</main>
+
+<script type="module">
+/**
+ * A deliberately small client for looking at the thing with your own eyes.
+ *
+ * It mirrors the Flutter app's structure closely enough to be a real test of
+ * the protocol — device id persisted per tab, optimistic local render, outbox
+ * replayed on reconnect, sync-by-seq on connect — but it is a test harness, not
+ * a product. The real client is apps/mobile.
+ */
+const API = location.origin.replace(/:\d+$/, ":4000");
+const WS = API.replace("http", "ws").replace(":4000", ":4001") + "/ws";
+
+// Per-tab so two tabs are two devices, not one account fighting itself.
+const store = sessionStorage;
+const deviceId = store.getItem("device_id") ?? crypto.randomUUID();
+store.setItem("device_id", deviceId);
+
+let session = null;      // { userId, token }
+let socket = null;
+let activeChat = null;
+const chats = new Map();               // chatId -> summary
+const messages = new Map();            // chatId -> [msg]
+const outbox = [];                     // frames composed while disconnected
+
+const $ = (id) => document.getElementById(id);
+
+async function api(path, body, token) {
+  const res = await fetch(API + path, {
+    method: body ? "POST" : "GET",
+    headers: {
+      "content-type": "application/json",
+      ...(token ? { authorization: "Bearer " + token } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  const text = await res.text();
+  const json = text ? JSON.parse(text) : null;
+  if (!res.ok) throw new Error(json?.error?.message ?? `HTTP ${res.status}`);
+  return json;
+}
+
+// --- sign in --------------------------------------------------------------
+
+$("go").onclick = async () => {
+  const email = $("email").value.trim();
+  const err = $("loginErr");
+  err.textContent = "";
+  if (!email) return (err.textContent = "enter an email");
+
+  try {
+    const identity = { kind: "email", value: email };
+
+    if (!$("code").value.trim()) {
+      const res = await api("/v1/auth/otp/request", { identity, locale: "tg" });
+      if (res.dev_code) $("code").value = res.dev_code;
+      else return (err.textContent = "server is not in dev mode — check your inbox for the code");
+    }
+
+    const invite = $("invite").value.trim();
+    const res = await api("/v1/auth/otp/verify", {
+      identity,
+      code: $("code").value.trim(),
+      device: { device_id: deviceId, platform: "web", name: "Dev web client" },
+      ...(invite ? { invite_code: invite } : {}),
+    });
+
+    session = { userId: res.user.id, token: res.tokens.access_token };
+    $("login").classList.add("hidden");
+    $("bar").classList.remove("hidden");
+    $("app").classList.remove("hidden");
+    $("me").textContent = `${res.user.display_name} · ${res.user.id}`;
+    connect();
+  } catch (e) {
+    err.textContent = e.message;
+    $("code").value = "";
+  }
+};
+
+$("email").addEventListener("keydown", (e) => e.key === "Enter" && $("go").click());
+$("code").addEventListener("keydown", (e) => e.key === "Enter" && $("go").click());
+
+$("copyId").onclick = () => navigator.clipboard?.writeText(session.userId);
+
+// The chat list becomes a drawer below 600px — see the media query above. The
+// same breakpoint the Flutter app switches panes at.
+$("drawer-toggle").onclick = () => {
+  const open = document.body.classList.toggle("list-open");
+  $("drawer-toggle").setAttribute("aria-expanded", String(open));
+};
+// Picking a chat on a phone should get the list out of the way.
+$("chats").addEventListener("click", () => {
+  document.body.classList.remove("list-open");
+  $("drawer-toggle").setAttribute("aria-expanded", "false");
+});
+
+// --- socket ---------------------------------------------------------------
+
+function setStatus(text, cls) {
+  const el = $("status");
+  el.textContent = text;
+  el.className = cls ?? "";
+}
+
+function connect() {
+  setStatus("connecting", "warn");
+  socket = new WebSocket(WS);
+
+  socket.onopen = () => {
+    socket.send(JSON.stringify({ t: "hello", d: { v: 1, token: session.token, device_id: deviceId } }));
+  };
+
+  socket.onmessage = (ev) => handleFrame(JSON.parse(ev.data));
+
+  socket.onclose = () => {
+    setStatus("offline");
+    // Same backoff idea as the Flutter client — the point is that a dropped
+    // connection is a status, not an error, and nothing on screen is lost.
+    setTimeout(connect, 1500);
+  };
+}
+
+function handleFrame(frame) {
+  const d = frame.d;
+
+  switch (frame.t) {
+    case "ready":
+      setStatus("online", "on");
+      for (const chat of d.chats) {
+        chats.set(chat.id, chat);
+        if (!messages.has(chat.id)) messages.set(chat.id, []);
+      }
+      renderChats();
+      // Catch up on anything missed while disconnected.
+      const cursors = [...chats.keys()].map((id) => ({
+        chat_id: id,
+        last_seq: Math.max(0, ...(messages.get(id) ?? []).map((m) => m.seq ?? 0)),
+      }));
+      if (cursors.length) socket.send(JSON.stringify({ t: "sync", d: { cursors } }));
+      // Drain anything composed while offline, same client_id as before so the
+      // server dedups instead of double-sending.
+      while (outbox.length) socket.send(JSON.stringify(outbox.shift()));
+      break;
+
+    case "message":
+      upsert(d.chat_id, d);
+      break;
+
+    case "sent": {
+      const list = messages.get(d.chat_id) ?? [];
+      const pending = list.find((m) => m.client_id === d.client_id);
+      if (pending) Object.assign(pending, { id: d.id, seq: d.seq, state: "sent" });
+      scheduleRender(d.chat_id);
+      break;
+    }
+
+    case "sync":
+      // One scheduled render for the whole page, not one per message.
+      for (const m of d.messages) upsert(d.chat_id, m);
+      break;
+
+    case "error":
+      if (d.ref) {
+        for (const list of messages.values()) {
+          const m = list.find((x) => x.client_id === d.ref);
+          if (m) m.state = "failed";
+        }
+        scheduleRender(activeChat);
+      }
+      console.warn("server error:", d.code, d.message);
+      break;
+  }
+}
+
+function upsert(chatId, msg) {
+  const list = messages.get(chatId) ?? [];
+  const existing = list.findIndex((m) => m.client_id === msg.client_id);
+
+  if (existing !== -1) {
+    list[existing] = { ...msg, state: "sent" };
+  } else {
+    // seq is gapless and monotonic, so an arriving message almost always
+    // belongs at the end. Checking that first turns the common case into an
+    // O(1) push instead of re-sorting the whole list on every message.
+    const last = list[list.length - 1];
+    if (!last || (msg.seq ?? 1e15) >= (last.seq ?? 1e15)) {
+      list.push({ ...msg, state: "sent" });
+    } else {
+      list.push({ ...msg, state: "sent" });
+      list.sort((a, b) => (a.seq ?? 1e15) - (b.seq ?? 1e15));
+    }
+  }
+
+  messages.set(chatId, list);
+  if (!chats.has(chatId)) refreshChats();
+  scheduleRender(chatId);
+}
+
+/**
+ * Coalesce work into one render per frame.
+ *
+ * A burst of twenty messages arriving in the same tick used to mean twenty
+ * full re-renders, all of them thrown away except the last. Batching on
+ * requestAnimationFrame means the DOM is touched once, right before the
+ * browser paints.
+ */
+let renderPending = false;
+let chatListDirty = false;
+
+function scheduleRender(chatId) {
+  if (chatId === activeChat) renderPending = true;
+  chatListDirty = true;
+
+  if (renderPending || chatListDirty) {
+    if (scheduleRender.queued) return;
+    scheduleRender.queued = true;
+    requestAnimationFrame(() => {
+      scheduleRender.queued = false;
+      if (renderPending) {
+        renderPending = false;
+        render();
+      }
+      if (chatListDirty) {
+        chatListDirty = false;
+        renderChats();
+      }
+    });
+  }
+}
+
+// --- chats ----------------------------------------------------------------
+
+async function refreshChats() {
+  const res = await api("/v1/chats", null, session.token);
+  for (const chat of res.chats) {
+    chats.set(chat.id, chat);
+    if (!messages.has(chat.id)) messages.set(chat.id, []);
+  }
+  renderChats();
+}
+
+$("newChat").onsubmit = async (e) => {
+  e.preventDefault();
+  const peer = $("peer").value.trim();
+  if (!peer) return;
+  try {
+    const chat = await api("/v1/chats", { kind: "direct", peer_id: peer }, session.token);
+    chats.set(chat.id, chat);
+    messages.set(chat.id, messages.get(chat.id) ?? []);
+    $("peer").value = "";
+    select(chat.id);
+  } catch (err) {
+    alert(err.message);
+  }
+};
+
+function title(chat) {
+  if (chat.title) return chat.title;
+  const others = chat.members.filter((m) => m.id !== session.userId);
+  return others.map((m) => m.display_name).join(", ") || "Saved messages";
+}
+
+let lastChatSignature = "";
+
+function renderChats() {
+  const box = $("chats");
+
+  // The chat list changes far less often than the message list. A cheap
+  // signature check skips the rebuild entirely for the common case of another
+  // message landing in the chat already on screen.
+  const signature = [...chats.values()]
+    .map((c) => {
+      const last = (messages.get(c.id) ?? []).at(-1);
+      return `${c.id}:${c.id === activeChat}:${last?.client_id ?? ""}:${last?.seq ?? ""}`;
+    })
+    .join("|");
+
+  if (signature === lastChatSignature) return;
+  lastChatSignature = signature;
+
+  box.textContent = "";
+  for (const chat of chats.values()) {
+    const div = document.createElement("div");
+    div.className = "chat" + (chat.id === activeChat ? " active" : "");
+    div.dataset.chatId = chat.id;
+    const last = (messages.get(chat.id) ?? []).at(-1);
+    div.innerHTML =
+      `<div class="who"></div><div class="last"></div>`;
+    div.querySelector(".who").textContent = title(chat);
+    div.querySelector(".last").textContent = last?.payload?.text ?? "";
+    div.onclick = () => select(chat.id);
+    box.appendChild(div);
+  }
+}
+
+function select(chatId) {
+  activeChat = chatId;
+  $("text").disabled = false;
+  $("sendBtn").disabled = false;
+  renderChats();
+  render();
+  $("text").focus();
+}
+
+/** client_id -> node, for the chat currently on screen. */
+let renderedChat = null;
+const renderedNodes = new Map();
+
+function messageClass(m, mine) {
+  return (
+    "msg" +
+    (mine ? " mine" : "") +
+    (m.state === "pending" ? " pending" : "") +
+    (m.state === "failed" ? " failed" : "")
+  );
+}
+
+/**
+ * Keyed, incremental DOM update.
+ *
+ * The previous version cleared the container and rebuilt every bubble on every
+ * incoming message — 120 messages meant 120 rebuilds of a growing list, which
+ * is quadratic and was blocking the main thread for up to 90ms at a time.
+ *
+ * Now each message owns a node keyed by client_id: new ones are appended,
+ * changed ones are patched in place, and untouched ones are never looked at.
+ */
+function render() {
+  const box = $("log");
+
+  // Switching chats is the only case that legitimately clears everything.
+  if (renderedChat !== activeChat) {
+    box.textContent = "";
+    renderedNodes.clear();
+    renderedChat = activeChat;
+  }
+
+  const list = messages.get(activeChat) ?? [];
+  const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+  const fragment = document.createDocumentFragment();
+
+  for (const m of list) {
+    const mine = m.sender_id === session.userId;
+    const existing = renderedNodes.get(m.client_id);
+
+    if (existing) {
+      // Only the two things that actually change after a message is on screen:
+      // its delivery state, and the seq the ack assigns it.
+      const cls = messageClass(m, mine);
+      if (existing.className !== cls) existing.className = cls;
+      const seq = String(m.seq ?? "");
+      if (existing.dataset.seq !== seq) {
+        existing.dataset.seq = seq;
+        const tick = m.state === "pending" ? "◷" : m.state === "failed" ? "✕" : "✓";
+        existing.lastChild.textContent = mine
+          ? `${tick} seq ${m.seq ?? "—"}`
+          : `seq ${m.seq ?? "—"}`;
+      }
+      continue;
+    }
+
+    const div = document.createElement("div");
+    div.className = messageClass(m, mine);
+    div.dataset.seq = m.seq ?? "";
+
+    const body = document.createElement("div");
+    body.textContent = m.payload?.text ?? "";
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    const tick = m.state === "pending" ? "◷" : m.state === "failed" ? "✕" : "✓";
+    meta.textContent = mine ? `${tick} seq ${m.seq ?? "—"}` : `seq ${m.seq ?? "—"}`;
+
+    div.append(body, meta);
+    renderedNodes.set(m.client_id, div);
+    fragment.appendChild(div);
+  }
+
+  // One DOM insertion for the whole batch rather than one per message.
+  if (fragment.childNodes.length > 0) box.appendChild(fragment);
+
+  // Only chase the bottom if the user was already there — yanking someone away
+  // from history they are reading is worse than a missed autoscroll.
+  if (nearBottom) box.scrollTop = box.scrollHeight;
+}
+
+// --- sending --------------------------------------------------------------
+
+$("send").onsubmit = (e) => {
+  e.preventDefault();
+  const text = $("text").value.trim();
+  if (!text || !activeChat) return;
+  $("text").value = "";
+
+  const clientId = crypto.randomUUID();
+  const frame = {
+    t: "send",
+    d: { client_id: clientId, chat_id: activeChat, payload: { type: "text", text } },
+  };
+
+  // Rendered before the network is touched — the same rule the Flutter client
+  // follows, and the reason this feels instant on a bad line.
+  const list = messages.get(activeChat) ?? [];
+  list.push({
+    client_id: clientId, chat_id: activeChat, sender_id: session.userId,
+    payload: { type: "text", text }, created_at: Date.now(), seq: null, state: "pending",
+  });
+  messages.set(activeChat, list);
+  scheduleRender(activeChat);
+
+  if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(frame));
+  else outbox.push(frame);
+};
+
+// Exposed so the Playwright check in tools/dev-client/verify.mjs can drive
+// offline behaviour without unplugging anything.
+window.__sakina = {
+  dropSocket: () => socket?.close(),
+  state: () => ({ userId: session?.userId, chats: [...chats.keys()], messages: [...messages] }),
+};
+</script>
+</body>
+</html>

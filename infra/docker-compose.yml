@@ -1,0 +1,72 @@
+name: sakina
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: sakina
+      POSTGRES_PASSWORD: sakina
+      POSTGRES_DB: sakina
+      # ICU collation support matters here: Tajik Cyrillic (ғ ӣ қ ӯ ҳ ҷ) sorts
+      # and compares incorrectly under the C locale, which breaks contact
+      # ordering and name search.
+      POSTGRES_INITDB_ARGS: "--locale-provider=icu --icu-locale=tg-TJ --encoding=UTF8"
+      LANG: C.UTF-8
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sakina -d sakina"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "no", "--save", ""]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Object storage for media. Self-hosted rather than S3: bandwidth out of a
+  # far-away region is both slow and expensive for users on Tajik mobile data,
+  # and keeping media in-country is likely to become a regulatory requirement.
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: sakina
+      MINIO_ROOT_PASSWORD: sakina-dev-secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # TURN relay for voice/video at M2. Nearly every mobile user in Tajikistan is
+  # behind carrier-grade NAT, so peer-to-peer WebRTC will mostly fail and calls
+  # will relay through here. Included now so it is provisioned, not discovered.
+  coturn:
+    image: coturn/coturn:latest
+    profiles: ["calls"]
+    network_mode: host
+    command:
+      - --listening-port=3478
+      - --fingerprint
+      - --lt-cred-mech
+      - --realm=sakina.local
+      - --user=sakina:sakina-dev-secret
+
+volumes:
+  postgres_data:
+  minio_data:
