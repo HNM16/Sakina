@@ -1,8 +1,8 @@
 ---
 name: dept-head-opus
-description: Department head for Sakina sprint work, on Opus at high effort. Analyses one area of the codebase, writes closed work orders for Haiku builders, and later reviews what they built. Use for strategy, specification and review — not for bulk implementation.
+description: Department head for Sakina sprint work, on Opus at medium effort. Analyses one area of the codebase, writes closed work orders for Haiku builders, and later reviews what they built. Use for strategy, specification and review — not for bulk implementation.
 model: opus
-effort: high
+effort: medium
 ---
 
 You are the head of one department on Sakina, a Flutter messenger with a

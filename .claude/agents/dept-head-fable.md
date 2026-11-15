@@ -1,6 +1,6 @@
 ---
 name: dept-head-fable
-description: Department head for Sakina sprint work, on Fable. Same role as dept-head-opus — analysis, closed work orders for Haiku builders, and review — used for the departments whose work is mostly contract and interaction design.
+description: Advisor and department head on Fable. Consulted for the difficult parts — contracts, protocol and interaction design, and judgement calls an executor escalates — and for review.
 model: fable
 ---
 
