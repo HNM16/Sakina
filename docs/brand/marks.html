@@ -1,0 +1,694 @@
+<title>Six Marks for Sakina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap">
+<style>
+  /* The palette is docs/BRAND.md, unchanged. Light is the designed swap, not
+     an inversion. Every colour is defined on bare :root first so the page
+     resolves in the un-stamped "system" state as well as either explicit one. */
+  :root {
+    --night:   #F4F7FB;
+    --surface: #FFFFFF;
+    --firuza:  #127D87;
+    --saffron: #B07A1E;
+    --anor:    #B23B36;
+    --muted:   #5A6C88;
+    --text:    #0A1220;
+    --hair:    #D7DEE9;
+    --tile:    #E4EAF3;
+
+    --step--1: .8125rem;
+    --step-0:  1rem;
+    --step-1:  1.1875rem;
+    --step-2:  1.75rem;
+    --step-3:  2.5rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --night:   #0A1220;
+      --surface: #18243A;
+      --firuza:  #32BBC8;
+      --saffron: #E3AC55;
+      --anor:    #D25A54;
+      --muted:   #8496B3;
+      --text:    #E8EEF7;
+      --hair:    #22314B;
+      --tile:    #1E2C45;
+    }
+  }
+  :root[data-theme="dark"] {
+    --night:   #0A1220;
+    --surface: #18243A;
+    --firuza:  #32BBC8;
+    --saffron: #E3AC55;
+    --anor:    #D25A54;
+    --muted:   #8496B3;
+    --text:    #E8EEF7;
+    --hair:    #22314B;
+    --tile:    #1E2C45;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--night);
+    color: var(--text);
+    font: 400 var(--step-0)/1.6 "Noto Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 62rem; margin: 0 auto; padding: 3.5rem 1.5rem 5rem; }
+
+  header { display: flex; flex-direction: column; gap: .9rem; }
+  .eyebrow {
+    font-size: var(--step--1); font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--firuza); margin: 0;
+  }
+  h1 {
+    font-size: var(--step-3); font-weight: 700; letter-spacing: -.03em;
+    line-height: 1.08; margin: 0; text-wrap: balance; max-width: 20ch;
+  }
+  .lede { font-size: var(--step-1); color: var(--muted); margin: 0; max-width: 62ch; }
+  header p:not(.lede):not(.eyebrow) { margin: 0; max-width: 66ch; color: var(--muted); }
+
+  .controls {
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    margin-top: 1.4rem; padding-top: 1.4rem; border-top: 1px solid var(--hair);
+  }
+  button {
+    font: 600 var(--step--1)/1 "Noto Sans", system-ui, sans-serif;
+    color: var(--text); background: var(--surface);
+    border: 1px solid var(--hair); border-radius: 10px;
+    min-height: 44px; padding: 0 1.1rem; cursor: pointer;
+  }
+  button:hover { border-color: var(--firuza); }
+  button:focus-visible { outline: 2px solid var(--firuza); outline-offset: 2px; }
+  button[aria-pressed="true"] { border-color: var(--firuza); color: var(--firuza); }
+  .controls span { font-size: var(--step--1); color: var(--muted); }
+
+  .candidate {
+    display: grid; grid-template-columns: 15rem 1fr; gap: 2.5rem;
+    padding: 2.75rem 0; border-top: 1px solid var(--hair); align-items: start;
+  }
+  .candidate:first-of-type { border-top: 2px solid var(--firuza); }
+
+  .stage { display: flex; flex-direction: column; gap: 1rem; align-items: center; }
+  .plate {
+    background: var(--surface); border-radius: 20px; padding: 1.75rem;
+    display: grid; place-items: center;
+  }
+  .loader { display: flex; align-items: center; gap: .65rem; color: var(--muted); font-size: var(--step--1); }
+
+  .about h2 {
+    font-size: var(--step-2); font-weight: 700; letter-spacing: -.02em;
+    margin: 0; line-height: 1.1;
+  }
+  .about h2 small {
+    display: block; font-size: var(--step--1); font-weight: 400;
+    letter-spacing: .04em; color: var(--muted); margin-top: .3rem;
+  }
+  .about p { margin: .9rem 0 0; max-width: 58ch; }
+  .about p.why { color: var(--muted); }
+
+  dl.beats { margin: 1.3rem 0 0; display: grid; gap: .55rem; }
+  dl.beats div { display: grid; grid-template-columns: 6.5rem 1fr; gap: 1rem; align-items: baseline; }
+  dl.beats dt {
+    font-size: var(--step--1); font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--firuza);
+  }
+  dl.beats dd { margin: 0; color: var(--muted); font-size: var(--step--1); }
+
+  .ramp { display: flex; gap: 1.1rem; align-items: flex-end; margin-top: 1.5rem; flex-wrap: wrap; }
+  .ramp figure { margin: 0; text-align: center; }
+  .ramp figcaption {
+    font-size: .6875rem; color: var(--muted); margin-top: .45rem;
+    font-variant-numeric: tabular-nums;
+  }
+  canvas { display: block; }
+
+  .verdict {
+    margin-top: 1.4rem; padding: .85rem 1.05rem; border-radius: 10px;
+    background: var(--tile); font-size: var(--step--1); max-width: 58ch;
+  }
+  .verdict b { color: var(--text); }
+
+  .launcher { margin-top: 3.5rem; padding-top: 2.5rem; border-top: 1px solid var(--hair); }
+  .launcher h2 { font-size: var(--step-2); margin: 0 0 .6rem; letter-spacing: -.02em; }
+  .launcher p { color: var(--muted); margin: 0 0 1.8rem; max-width: 62ch; }
+  .home {
+    background: var(--surface); border-radius: 22px; padding: 1.75rem;
+    display: flex; gap: 1.4rem; flex-wrap: wrap; align-items: flex-start;
+  }
+  .home figure { margin: 0; text-align: center; width: 3.5rem; }
+  .home figcaption { font-size: .625rem; color: var(--muted); margin-top: .4rem; line-height: 1.3; }
+  .blank { width: 48px; height: 48px; border-radius: 12px; background: var(--tile); }
+
+  footer {
+    margin-top: 3.5rem; padding-top: 2rem; border-top: 1px solid var(--hair);
+    color: var(--muted); font-size: var(--step--1); max-width: 66ch;
+  }
+  footer p { margin: 0 0 .8rem; }
+
+  @media (max-width: 46rem) {
+    .candidate { grid-template-columns: 1fr; gap: 1.6rem; }
+    .stage { align-items: flex-start; }
+    h1 { font-size: var(--step-2); }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Sakina · brand</p>
+    <h1>Six marks, and what each one does when it moves.</h1>
+    <p class="lede">
+      The audit found the current mark fails at launcher size: under 32&nbsp;px its
+      strokes go sub-pixel and the four tiers merge. These six are simpler by
+      construction, and each is drawn from a different part of the same world.
+    </p>
+    <p>
+      Every candidate is shown doing the two things a mark in this app has to do:
+      say something arrived, and say something is still happening. Watch the plate
+      on the left, then check the pixel ramp on the right. That ramp is the real
+      test.
+    </p>
+    <div class="controls">
+      <button id="motion" type="button" aria-pressed="true">Motion is on</button>
+      <span id="motion-note">Turn it off to see every reduced-motion fallback.</span>
+    </div>
+  </header>
+
+  <main id="candidates"></main>
+
+  <section class="launcher">
+    <h2>All six at 48&nbsp;px</h2>
+    <p>
+      A home screen, with the other apps left blank on purpose. This is the size
+      and the company the mark actually keeps, and the only comparison that
+      settles it.
+    </p>
+    <div class="home" id="home"></div>
+  </section>
+
+  <footer>
+    <p>
+      Colour and type are unchanged from <code>docs/BRAND.md</code>: firuza on
+      night, saffron for rare warmth, Noto Sans. Only the form is in question
+      here. Noto stays because the names below need ғ, ӣ, қ, ӯ, ҳ and ҷ, and most
+      display faces do not carry them.
+    </p>
+    <p>
+      Each animation is built from the three primitives already in
+      <code>docs/MOTION.md</code> — the light pass, the breath, and the turn — so
+      whichever mark wins, the motion language does not have to be rewritten.
+      Nothing here has been seen on a handset.
+    </p>
+  </footer>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const TAU = Math.PI * 2, R45 = Math.PI / 4;
+  const palette = { firuza: "#32BBC8", saffron: "#E3AC55", surface: "#18243A", muted: "#8496B3" };
+
+  function readPalette() {
+    const cs = getComputedStyle(document.documentElement);
+    for (const key of Object.keys(palette)) {
+      const v = cs.getPropertyValue("--" + key).trim();
+      if (v) palette[key] = v;
+    }
+  }
+
+  /* ---- shared geometry -------------------------------------------------- */
+
+  // A rounded square in unit space (0..100), centred, optionally turned.
+  function rsq(g, u, cx, cy, half, rot, radius) {
+    g.save();
+    g.translate(cx * u, cy * u);
+    if (rot) g.rotate(rot);
+    g.beginPath();
+    g.roundRect(-half * u, -half * u, half * 2 * u, half * 2 * u, radius * u);
+    g.restore();
+  }
+
+  // The light pass from motion.dart: one band crossing at 45 degrees, once.
+  // Composited source-atop so it lights the mark and never the ground.
+  function lightPass(g, px, t) {
+    if (t <= 0 || t >= 1) return;
+    const travel = px * 2, band = travel * 0.28;
+    const c = -band + t * (travel + band * 2);
+    const envelope = t < 0.18 ? t / 0.18 : t > 0.82 ? (1 - t) / 0.18 : 1;
+    const grad = g.createLinearGradient(c - band / 2, c - band / 2, c + band / 2, c + band / 2);
+    const lit = hexA(palette.saffron, 0.85 * Math.max(0, Math.min(1, envelope)));
+    grad.addColorStop(0, hexA(palette.saffron, 0));
+    grad.addColorStop(0.5, lit);
+    grad.addColorStop(1, hexA(palette.saffron, 0));
+    g.save();
+    g.globalCompositeOperation = "source-atop";
+    g.fillStyle = grad;
+    g.fillRect(0, 0, px, px);
+    g.restore();
+  }
+
+  function hexA(hex, a) {
+    const h = hex.replace("#", "");
+    const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  }
+
+  const ease = (t) => 1 - Math.pow(1 - t, 3);          // settle
+  const breath = (t) => 0.55 + 0.45 * (0.5 - Math.cos(t * TAU) / 2);
+
+  /* ---- the six marks ---------------------------------------------------- */
+  // Each draw(g, px, s) gets a state: s.wait 0..1 breathing phase, s.tob 0..1
+  // light-pass progress, s.step an integer tick for anything that advances.
+
+  const MARKS = [
+    {
+      id: "ravzan",
+      name: "РАВЗАН",
+      gloss: "ravzan — the aperture",
+      from: "The chorkhona seen from directly below: you see the frame, and you see the hole.",
+      why: "Closest to what exists now, and the cheapest thing to adopt. It keeps the reading the brand already argues for, an opening that lets light in, but as one solid tile instead of four thin outlines. That single change is what makes it survive at 16 px.",
+      beats: [
+        ["Arrived", "Light crosses the tile once. The aperture stays dark."],
+        ["Waiting", "The core breathes. Nothing else moves."],
+        ["Loading", "The aperture turns 45° and holds, so the opening alternates diamond and square."],
+      ],
+      verdict: "<b>Safest.</b> Same idea, made to work. Least distinctive of the six.",
+      draw(g, px, s) {
+        const u = px / 100;
+        rsq(g, u, 50, 50, 46, 0, 22); g.fillStyle = palette.firuza; g.fill();
+        g.save();
+        g.globalCompositeOperation = "destination-out";
+        rsq(g, u, 50, 50, 30, R45 + (s.step || 0) * R45, 5); g.fill();
+        g.restore();
+        g.globalAlpha = s.wait;
+        rsq(g, u, 50, 50, 12, 0, 3); g.fillStyle = palette.saffron; g.fill();
+        g.globalAlpha = 1;
+        lightPass(g, px, s.tob);
+      },
+    },
+    {
+      id: "partav",
+      name: "ПАРТАВ",
+      gloss: "partav — the ray",
+      from: "Not the skylight. The shaft of light it throws on the floor at noon.",
+      why: "The only candidate that draws the effect rather than the object, which is also the only one that has a direction built into it. A diagonal is a strong silhouette at any size, and the angle is already the brand's: 45°, the same one the light pass travels on.",
+      beats: [
+        ["Arrived", "The shaft slides down its own axis and lands."],
+        ["Waiting", "The landing patch breathes where the light falls."],
+        ["Loading", "The shaft sweeps through, over and over, like sun moving."],
+      ],
+      verdict: "<b>Most distinctive.</b> Also the one that breaks brand rule 1: saffron is supposed to be rare, and here it is half the mark.",
+      draw(g, px, s) {
+        const u = px / 100;
+        rsq(g, u, 50, 50, 46, 0, 22); g.fillStyle = palette.firuza; g.fill();
+        // The beam is saffron, not a hole. Cutting it out of the tile made a
+        // dark wedge that read as a blade; light behaves like light instead.
+        // Clipped to the tile, so it can run past the edge and the silhouette
+        // still survives.
+        const slide = s.tob > 0 ? (1 - ease(s.tob)) * 30 : 0;
+        g.save();
+        rsq(g, u, 50, 50, 46, 0, 22); g.clip();
+        g.translate(50 * u, 50 * u);
+        g.rotate(-R45);
+        g.globalAlpha = s.wait;
+        g.beginPath();
+        g.moveTo(-6 * u, (-70 - slide) * u);
+        g.lineTo(6 * u, (-70 - slide) * u);
+        g.lineTo(19 * u, (26 - slide) * u);
+        g.lineTo(-19 * u, (26 - slide) * u);
+        g.closePath();
+        g.fillStyle = palette.saffron; g.fill();
+        g.restore();
+        g.globalAlpha = 1;
+        lightPass(g, px, s.tob);
+      },
+    },
+    {
+      id: "chorkhona",
+      name: "ЧОРХОНА",
+      gloss: "chorkhona — four rooms",
+      from: "The word itself. Chor + khona is literally four rooms, and in Tajik чорхона also means checked, as in cloth.",
+      why: "The one candidate whose form is the translation of its own name, which makes it explainable in a sentence to someone who has never heard of a Pamiri roof. Four squares is also the least there is to draw, so it holds at any size and costs almost nothing to paint.",
+      beats: [
+        ["Arrived", "All four light at once, then settle."],
+        ["Waiting", "The rooms breathe in turn, one behind the next."],
+        ["Loading", "One room is lit at a time, going round. The turn without any rotation."],
+      ],
+      verdict: "<b>Simplest, and the best story.</b> A 2×2 check is well-trodden ground.",
+      draw(g, px, s) {
+        const u = px / 100;
+        const at = [[29, 29], [71, 29], [71, 71], [29, 71]];
+        at.forEach(([x, y], i) => {
+          const phase = (s.wait !== 1) ? breath((s.phase + i * 0.25) % 1) : 1;
+          // One room is lit at rest. Without it this is the stock grid glyph.
+          const lit = s.step !== null ? s.step % 4 === i : i === 0;
+          g.globalAlpha = s.wait === 1 ? 1 : phase;
+          rsq(g, u, x, y, 17, 0, 5);
+          g.fillStyle = lit ? palette.saffron : palette.firuza;
+          g.fill();
+        });
+        g.globalAlpha = 1;
+        lightPass(g, px, s.tob);
+      },
+    },
+    {
+      id: "du",
+      name: "ДУ",
+      gloss: "du — two",
+      from: "Two rooms that share a wall. The overlap is the part that belongs to both.",
+      why: "The only one that says messenger rather than architecture. It reads as two people before it reads as a shape, and the saffron sits exactly where the meaning is. Offset rather than concentric on purpose, which keeps it clear of both the nested-square family and the eight-pointed star.",
+      beats: [
+        ["Arrived", "The two close the gap and the shared part lights."],
+        ["Waiting", "They breathe alternately. Call, then answer."],
+        ["Loading", "The same alternation, held indefinitely."],
+      ],
+      verdict: "<b>Most on-subject.</b> Two shapes is the most that can merge at 16 px.",
+      draw(g, px, s) {
+        const u = px / 100;
+        // Both squares upright and offset on the diagonal. Turning one of them
+        // muddied the overlap and cost the shape its reading as two of a kind.
+        const gap = s.tob > 0 ? (1 - ease(s.tob)) * 9 : 0;
+        const a = [35 - gap, 35 - gap], b = [65 + gap, 65 + gap];
+        const pulseA = s.wait === 1 ? 1 : breath(s.phase % 1);
+        const pulseB = s.wait === 1 ? 1 : breath((s.phase + 0.5) % 1);
+        g.globalAlpha = pulseA;
+        rsq(g, u, a[0], a[1], 29, 0, 9); g.fillStyle = palette.firuza; g.fill();
+        g.globalAlpha = pulseB;
+        rsq(g, u, b[0], b[1], 29, 0, 9); g.fillStyle = palette.firuza; g.fill();
+        g.globalAlpha = 1;
+        g.save();
+        rsq(g, u, a[0], a[1], 29, 0, 9); g.clip();
+        rsq(g, u, b[0], b[1], 29, 0, 9); g.fillStyle = palette.saffron; g.fill();
+        g.restore();
+        lightPass(g, px, s.tob);
+      },
+    },
+    {
+      id: "zina",
+      name: "ЗИНА",
+      gloss: "zina — the step",
+      from: "The chorkhona in section, which is the view nobody draws. Each course of timber steps inward over the one below.",
+      why: "It is the only candidate that keeps the stepping, and stepping is the thing that makes the roof a roof. It also gives motion somewhere to go: light can climb a stair, which is a more literal picture of what the building does than anything a spin could show.",
+      beats: [
+        ["Arrived", "Light climbs the steps once and reaches the opening."],
+        ["Waiting", "The opening at the top breathes."],
+        ["Loading", "The climb repeats. Three steps, then it starts again."],
+      ],
+      verdict: "<b>Best motion.</b> Risks reading as a bar chart when it is still.",
+      draw(g, px, s) {
+        const u = px / 100;
+        // Two stepped walls corbelling inward, with the opening between them.
+        // Drawn as positive form rather than as a hole in a tile: a notch cut
+        // out of a tile kept reading as a keyhole.
+        const wall = (mirror) => {
+          g.save();
+          if (mirror) { g.translate(100 * u, 0); g.scale(-1, 1); }
+          g.beginPath();
+          g.moveTo(12 * u, 86 * u);
+          g.lineTo(12 * u, 54 * u); g.lineTo(28 * u, 54 * u);
+          g.lineTo(28 * u, 28 * u); g.lineTo(44 * u, 28 * u);
+          g.lineTo(44 * u, 86 * u);
+          g.closePath();
+          g.fillStyle = palette.firuza; g.fill();
+          g.restore();
+        };
+        g.globalAlpha = s.wait;
+        wall(false); wall(true);
+        g.globalAlpha = 1;
+        // The climb: one course lit at a time, both walls together.
+        const courses = [
+          [[12, 80, 32], [56, 80, 32]],
+          [[12, 54, 16], [72, 54, 16]],
+          [[28, 28, 16], [56, 28, 16]],
+        ];
+        if (s.step !== null) {
+          const i = s.step % 4;
+          if (i < 3) {
+            g.fillStyle = palette.saffron;
+            for (const [x, y, w] of courses[i]) g.fillRect(x * u, y * u, w * u, 6 * u);
+          }
+        }
+        g.globalAlpha = s.wait;
+        rsq(g, u, 50, 20, 6, 0, 2); g.fillStyle = palette.saffron; g.fill();
+        g.globalAlpha = 1;
+        lightPass(g, px, s.tob);
+      },
+    },
+    {
+      id: "samani",
+      name: "САМАНӢ",
+      gloss: "samani — the Samanid bond",
+      from: "The basket-weave brickwork on the Samanid mausoleum in Bukhara, which is the one building Tajik national identity is built on.",
+      why: "Firuza was already chosen off Samanid tilework, so this is the only candidate where the colour and the form come from the same place. Four bars in a pinwheel also solve a problem the current mark has: a four-fold symmetric shape cannot show a smooth spin, but bars that light in turn can show rotation without rotating.",
+      beats: [
+        ["Arrived", "The four bars light in sequence, once round."],
+        ["Waiting", "The whole bond breathes as one."],
+        ["Loading", "One bar lit at a time, going round, and nothing turns."],
+      ],
+      verdict: "<b>Most rooted.</b> Four bars is the most complex of the six, and the pinwheel arrangement is rotational — worth a second opinion from someone Tajik before it goes anywhere near a store listing.",
+      draw(g, px, s) {
+        const u = px / 100;
+        // Four bars, each stopping short of the next, so the joints stay open
+        // and the weave reads. Overlapping them closes it into a plain ring.
+        const bars = [
+          [14, 14, 48, 20], // top, running left to right
+          [66, 14, 20, 48], // right, running top to bottom
+          [38, 66, 48, 20], // bottom, running right to left
+          [14, 38, 20, 48], // left, running bottom to top
+        ];
+        g.globalAlpha = s.wait;
+        bars.forEach(([x, y, w, h], i) => {
+          const lit = s.step !== null && s.step % 4 === i;
+          g.beginPath();
+          g.roundRect(x * u, y * u, w * u, h * u, 6 * u);
+          g.fillStyle = lit ? palette.saffron : palette.firuza;
+          g.fill();
+        });
+        g.globalAlpha = 1;
+        lightPass(g, px, s.tob);
+      },
+    },
+  ];
+
+  /* ---- rendering -------------------------------------------------------- */
+
+  let motion = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const canvases = [];
+
+  function fit(cv, px) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = px * dpr; cv.height = px * dpr;
+    cv.style.width = px + "px"; cv.style.height = px + "px";
+    const g = cv.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return g;
+  }
+
+  // Settled: everything at rest, nothing mid-animation. This is what the
+  // reduced-motion path shows, and what the pixel ramp is measured on.
+  const SETTLED = { wait: 1, tob: 0, phase: 0, step: null };
+
+  // Drawn at true pixel size, then magnified with smoothing off, so this is
+  // the pixels a launcher gets rather than a resampled guess.
+  function drawRamp(entry) {
+    const { cv, mark, px, zoom } = entry;
+    const off = document.createElement("canvas");
+    off.width = px; off.height = px;
+    mark.draw(off.getContext("2d"), px, SETTLED);
+    const g = cv.getContext("2d");
+    g.clearRect(0, 0, cv.width, cv.height);
+    g.imageSmoothingEnabled = false;
+    g.drawImage(off, 0, 0, px * zoom, px * zoom);
+  }
+
+  function paint(cv, mark, state, px) {
+    const g = cv.getContext("2d");
+    g.save();
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, cv.width, cv.height);
+    g.restore();
+    mark.draw(g, px, state);
+  }
+
+  // One cycle tells the whole story of a send: idle, waiting, arrival, rest.
+  const CYCLE = 4200, WAIT_IN = 600, WAIT_OUT = 2600, TOB = 320;
+
+  function stateAt(now, mark) {
+    if (!motion) return SETTLED;
+    const t = now % CYCLE;
+    const s = { wait: 1, tob: 0, phase: (now % 1800) / 1800, step: null };
+    if (t > WAIT_IN && t < WAIT_OUT) {
+      s.wait = breath(((t - WAIT_IN) / 900) % 1);
+    } else if (t >= WAIT_OUT && t < WAIT_OUT + TOB) {
+      s.tob = (t - WAIT_OUT) / TOB;
+    }
+    return s;
+  }
+
+  function loaderState(now, mark) {
+    if (!motion) return SETTLED;
+    return {
+      wait: 1,
+      tob: 0,
+      phase: (now % 1800) / 1800,
+      step: Math.floor(now / 460),
+    };
+  }
+
+  let rafId = 0, tick = 0;
+
+  function frame(now) {
+    rafId = 0;
+    if ((tick++ & 31) === 0) readPalette();   // theme changes, not every frame
+    for (const item of canvases) {
+      const state = item.kind === "loader" ? loaderState(now, item.mark) : stateAt(now, item.mark);
+      paint(item.cv, item.mark, state, item.px);
+    }
+    if (motion) rafId = requestAnimationFrame(frame);
+  }
+
+  /* ---- build the page --------------------------------------------------- */
+
+  const RAMP = [48, 32, 24, 16];
+  const host = document.getElementById("candidates");
+  // Anything drawn once rather than every frame still has to follow the theme.
+  const statics = [];
+
+  readPalette();
+
+  for (const mark of MARKS) {
+    const section = document.createElement("section");
+    section.className = "candidate";
+
+    const stage = document.createElement("div");
+    stage.className = "stage";
+
+    const plate = document.createElement("div");
+    plate.className = "plate";
+    const big = document.createElement("canvas");
+    fit(big, 132);
+    canvases.push({ cv: big, mark, px: 132, kind: "story" });
+    plate.appendChild(big);
+
+    const loaderRow = document.createElement("div");
+    loaderRow.className = "loader";
+    const small = document.createElement("canvas");
+    fit(small, 30);
+    canvases.push({ cv: small, mark, px: 30, kind: "loader" });
+    loaderRow.appendChild(small);
+    const loaderLabel = document.createElement("span");
+    loaderLabel.textContent = "loading";
+    loaderRow.appendChild(loaderLabel);
+
+    stage.append(plate, loaderRow);
+
+    const about = document.createElement("div");
+    about.className = "about";
+    about.innerHTML =
+      `<h2>${mark.name}<small>${mark.gloss}</small></h2>` +
+      `<p>${mark.from}</p>` +
+      `<p class="why">${mark.why}</p>`;
+
+    const dl = document.createElement("dl");
+    dl.className = "beats";
+    for (const [term, text] of mark.beats) {
+      const row = document.createElement("div");
+      const dt = document.createElement("dt"); dt.textContent = term;
+      const dd = document.createElement("dd"); dd.textContent = text;
+      row.append(dt, dd);
+      dl.appendChild(row);
+    }
+    about.appendChild(dl);
+
+    const ramp = document.createElement("div");
+    ramp.className = "ramp";
+    for (const px of RAMP) {
+      const zoom = px <= 16 ? 5 : px <= 24 ? 4 : px <= 32 ? 3 : 2;
+      const shown = document.createElement("canvas");
+      shown.width = px * zoom; shown.height = px * zoom;
+      const entry = { cv: shown, mark, px, zoom };
+      statics.push(entry);
+      drawRamp(entry);
+      const fig = document.createElement("figure");
+      const cap = document.createElement("figcaption");
+      cap.textContent = px + " px";
+      fig.append(shown, cap);
+      ramp.appendChild(fig);
+    }
+    about.appendChild(ramp);
+
+    const verdict = document.createElement("p");
+    verdict.className = "verdict";
+    verdict.innerHTML = mark.verdict;
+    about.appendChild(verdict);
+
+    section.append(stage, about);
+    host.appendChild(section);
+  }
+
+  // The home screen. Other apps are left blank rather than guessed at.
+  const home = document.getElementById("home");
+  const order = [0, 1, 2, -1, 3, 4, 5, -1, -1];
+  for (const i of order) {
+    if (i < 0) {
+      const blank = document.createElement("div");
+      blank.className = "blank";
+      home.appendChild(blank);
+      continue;
+    }
+    const mark = MARKS[i];
+    const fig = document.createElement("figure");
+    const cv = document.createElement("canvas");
+    fit(cv, 48);
+    const entry = { cv, mark, px: 48 };
+    statics.push(entry);
+    paint(cv, mark, SETTLED, 48);
+    const cap = document.createElement("figcaption");
+    cap.textContent = mark.name;
+    fig.append(cv, cap);
+    home.appendChild(fig);
+  }
+
+  function repaintStatic() {
+    readPalette();
+    for (const entry of statics) {
+      if (entry.zoom) drawRamp(entry);
+      else paint(entry.cv, entry.mark, SETTLED, entry.px);
+    }
+  }
+
+  /* ---- motion control --------------------------------------------------- */
+
+  const toggle = document.getElementById("motion");
+  const note = document.getElementById("motion-note");
+
+  function applyMotion() {
+    toggle.textContent = motion ? "Motion is on" : "Motion is off";
+    toggle.setAttribute("aria-pressed", String(motion));
+    note.textContent = motion
+      ? "Turn it off to see every reduced-motion fallback."
+      : "Every mark is at rest. No animation is shortened, all of it is gone.";
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    if (motion) {
+      rafId = requestAnimationFrame(frame);
+    } else {
+      readPalette();
+      for (const item of canvases) paint(item.cv, item.mark, SETTLED, item.px);
+    }
+  }
+
+  toggle.addEventListener("click", () => { motion = !motion; applyMotion(); });
+
+  const dark = window.matchMedia("(prefers-color-scheme: dark)");
+  dark.addEventListener("change", () => { repaintStatic(); if (!motion) applyMotion(); });
+
+  readPalette();
+  applyMotion();
+  repaintStatic();
+})();
+</script>

@@ -1,0 +1,73 @@
+name: sakina
+description: Sakina — messenger for Tajikistan.
+publish_to: "none"
+version: 0.0.1+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  # Deliberately few dependencies. Every package is weight in the APK, and the
+  # target device is a cheap low-RAM Android on metered data.
+  http: ^1.2.2
+  web_socket_channel: ^3.0.1
+  sqflite: ^2.4.1
+  path: ^1.9.0
+  shared_preferences: ^2.3.3
+  uuid: ^4.5.1
+  # Pinned by flutter_localizations, which requires ^0.20.3 on the current
+  # stable. We use exactly one thing from it, DateFormat.Hm().
+  intl: ^0.20.3
+  # Push. firebase_messaging covers Android (FCM) and iOS (APNs via FCM), which
+  # is one integration instead of two — worth the dependency weight given push
+  # is the difference between a messenger and a demo.
+  firebase_core: ^3.8.0
+  firebase_messaging: ^15.1.5
+  flutter_local_notifications: ^18.0.1
+  # Attachments. Four packages, each doing one thing this cannot do without:
+  # choosing a photo or video, choosing a document, playing a video inline, and
+  # finding a directory to cache downloads in. A messenger where you can send a
+  # video but not watch one is not a feature, which is what pays for
+  # video_player's weight.
+  image_picker: ^1.1.2
+  file_picker: ^8.1.6
+  video_player: ^2.9.2
+  path_provider: ^2.1.5
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+  # Desktop-only, and a dev dependency so it never reaches a phone: sqflite is
+  # an Android/iOS plugin, and tool/desktop_harness.dart needs the same API
+  # backed by the machine's own sqlite3 to run the app on a desktop.
+  sqflite_common_ffi: ^2.3.4
+
+flutter:
+  uses-material-design: true
+
+  # Bundled rather than borrowed from the phone. `fontFamily` used to name a
+  # face that was never shipped with the app, so Flutter asked the platform for
+  # it and took whatever came back — SamsungOne on a Samsung, MiSans on a
+  # Xiaomi. The app looked different on every skin and nothing guaranteed the
+  # glyphs it needs.
+  #
+  # Subset to Latin, Latin Extended-A and the whole Cyrillic block: a messenger
+  # receives text nobody planned for, and a name in Ukrainian falling back to a
+  # system face mid-word is the exact failure this is here to prevent.
+  # Regenerate with tools/build-fonts.mjs.
+  fonts:
+    - family: IBM Plex Sans
+      fonts:
+        - asset: assets/fonts/IBMPlexSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/IBMPlexSans-Bold.ttf
+          weight: 700

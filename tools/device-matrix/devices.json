@@ -1,0 +1,77 @@
+{
+  "$comment": [
+    "Real device geometry, in LOGICAL units — points on iOS, dp on Android, CSS",
+    "pixels in a browser. These are the numbers layout actually sees; physical",
+    "pixel counts and screen diagonals are not.",
+    "",
+    "This file is the single source of truth for the device matrix. Both the",
+    "Flutter layout system (apps/mobile/lib/src/layout.dart) and the verifier",
+    "(verify.mjs) are checked against it, and the verifier fails if they drift.",
+    "",
+    "The point of the table is NOT to special-case devices. It is to establish",
+    "the RANGE the layout has to survive, and to give the verifier real widths",
+    "to run the rules at. No code should ever branch on a device name."
+  ],
+
+  "breakpoints": {
+    "$comment": [
+      "Material 3 window size classes, unchanged. Guardrail G10 says convention",
+      "wins where familiarity lowers error rates, and inventing a parallel set of",
+      "breakpoints next to the ones the widget library already uses is exactly",
+      "the sort of gratuitous difference that costs more than it earns.",
+      "",
+      "narrow is ours, and it sits INSIDE compact: 344dp (Galaxy Z Fold outer",
+      "screen) is 60dp tighter than a 404dp iPhone, and that gap is the",
+      "difference between a composer with room for a label and one without."
+    ],
+    "narrow": 375,
+    "compact": 600,
+    "medium": 840
+  },
+
+  "minTapTarget": 44,
+  "minSupportedWidth": 320,
+
+  "devices": [
+    { "name": "Android floor (Galaxy J2 era)", "vendor": "generic", "w": 320, "h": 640, "dpr": 2, "safeTop": 24, "safeBottom": 0, "note": "Not a target, a floor. Nothing may overflow here." },
+
+    { "name": "Galaxy Z Fold outer", "vendor": "samsung", "w": 344, "h": 882, "dpr": 3, "safeTop": 32, "safeBottom": 24, "note": "Narrowest modern device. The real stress case." },
+    { "name": "Galaxy A15 / A54", "vendor": "samsung", "w": 360, "h": 800, "dpr": 3, "safeTop": 24, "safeBottom": 24, "note": "The volume seller in this market." },
+    { "name": "Galaxy S23 / S24 / S25", "vendor": "samsung", "w": 360, "h": 780, "dpr": 3, "safeTop": 32, "safeBottom": 24 },
+    { "name": "Galaxy Z Flip (main)", "vendor": "samsung", "w": 360, "h": 880, "dpr": 3, "safeTop": 32, "safeBottom": 24, "note": "22:9. Tall enough that vertical assumptions break." },
+    { "name": "Galaxy S24 Ultra / S25 Ultra", "vendor": "samsung", "w": 384, "h": 832, "dpr": 3, "safeTop": 32, "safeBottom": 24 },
+    { "name": "Galaxy Z Fold inner", "vendor": "samsung", "w": 674, "h": 841, "dpr": 3, "safeTop": 32, "safeBottom": 24, "note": "Unfolds mid-session. Two-pane, and the switch must not lose state." },
+    { "name": "Galaxy Tab S9", "vendor": "samsung", "w": 800, "h": 1280, "dpr": 2, "safeTop": 24, "safeBottom": 24 },
+
+    { "name": "iPhone 11", "vendor": "apple", "w": 414, "h": 896, "dpr": 2, "safeTop": 48, "safeBottom": 34, "note": "Notch." },
+    { "name": "iPhone 11 Pro", "vendor": "apple", "w": 375, "h": 812, "dpr": 3, "safeTop": 44, "safeBottom": 34 },
+    { "name": "iPhone 11 Pro Max", "vendor": "apple", "w": 414, "h": 896, "dpr": 3, "safeTop": 44, "safeBottom": 34 },
+
+    { "name": "iPhone 12 mini", "vendor": "apple", "w": 360, "h": 780, "dpr": 3, "safeTop": 50, "safeBottom": 34 },
+    { "name": "iPhone 12 / 12 Pro", "vendor": "apple", "w": 390, "h": 844, "dpr": 3, "safeTop": 47, "safeBottom": 34 },
+    { "name": "iPhone 12 Pro Max", "vendor": "apple", "w": 428, "h": 926, "dpr": 3, "safeTop": 47, "safeBottom": 34 },
+
+    { "name": "iPhone 13 mini", "vendor": "apple", "w": 375, "h": 812, "dpr": 3, "safeTop": 50, "safeBottom": 34 },
+    { "name": "iPhone 13 / 13 Pro", "vendor": "apple", "w": 390, "h": 844, "dpr": 3, "safeTop": 47, "safeBottom": 34 },
+    { "name": "iPhone 13 Pro Max", "vendor": "apple", "w": 428, "h": 926, "dpr": 3, "safeTop": 47, "safeBottom": 34 },
+
+    { "name": "iPhone 14", "vendor": "apple", "w": 390, "h": 844, "dpr": 3, "safeTop": 47, "safeBottom": 34 },
+    { "name": "iPhone 14 Plus", "vendor": "apple", "w": 428, "h": 926, "dpr": 3, "safeTop": 47, "safeBottom": 34 },
+    { "name": "iPhone 14 Pro", "vendor": "apple", "w": 393, "h": 852, "dpr": 3, "safeTop": 59, "safeBottom": 34, "note": "First Dynamic Island. Top inset jumps to 59." },
+    { "name": "iPhone 14 Pro Max", "vendor": "apple", "w": 430, "h": 932, "dpr": 3, "safeTop": 59, "safeBottom": 34 },
+
+    { "name": "iPhone 15 / 15 Pro", "vendor": "apple", "w": 393, "h": 852, "dpr": 3, "safeTop": 59, "safeBottom": 34 },
+    { "name": "iPhone 15 Plus / 15 Pro Max", "vendor": "apple", "w": 430, "h": 932, "dpr": 3, "safeTop": 59, "safeBottom": 34 },
+
+    { "name": "iPhone 16 / 16 Pro", "vendor": "apple", "w": 402, "h": 874, "dpr": 3, "safeTop": 59, "safeBottom": 34, "confidence": "check", "note": "16 base is 393x852; 16 Pro is 402x874. Verify before shipping store assets." },
+    { "name": "iPhone 16 Plus", "vendor": "apple", "w": 430, "h": 932, "dpr": 3, "safeTop": 59, "safeBottom": 34 },
+    { "name": "iPhone 16 Pro Max", "vendor": "apple", "w": 440, "h": 956, "dpr": 3, "safeTop": 59, "safeBottom": 34, "note": "Widest iPhone in the matrix." },
+
+    { "name": "iPhone 17 / 17 Pro", "vendor": "apple", "w": 402, "h": 874, "dpr": 3, "safeTop": 59, "safeBottom": 34, "confidence": "check", "note": "Close to the knowledge cutoff. Confirm against Apple's spec page before relying on it — the layout does not depend on it being exact, only on it sitting inside the 320-440 range." },
+    { "name": "iPhone 17 Pro Max", "vendor": "apple", "w": 440, "h": 956, "dpr": 3, "safeTop": 59, "safeBottom": 34, "confidence": "check" },
+    { "name": "iPhone Air", "vendor": "apple", "w": 420, "h": 912, "dpr": 3, "safeTop": 59, "safeBottom": 34, "confidence": "check" },
+
+    { "name": "iPad mini", "vendor": "apple", "w": 744, "h": 1133, "dpr": 2, "safeTop": 24, "safeBottom": 20 },
+    { "name": "iPad Pro 11\"", "vendor": "apple", "w": 834, "h": 1194, "dpr": 2, "safeTop": 24, "safeBottom": 20 }
+  ]
+}

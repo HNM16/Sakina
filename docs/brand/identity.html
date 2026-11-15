@@ -1,0 +1,573 @@
+<title>Sakina Visual Identity</title>
+<style>
+  /* Dark-first: Sakina is named for stillness, and the night sky over the
+     Pamirs is the ground the whole system is built on. Light is the swap. */
+  :root {
+    --ground: #0A1220;
+    --surface: #111B2C;
+    --raised: #18243A;
+    --line: #22314B;
+    --text: #E7EDF7;
+    --muted: #8496B3;
+    --tile: #32BBC8;
+    --tile-soft: #14504A;
+    --saffron: #E3AC55;
+    --anor: #D25A54;
+    --bubble-mine: #14504A;
+    --bubble-theirs: #18243A;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.28);
+
+    --step--1: clamp(.78rem, .76rem + .1vw, .84rem);
+    --step-0: clamp(.95rem, .92rem + .16vw, 1.06rem);
+    --step-1: clamp(1.2rem, 1.1rem + .5vw, 1.5rem);
+    --step-2: clamp(1.7rem, 1.4rem + 1.4vw, 2.5rem);
+    --step-3: clamp(2.4rem, 1.7rem + 3.2vw, 4.4rem);
+
+    --sans: "Segoe UI", system-ui, -apple-system, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --ground: #F4F7FB;
+      --surface: #FFFFFF;
+      --raised: #FFFFFF;
+      --line: #DFE7F1;
+      --text: #0C1524;
+      --muted: #5A6C88;
+      --tile: #127D87;
+      --tile-soft: #D2EEE9;
+      --saffron: #B07A1E;
+      --anor: #B23B36;
+      --bubble-mine: #D2EEE9;
+      --bubble-theirs: #FFFFFF;
+      --shadow: 0 1px 2px rgba(12,21,36,.06), 0 8px 24px rgba(12,21,36,.07);
+    }
+  }
+
+  :root[data-theme="light"] {
+    --ground: #F4F7FB;
+    --surface: #FFFFFF;
+    --raised: #FFFFFF;
+    --line: #DFE7F1;
+    --text: #0C1524;
+    --muted: #5A6C88;
+    --tile: #127D87;
+    --tile-soft: #D2EEE9;
+    --saffron: #B07A1E;
+    --anor: #B23B36;
+    --bubble-mine: #D2EEE9;
+    --bubble-theirs: #FFFFFF;
+    --shadow: 0 1px 2px rgba(12,21,36,.06), 0 8px 24px rgba(12,21,36,.07);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: var(--step-0);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 62rem;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 6vw, 6rem) clamp(1.15rem, 4vw, 2.5rem) 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(3.5rem, 7vw, 6.5rem);
+  }
+
+  section { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .eyebrow {
+    font-size: var(--step--1);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--tile);
+    font-weight: 600;
+    margin: 0;
+  }
+
+  h1, h2, h3 { margin: 0; text-wrap: balance; }
+
+  h1 {
+    font-size: var(--step-3);
+    font-weight: 700;
+    letter-spacing: -.035em;
+    line-height: 1.02;
+  }
+  h2 { font-size: var(--step-2); font-weight: 650; letter-spacing: -.025em; line-height: 1.1; }
+  h3 { font-size: var(--step-1); font-weight: 620; letter-spacing: -.015em; }
+
+  p { margin: 0; max-width: 62ch; }
+  .lede { font-size: var(--step-1); color: var(--muted); line-height: 1.5; max-width: 46ch; }
+  .note { color: var(--muted); font-size: var(--step--1); max-width: 68ch; }
+
+  strong { font-weight: 650; color: var(--text); }
+
+  /* ---- hero -------------------------------------------------------- */
+  .hero { display: flex; flex-direction: column; gap: 2rem; align-items: flex-start; }
+
+  .mark-row { display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap; }
+
+  .mark { width: 84px; height: 84px; flex: none; }
+  .mark rect { fill: none; stroke: var(--tile); stroke-width: 5; }
+  .mark .core { fill: var(--saffron); stroke: none; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .mark rect { animation: settle 1.6s cubic-bezier(.2,.7,.3,1) both; }
+    .mark rect:nth-child(2) { animation-delay: .12s; }
+    .mark rect:nth-child(3) { animation-delay: .24s; }
+    .mark .core { animation: glow 1.4s ease-out .5s both; }
+    @keyframes settle { from { opacity: 0; transform: scale(.82); } to { opacity: 1; transform: scale(1); } }
+    @keyframes glow { from { opacity: 0; } to { opacity: 1; } }
+  }
+
+  .wordmark { font-size: var(--step-2); font-weight: 700; letter-spacing: -.03em; }
+  .wordmark span { color: var(--muted); font-weight: 400; letter-spacing: 0; font-size: var(--step-0); display: block; }
+
+  /* ---- generic blocks ---------------------------------------------- */
+  .grid { display: grid; gap: 1rem; }
+  .cols-2 { grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
+  .cols-3 { grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.25rem 1.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+  .card h3 { font-size: var(--step-0); font-weight: 650; }
+  .card p { font-size: var(--step--1); color: var(--muted); line-height: 1.6; }
+
+  /* ---- palette ------------------------------------------------------ */
+  .swatch {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+  }
+  .chip { height: 84px; }
+  .swatch .meta { padding: .8rem .9rem 1rem; display: flex; flex-direction: column; gap: .15rem; }
+  .swatch .tj { font-weight: 650; font-size: var(--step-0); }
+  .swatch .en { color: var(--muted); font-size: var(--step--1); }
+  .swatch code {
+    font-family: var(--mono);
+    font-size: .74rem;
+    color: var(--muted);
+    letter-spacing: .02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- glyph specimen ----------------------------------------------- */
+  .glyphs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(4.2rem, 1fr));
+    gap: .5rem;
+  }
+  .glyph {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: .8rem .4rem .6rem;
+    text-align: center;
+  }
+  .glyph b { display: block; font-size: 1.9rem; font-weight: 600; line-height: 1.1; }
+  .glyph span { font-family: var(--mono); font-size: .66rem; color: var(--muted); }
+
+  /* ---- phone mockups ------------------------------------------------ */
+  .phones { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1.5rem; }
+
+  .phone {
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    min-height: 27rem;
+    font-size: .82rem;
+  }
+  /* Each mockup pins its own palette so both themes are visible at once,
+     whichever theme the page itself is being read in. */
+  .phone.night {
+    --p-ground: #0A1220; --p-surface: #111B2C; --p-line: #22314B;
+    --p-text: #E7EDF7; --p-muted: #8496B3; --p-tile: #32BBC8;
+    --p-mine: #14504A; --p-theirs: #18243A;
+  }
+  .phone.day {
+    --p-ground: #F4F7FB; --p-surface: #FFFFFF; --p-line: #DFE7F1;
+    --p-text: #0C1524; --p-muted: #5A6C88; --p-tile: #127D87;
+    --p-mine: #D2EEE9; --p-theirs: #FFFFFF;
+  }
+  .phone { background: var(--p-ground); color: var(--p-text); }
+
+  .phone .bar {
+    background: var(--p-surface);
+    border-bottom: 1px solid var(--p-line);
+    padding: .7rem .85rem;
+    display: flex; align-items: center; gap: .6rem;
+  }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%; flex: none;
+    background: var(--p-tile); color: var(--p-ground);
+    display: grid; place-items: center; font-weight: 700; font-size: .78rem;
+  }
+  .who { font-weight: 620; line-height: 1.25; }
+  .who small { display: block; font-weight: 400; color: var(--p-tile); font-size: .7rem; }
+
+  .thread { flex: 1; padding: .85rem; display: flex; flex-direction: column; gap: .4rem; }
+  .msg {
+    max-width: 78%; padding: .45rem .65rem; border-radius: 13px;
+    background: var(--p-theirs); align-self: flex-start; line-height: 1.45;
+    border: 1px solid var(--p-line);
+  }
+  .msg.mine { background: var(--p-mine); align-self: flex-end; border-color: transparent; }
+  .msg .t { display: block; font-size: .62rem; color: var(--p-muted); margin-top: .2rem; text-align: right; }
+  .phone.night .msg.mine .t { color: #9BD8D0; }
+
+  .composer {
+    border-top: 1px solid var(--p-line); background: var(--p-surface);
+    padding: .6rem .7rem; display: flex; gap: .5rem; align-items: center;
+  }
+  .field {
+    flex: 1; background: var(--p-ground); border: 1px solid var(--p-line);
+    border-radius: 999px; padding: .4rem .8rem; color: var(--p-muted); font-size: .78rem;
+  }
+  .send {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--p-tile);
+    display: grid; place-items: center; flex: none;
+  }
+  .send svg { width: 15px; height: 15px; fill: var(--p-ground); }
+
+  .caption { font-size: var(--step--1); color: var(--muted); text-align: center; margin-top: .6rem; }
+
+  /* ---- rejected ----------------------------------------------------- */
+  .rejects { display: flex; flex-direction: column; gap: .1rem; }
+  .reject {
+    display: grid; grid-template-columns: 2.2rem 1fr; gap: .9rem;
+    padding: .85rem 0; border-bottom: 1px solid var(--line); align-items: start;
+  }
+  .reject:last-child { border-bottom: 0; }
+  .dot { width: 2.2rem; height: 2.2rem; border-radius: 8px; border: 1px solid var(--line); }
+  .reject div p { font-size: var(--step--1); color: var(--muted); margin-top: .1rem; }
+  .reject div b { font-weight: 650; font-size: var(--step-0); }
+
+  /* ---- rules -------------------------------------------------------- */
+  .rule { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: baseline; }
+  .rule .n {
+    font-family: var(--mono); font-size: var(--step--1); color: var(--tile);
+    font-variant-numeric: tabular-nums;
+  }
+
+  hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
+
+  a { color: var(--tile); }
+  :focus-visible { outline: 2px solid var(--tile); outline-offset: 3px; border-radius: 4px; }
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="mark-row">
+      <svg class="mark" viewBox="0 0 100 100" role="img" aria-label="Sakina mark: a Pamiri skylight">
+        <rect x="12" y="12" width="76" height="76" rx="4" />
+        <rect x="24" y="24" width="52" height="52" rx="3" transform="rotate(45 50 50)" />
+        <rect x="33" y="33" width="34" height="34" rx="2" />
+        <rect class="core" x="42" y="42" width="16" height="16" rx="2" transform="rotate(45 50 50)" />
+      </svg>
+      <div class="wordmark">
+        Сакина
+        <span>сукунат — stillness</span>
+      </div>
+    </div>
+
+    <h1>A quiet app so the conversation can be loud.</h1>
+    <p class="lede">
+      Every messenger in this market shouts. Ours is named for tranquility, and
+      it should behave like it.
+    </p>
+    <p>
+      The mark is a <strong>chorkhona</strong> — the stepped skylight of a Pamiri
+      house, four squares each turned against the one below, opening to let light
+      into the home. It is the right shape for an app whose main job is keeping
+      families in touch across a border, and four straight-edged shapes cost a
+      budget phone almost nothing to paint. Small is where it does not hold up
+      yet: under about 32 pixels the strokes merge, so the launcher icon still
+      needs a solid-fill variant.
+    </p>
+  </header>
+
+  <hr />
+
+  <section>
+    <p class="eyebrow">The ground</p>
+    <h2>Lapis night, firuza tile</h2>
+    <p>
+      Dark first, and not for fashion. It is what an OLED-less budget Android
+      spends least battery on, what stays readable in mountain sun, and what a
+      word meaning <em>stillness</em> actually looks like. Light is a complete,
+      equally-designed swap — not an afterthought inversion.
+    </p>
+
+    <div class="grid cols-3">
+      <div class="swatch">
+        <div class="chip" style="background:#0A1220"></div>
+        <div class="meta">
+          <span class="tj">Шаб</span>
+          <span class="en">night — the ground</span>
+          <code>#0A1220</code>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background:#32BBC8"></div>
+        <div class="meta">
+          <span class="tj">Фирӯза</span>
+          <span class="en">turquoise — the one accent</span>
+          <code>#32BBC8 / #127D87</code>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background:#E3AC55"></div>
+        <div class="meta">
+          <span class="tj">Заъфарон</span>
+          <span class="en">saffron — rare, warm moments</span>
+          <code>#E3AC55 / #B07A1E</code>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background:#D25A54"></div>
+        <div class="meta">
+          <span class="tj">Анор</span>
+          <span class="en">pomegranate — only for loss</span>
+          <code>#D25A54 / #B23B36</code>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background:#18243A"></div>
+        <div class="meta">
+          <span class="tj">Сурфа</span>
+          <span class="en">surface — cards, bubbles</span>
+          <code>#18243A / #FFFFFF</code>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background:#8496B3"></div>
+        <div class="meta">
+          <span class="tj">Кӯҳ</span>
+          <span class="en">mountain — secondary text</span>
+          <code>#8496B3 / #5A6C88</code>
+        </div>
+      </div>
+    </div>
+
+    <p class="note">
+      Firuza is the glaze on Samanid tilework — the dynasty Tajik national
+      identity is built on. It is ours in a way a flag colour is not, and it is
+      nobody else's in this category.
+    </p>
+  </section>
+
+  <hr />
+
+  <section>
+    <p class="eyebrow">Ruled out</p>
+    <h2>What we are deliberately not</h2>
+    <div class="rejects">
+      <div class="reject">
+        <div class="dot" style="background:#229ED9"></div>
+        <div>
+          <b>Telegram blue</b>
+          <p>The incumbent's colour. Adopting it reads as imitation, and we are
+             asking people to switch, not to squint.</p>
+        </div>
+      </div>
+      <div class="reject">
+        <div class="dot" style="background:#25D366"></div>
+        <div>
+          <b>WhatsApp green</b>
+          <p>Also the instinctive "Islamic green". It is the most-used messenger
+             in Tajikistan — the one colour guaranteed to be misread as a clone.</p>
+        </div>
+      </div>
+      <div class="reject">
+        <div class="dot" style="background:linear-gradient(180deg,#CC0000 33%,#FFFFFF 33% 66%,#006600 66%)"></div>
+        <div>
+          <b>The flag palette</b>
+          <p>A state messenger already launched here. Wearing the flag invites
+             exactly the comparison we need to avoid.</p>
+        </div>
+      </div>
+      <div class="reject">
+        <div class="dot" style="background:linear-gradient(45deg,#E0353A 20%,#F2C14E 20% 40%,#3EA9A0 40% 60%,#E0353A 60% 80%,#2C3E70 80%)"></div>
+        <div>
+          <b>Atlas stripes as chrome</b>
+          <p>The rainbow ikat silk is the most recognisable Tajik pattern there
+             is — and unreadable behind text. It belongs in stickers, not the UI.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <section>
+    <p class="eyebrow">Type</p>
+    <h2>Six letters decide the font</h2>
+    <p>
+      Tajik Cyrillic adds characters that plain Russian fonts do not carry. Pick
+      a face without them and the app falls back mid-word — the fastest possible
+      way to look foreign. Every candidate gets tested on these six first. The
+      specimen below is live: if you can see the macrons on Ӣ and Ӯ and the
+      descenders on Қ, Ҳ and Ҷ, the face you are reading this in has them.
+    </p>
+
+    <div class="glyphs">
+      <div class="glyph"><b>Ғ ғ</b><span>U+0492</span></div>
+      <div class="glyph"><b>Ӣ ӣ</b><span>U+04E2</span></div>
+      <div class="glyph"><b>Қ қ</b><span>U+049A</span></div>
+      <div class="glyph"><b>Ӯ ӯ</b><span>U+04EE</span></div>
+      <div class="glyph"><b>Ҳ ҳ</b><span>U+04B2</span></div>
+      <div class="glyph"><b>Ҷ ҷ</b><span>U+04B6</span></div>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>Interface — Noto Sans</h3>
+        <p>Chosen because coverage is its entire reason for existing. Ships with
+           Android, so no download on a metered connection, and it renders all
+           six without falling back.</p>
+      </div>
+      <div class="card">
+        <h3>Numbers — tabular</h3>
+        <p>Timestamps, unread counts, and one day payment amounts sit in columns.
+           Lining figures stop them shifting as they tick.</p>
+      </div>
+    </div>
+
+    <p class="note">
+      Sentence case everywhere. Tajik and Russian both read badly in ALL CAPS,
+      and shouting is off-brief.
+    </p>
+  </section>
+
+  <hr />
+
+  <section>
+    <p class="eyebrow">The interface</p>
+    <h2>Telegram's shape, our temperature</h2>
+    <p>
+      The layout is familiar on purpose: chat list, thread, composer at the
+      bottom, mine on the right. Familiarity is free adoption, and every
+      gratuitous difference is a tax paid by someone deciding whether to switch.
+      What changes is the temperature — softer contrast, one accent instead of
+      five, and space where other apps put dividers.
+    </p>
+
+    <div class="phones">
+      <div>
+        <div class="phone night">
+          <div class="bar">
+            <div class="avatar">Ф</div>
+            <div class="who">Фаррух<small>дар шабака</small></div>
+          </div>
+          <div class="thread">
+            <div class="msg">Салом! Расидӣ?<span class="t">14:02</span></div>
+            <div class="msg mine">Ҳа, ҳозир дар Маскав. Ҳама чиз хуб.<span class="t">14:03 ✓✓</span></div>
+            <div class="msg">Шукр. Модар пурсид.<span class="t">14:03</span></div>
+            <div class="msg mine">Пагоҳ занг мезанам.<span class="t">14:04 ✓</span></div>
+          </div>
+          <div class="composer">
+            <div class="field">Паём…</div>
+            <div class="send"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></div>
+          </div>
+        </div>
+        <p class="caption">Шаб — the default</p>
+      </div>
+
+      <div>
+        <div class="phone day">
+          <div class="bar">
+            <div class="avatar">Ф</div>
+            <div class="who">Фаррух<small>дар шабака</small></div>
+          </div>
+          <div class="thread">
+            <div class="msg">Салом! Расидӣ?<span class="t">14:02</span></div>
+            <div class="msg mine">Ҳа, ҳозир дар Маскав. Ҳама чиз хуб.<span class="t">14:03 ✓✓</span></div>
+            <div class="msg">Шукр. Модар пурсид.<span class="t">14:03</span></div>
+            <div class="msg mine">Пагоҳ занг мезанам.<span class="t">14:04 ✓</span></div>
+          </div>
+          <div class="composer">
+            <div class="field">Паём…</div>
+            <div class="send"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></div>
+          </div>
+        </div>
+        <p class="caption">Рӯз — bright sun, low battery</p>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <section>
+    <p class="eyebrow">Rules</p>
+    <h2>Five things that keep it ours</h2>
+
+    <div class="grid">
+      <div class="rule">
+        <span class="n">01</span>
+        <div>
+          <b>One accent, and it is firuza.</b>
+          <p class="note">Saffron is for rare warmth — a Navruz greeting, a
+             pinned chat. Pomegranate appears only when something is lost or
+             destroyed. A screen with three accent colours has none.</p>
+        </div>
+      </div>
+      <div class="rule">
+        <span class="n">02</span>
+        <div>
+          <b>The chrome is quiet so the content can be loud.</b>
+          <p class="note">Stickers, photos and voice notes carry the colour and
+             the humour. The frame around them stays still.</p>
+        </div>
+      </div>
+      <div class="rule">
+        <span class="n">03</span>
+        <div>
+          <b>Motion settles, never bounces.</b>
+          <p class="note">Short, soft easing under 200ms. No springs, no
+             overshoot. It reads as calm and it costs a budget phone nothing —
+             the aesthetic and the constraint agree.</p>
+        </div>
+      </div>
+      <div class="rule">
+        <span class="n">04</span>
+        <div>
+          <b>Space instead of lines.</b>
+          <p class="note">Separate groups with room, not dividers. Fewer strokes
+             means less to render and less to look at.</p>
+        </div>
+      </div>
+      <div class="rule">
+        <span class="n">05</span>
+        <div>
+          <b>Tajik decides the layout, not English.</b>
+          <p class="note">Tajik strings run roughly a third longer than their
+             English equivalents. Every button is sized against the Tajik word
+             first, or the UI breaks in the only language that matters.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
